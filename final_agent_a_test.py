@@ -7,9 +7,11 @@ Tests the complete MicroCFO workflow
 import os
 import json
 
-# Set API keys
-os.environ['GEMINI_API_KEY'] = 'AIzaSyBYF5rjxv8YzTZ5UJciZ_c3PHzOaKNUm7g'
-os.environ['GOOGLE_API_KEY'] = 'AIzaSyBYF5rjxv8YzTZ5UJciZ_c3PHzOaKNUm7g'
+# SECURITY: Load API keys from environment variables only
+# Set your API key before running:
+#   Windows: set GEMINI_API_KEY=your-key-here
+#   Unix/Mac: export GEMINI_API_KEY=your-key-here
+# Or create a .env file (see .env.example)
 
 def test_complete_workflow():
     """Test the complete Agent A workflow"""
