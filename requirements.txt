@@ -1,0 +1,12 @@
+fastmcp
+pydantic
+httpx
+chromadb
+sentence-transformers
+pypdf2
+beautifulsoup4
+lxml
+schedule
+torch
+google-generativeai
+pillow

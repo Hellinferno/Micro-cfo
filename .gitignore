@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Vector Databases (runtime generated)
+legal_db/
+scheme_db/
+test_legal_db/
+test_scheme_db/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# API Keys and Secrets
+.env
+*.key
+secrets.json
+
+# Test outputs
+*.log
+test_output/
+
+# Images (optional - keep sample images)
+# *.png
+# *.jpg
+# *.jpeg
