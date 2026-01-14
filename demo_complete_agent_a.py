@@ -4,12 +4,15 @@ Complete Demo of Agent A - Visual Auditor with Real Invoice Processing
 Shows the full workflow from image to structured data with orchestrator triggers
 """
 
+# SECURITY: Load API keys from environment variables only
+# Set your API key before running:
+#   Windows: set GEMINI_API_KEY=your-key-here
+#   Unix/Mac: export GEMINI_API_KEY=your-key-here
+# Or create a .env file (see .env.example)
+
 import os
 import json
 from datetime import datetime
-
-# Set your OpenRouter API key
-os.environ['OPENROUTER_API_KEY'] = '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'
 
 print("🎯 MicroCFO Agent A - Complete Demo")
 print("=" * 60)

@@ -10,8 +10,9 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import base64
 
-# Set your Gemini API key
-os.environ['GEMINI_API_KEY'] = 'AIzaSyBYF5rjxv8YzTZ5UJciZ_c3PHzOaKNUm7g'
+# SECURITY: Load API keys from environment variables only
+# Set your API key before running: export GEMINI_API_KEY='your-key-here'
+# Or create a .env file (see .env.example)
 
 def create_sample_invoice_image():
     """Create a sample invoice image for testing"""

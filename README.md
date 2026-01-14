@@ -209,14 +209,34 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure API Keys
-```bash
-# Set your Gemini API key for Agent A (Visual Auditor)
-set GEMINI_API_KEY=your_gemini_api_key_here
-set GOOGLE_API_KEY=your_gemini_api_key_here
+### 4. Configure API Keys (IMPORTANT - Security)
 
-# Get free API key from: https://makersuite.google.com/app/apikey
+**⚠️ NEVER commit API keys to git!**
+
+Create a `.env` file from the template:
+```bash
+cp .env.example .env
 ```
+
+Edit `.env` and add your actual API keys:
+```bash
+# Get your Gemini API key from: https://makersuite.google.com/app/apikey
+GEMINI_API_KEY=your_actual_gemini_key_here
+
+# Or use OpenRouter: https://openrouter.ai/keys
+OPENROUTER_API_KEY=your_actual_openrouter_key_here
+```
+
+**Alternative: Set environment variables directly**
+```bash
+# Windows PowerShell
+$env:GEMINI_API_KEY="your_key_here"
+
+# Unix/Linux/Mac
+export GEMINI_API_KEY="your_key_here"
+```
+
+**📖 See [SECURITY.md](SECURITY.md) for complete security guidelines**
 
 ### 5. Initialize Legal Database
 ```bash

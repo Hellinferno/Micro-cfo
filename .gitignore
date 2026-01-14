@@ -25,10 +25,14 @@ test_scheme_db/
 .DS_Store
 Thumbs.db
 
-# API Keys and Secrets
+# API Keys and Secrets (CRITICAL - NEVER COMMIT THESE!)
 .env
+.env.local
 *.key
+*.pem
 secrets.json
+config.json
+credentials.json
 
 # Test outputs
 *.log

@@ -9,13 +9,19 @@ import base64
 from PIL import Image, ImageDraw, ImageFont
 import io
 
-# Set API key
-os.environ['GEMINI_API_KEY'] = 'AIzaSyBYF5rjxv8YzTZ5UJciZ_c3PHzOaKNUm7g'
+# SECURITY: Load API keys from environment variables only
+# Set your API key before running: export GEMINI_API_KEY='your-key-here'
+# Or create a .env file (see .env.example)
 
 # Import Gemini
 try:
     import google.generativeai as genai
-    genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+    api_key = os.getenv('GEMINI_API_KEY')
+    if not api_key:
+        print("❌ GEMINI_API_KEY not set. Please set it as an environment variable.")
+        print("   Example: export GEMINI_API_KEY='your-key-here'")
+        exit(1)
+    genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash')
     print("✅ Gemini 2.5 Flash configured")
 except Exception as e:

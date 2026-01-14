@@ -6,8 +6,9 @@ Quick test for Agent A - Visual Auditor
 import os
 import sys
 
-# Set the API key for this session
-os.environ['OPENROUTER_API_KEY'] = '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'
+# SECURITY: Load API keys from environment variables only
+# Set your API key before running: export OPENROUTER_API_KEY='your-key-here'
+# Or create a .env file (see .env.example)
 
 print("🔍 Testing Agent A - Visual Auditor")
 print("=" * 50)

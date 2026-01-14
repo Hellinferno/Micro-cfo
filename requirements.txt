@@ -10,3 +10,4 @@ schedule
 torch
 google-generativeai
 pillow
+python-dotenv
