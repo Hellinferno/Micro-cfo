@@ -1,0 +1,4 @@
+# file: D:\CFO\auth.py
+# hypothesis_version: 6.150.2
+
+['Business name', 'Token has expired', 'User email address', 'User permissions', 'accountant', 'auto', 'bcrypt', 'business_name', 'business_owner', 'email', 'exp', 'iat', 'industry_code', 'permissions', 'role', 'sub', 'turnover_tier', 'viewer']

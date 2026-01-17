@@ -1,0 +1,4 @@
+# file: D:\CFO\routers\websocket.py
+# hypothesis_version: 6.150.2
+
+[1008, '/connect', '/stats', '/ws', 'Invalid JSON format', 'active_connections', 'alive', 'business_name', 'categories', 'data', 'error', 'heartbeat', 'heartbeat_ack', 'industry_code', 'message', 'rooms', 'status', 'subscribe_updates', 'timestamp', 'total_rooms', 'turnover_tier', 'type', 'unsubscribe_updates', 'user_id', 'websocket']

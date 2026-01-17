@@ -1,0 +1,4 @@
+# file: D:\CFO\routers\visual_auditor.py
+# hypothesis_version: 6.150.2
+
+[0.0, 1.0, 1024, '.jpeg', '.jpg', '.pdf', '.png', '/health', '/scan-invoice', '/upload-document', 'Visual Auditor', 'agent', 'amount', 'application/pdf', 'category', 'compliance_flags', 'confidence_score', 'description', 'endpoints', 'file_id', 'file_size', 'file_type', 'filename', 'gstin', 'healthy', 'image/jpeg', 'image/jpg', 'image/png', 'invoice_data', 'invoice_date', 'is_handwritten', 'line_items', 'message', 'rb', 'result', 'size', 'status', 'success', 'tampering_detected', 'tax_amount', 'temp_uploads', 'timestamp', 'total_amount', 'unknown', 'utf-8', 'vendor_name', 'wb']

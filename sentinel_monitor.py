@@ -10,19 +10,21 @@ import schedule
 import time
 import json
 import os
+import asyncio
 from datetime import datetime, timedelta
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional
 from legal_ingestion import LegalDocumentProcessor
 from vector_database import LegalVectorDB
 
 class LegalSentinel:
     """Monitors legal updates and sends alerts"""
     
-    def __init__(self, db_path: str = "./legal_db"):
+    def __init__(self, db_path: str = "./legal_db", websocket_manager=None):
         self.db_path = db_path
         self.vector_db = LegalVectorDB(db_path)
         self.processor = LegalDocumentProcessor()
         self.seen_notifications = self._load_seen_notifications()
+        self.websocket_manager = websocket_manager
         
         # Government websites to monitor
         self.monitoring_urls = {
@@ -90,7 +92,7 @@ class LegalSentinel:
         for profile in user_profiles:
             # Check sector relevance
             industry = profile.get('industry_code', '').lower()
-            if industry in title:
+            if industry and industry in title:
                 relevant_users.append(profile)
                 continue
             
@@ -102,6 +104,66 @@ class LegalSentinel:
                 relevant_users.append(profile)
         
         return relevant_users
+    
+    async def send_websocket_alert(self, user_id: str, notification: Dict[str, str]):
+        """
+        Send real-time alert via WebSocket
+        
+        Args:
+            user_id: User identifier
+            notification: Notification data
+        """
+        if not self.websocket_manager:
+            return
+        
+        from websocket_manager import WebSocketMessage
+        
+        # Send to user-specific room
+        message = WebSocketMessage(
+            type="legal_update",
+            data={
+                "title": notification['title'],
+                "source": notification['source'],
+                "law_type": notification['law_type'],
+                "url": notification['url'],
+                "date_found": notification['date_found'][:10],
+                "relevance": "high",
+                "notification_id": notification['id']
+            }
+        )
+        
+        await self.websocket_manager.send_personal_message(user_id, message)
+    
+    async def broadcast_to_industry(self, industry_code: str, notification: Dict[str, str]):
+        """
+        Broadcast notification to all users in an industry
+        
+        Args:
+            industry_code: Industry classification code
+            notification: Notification data
+        """
+        if not self.websocket_manager:
+            return
+        
+        from websocket_manager import WebSocketMessage
+        
+        room = f"industry:{industry_code}"
+        
+        message = WebSocketMessage(
+            type="legal_update",
+            data={
+                "title": notification['title'],
+                "source": notification['source'],
+                "law_type": notification['law_type'],
+                "url": notification['url'],
+                "date_found": notification['date_found'][:10],
+                "relevance": "medium",
+                "notification_id": notification['id'],
+                "target_industry": industry_code
+            }
+        )
+        
+        await self.websocket_manager.broadcast_to_room(room, message)
     
     def send_whatsapp_alert(self, user_profile: Dict, notification: Dict[str, str]):
         """Send WhatsApp alert (placeholder - integrate with WhatsApp Business API)"""
@@ -162,12 +224,14 @@ Please review this notification and consult your CA if needed.
         # Load user profiles (in real implementation, from database)
         sample_profiles = [
             {
+                'user_id': 'user_textile_001',
                 'business_name': 'Textile Mills Ltd',
                 'industry_code': 'textile',
                 'turnover_tier': '5-20Cr',
                 'phone': '+91XXXXXXXXXX'
             },
             {
+                'user_id': 'user_trading_001',
                 'business_name': 'Small Traders',
                 'industry_code': 'trading',
                 'turnover_tier': '< 5Cr',
@@ -194,7 +258,23 @@ Please review this notification and consult your CA if needed.
             
             # Send alerts to relevant users
             for user in relevant_users:
+                # Send WhatsApp alert (legacy)
                 self.send_whatsapp_alert(user, notification)
+                
+                # Send WebSocket alert (real-time)
+                if self.websocket_manager:
+                    asyncio.create_task(
+                        self.send_websocket_alert(user['user_id'], notification)
+                    )
+            
+            # Broadcast to industry rooms if applicable
+            if self.websocket_manager:
+                title_lower = notification['title'].lower()
+                for industry in ['textile', 'trading', 'manufacturing', 'technology']:
+                    if industry in title_lower:
+                        asyncio.create_task(
+                            self.broadcast_to_industry(industry, notification)
+                        )
         
         # Save seen notifications
         self._save_seen_notifications()

@@ -11,3 +11,8 @@ torch
 google-generativeai
 pillow
 python-dotenv
+fastapi
+uvicorn[standard]
+python-multipart
+pyjwt
+passlib[bcrypt]

@@ -1,0 +1,4 @@
+# file: D:\CFO\routers\auth.py
+# hypothesis_version: 6.150.2
+
+[3600, '/auth', '/login', '/logout', '/profile', '/refresh', '5-20Cr', 'Authentication', 'Bearer', 'JWT access token', 'Logout successful', 'New JWT access token', 'Regular', 'Textile', 'Token type', 'User email address', 'User password', 'WWW-Authenticate', 'bearer', 'message', 'owner@example.com', 'password', 'password123', 'user_001', 'user_002', 'user_003', 'user_context', 'user_id', 'viewer@example.com']

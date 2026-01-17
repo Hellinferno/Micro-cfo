@@ -1,0 +1,4 @@
+# file: D:\CFO\routers\subsidy_hunter.py
+# hypothesis_version: 6.150.2
+
+[100, 10000000000, '/find-subsidies', '/health', 'Business sector', 'Subsidy Hunter', 'agent', 'capex_amount', 'endpoints', 'error', 'healthy', 'result', 'sector', 'status', 'success', 'timestamp']

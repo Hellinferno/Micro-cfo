@@ -1,0 +1,4 @@
+# file: D:\CFO\file_validator.py
+# hypothesis_version: 6.150.2
+
+[b'%%EOF', b'%PDF-', b'/XRef', b'IEND', b'IHDR', b'xref', b'\x89PNG\r\n\x1a\n', b'\xff', b'\xff\xd8', b'\xff\xd8\xff\xdb', b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1', b'\xff\xd8\xff\xe2', b'\xff\xd8\xff\xe3', b'\xff\xd8\xff\xe8', b'\xff\xd8\xff\xee', b'\xff\xd9', 1.0, 2.0, 1024, 65535, 'Invalid PDF header', 'ascii', 'big', 'jpeg', 'pdf', 'png', 'rb', 'unknown']

@@ -1,0 +1,4 @@
+# file: D:\CFO\integration_server.py
+# hypothesis_version: 6.150.2
+
+[3600, '*', '/', '/docs', '/health', '/mcp/test', '/redoc', '/status', '__main__', 'api_version', 'cache', 'connection_pool', 'development', 'disabled', 'docs_url', 'health_url', 'healthy', 'info', 'message', 'name', 'production', 'rate_limiter', 'ready', 'resource_queue', 'running', 'status', 'success', 'test_result', 'v1', 'version', 'warning']

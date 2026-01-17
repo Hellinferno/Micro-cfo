@@ -1,0 +1,4 @@
+# file: D:\CFO\connection_pool.py
+# hypothesis_version: 6.150.2
+
+[0.0, 100, 'active_connections', 'active_operations', 'max_concurrent', 'max_connections', 'max_queue_size', 'queue_size', 'queued_requests', 'rejected_requests', 'total_operations', 'total_requests']

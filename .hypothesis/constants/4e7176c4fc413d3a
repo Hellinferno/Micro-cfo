@@ -1,0 +1,4 @@
+# file: D:\CFO\legal_ingestion.py
+# hypothesis_version: 6.150.2
+
+[10000000, 'GST', '^Notification\\s+No\\.', '^Rule\\s+(\\d+[A-Z]*)', '^\\s*Provided\\s+that', '^\\s*\\([a-z0-9]+\\)', '__main__', 'main', 'manufacturing', 'proviso', 'r', 'sub_clause', 'technology', 'textile', 'utf-8', 'works_contract']
