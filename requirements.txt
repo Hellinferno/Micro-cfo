@@ -23,3 +23,5 @@ kombu
 sqlalchemy
 psycopg2-binary
 alembic
+boto3
+azure-ai-formrecognizer
