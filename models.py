@@ -1,0 +1,170 @@
+"""
+SQLAlchemy ORM Models for MicroCFO
+Maps to PostgreSQL database schema
+"""
+
+from sqlalchemy import (
+    Column, String, Boolean, DateTime, Date, Numeric, Text,
+    ForeignKey, Index, DECIMAL, Integer
+)
+from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from database import Base
+import uuid
+
+class User(Base):
+    """User model for authentication and profile"""
+    __tablename__ = 'users'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(255))
+    company_name = Column(String(255))
+    business_sector = Column(String(100))
+    turnover_tier = Column(String(50))
+    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    invoices = relationship("Invoice", back_populates="user", cascade="all, delete-orphan")
+    legal_queries = relationship("LegalQuery", back_populates="user", cascade="all, delete-orphan")
+    subsidy_applications = relationship("SubsidyApplication", back_populates="user", cascade="all, delete-orphan")
+    negotiations = relationship("Negotiation", back_populates="user", cascade="all, delete-orphan")
+    audit_logs = relationship("AuditLog", back_populates="user")
+    
+    def __repr__(self):
+        return f"<User(email='{self.email}', company='{self.company_name}')>"
+
+class UserProfile(Base):
+    """Extended user profile with business details"""
+    __tablename__ = 'user_profiles'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    business_type = Column(String(100))
+    gst_number = Column(String(50))
+    pan_number = Column(String(20))
+    registered_address = Column(Text)
+    preferences = Column(JSONB, default={})
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="profile")
+    
+    def __repr__(self):
+        return f"<UserProfile(user_id='{self.user_id}', gst='{self.gst_number}')>"
+
+class Invoice(Base):
+    """Invoice records from Agent A (Visual Auditor)"""
+    __tablename__ = 'invoices'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    invoice_number = Column(String(100))
+    vendor_name = Column(String(255))
+    invoice_date = Column(Date)
+    due_date = Column(Date)
+    total_amount = Column(DECIMAL(15, 2))
+    tax_amount = Column(DECIMAL(15, 2))
+    currency = Column(String(10), default='INR')
+    status = Column(String(50), default='pending', index=True)
+    file_path = Column(Text)
+    extracted_data = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="invoices")
+    
+    def __repr__(self):
+        return f"<Invoice(number='{self.invoice_number}', vendor='{self.vendor_name}', amount={self.total_amount})>"
+
+class LegalQuery(Base):
+    """Legal compliance queries from Agent B (Legal Sentinel)"""
+    __tablename__ = 'legal_queries'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    query_text = Column(Text, nullable=False)
+    response_text = Column(Text)
+    risk_level = Column(String(20))
+    relevant_sections = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="legal_queries")
+    
+    def __repr__(self):
+        return f"<LegalQuery(user_id='{self.user_id}', risk='{self.risk_level}')>"
+
+class SubsidyApplication(Base):
+    """Subsidy applications from Agent C (Subsidy Hunter)"""
+    __tablename__ = 'subsidy_applications'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    scheme_name = Column(String(255))
+    scheme_description = Column(Text)
+    eligibility_status = Column(String(50))
+    application_status = Column(String(50), default='draft')
+    applied_date = Column(Date)
+    scheme_data = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="subsidy_applications")
+    
+    def __repr__(self):
+        return f"<SubsidyApplication(scheme='{self.scheme_name}', status='{self.application_status}')>"
+
+class Negotiation(Base):
+    """Negotiation emails from Agent D (Negotiator)"""
+    __tablename__ = 'negotiations'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    vendor_name = Column(String(255))
+    negotiation_type = Column(String(100))
+    email_content = Column(Text)
+    status = Column(String(50), default='draft')
+    sent_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", back_populates="negotiations")
+    
+    def __repr__(self):
+        return f"<Negotiation(vendor='{self.vendor_name}', type='{self.negotiation_type}')>"
+
+class AuditLog(Base):
+    """Audit trail for all user actions"""
+    __tablename__ = 'audit_logs'
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='SET NULL'), index=True)
+    action = Column(String(100), nullable=False)
+    resource_type = Column(String(100))
+    resource_id = Column(UUID(as_uuid=True))
+    details = Column(JSONB)
+    ip_address = Column(INET)
+    user_agent = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    
+    # Relationships
+    user = relationship("User", back_populates="audit_logs")
+    
+    def __repr__(self):
+        return f"<AuditLog(action='{self.action}', resource='{self.resource_type}')>"
+
+# Create indexes
+Index('idx_invoices_user_status', Invoice.user_id, Invoice.status)
+Index('idx_legal_queries_user_created', LegalQuery.user_id, LegalQuery.created_at)
+Index('idx_subsidy_apps_user_status', SubsidyApplication.user_id, SubsidyApplication.application_status)

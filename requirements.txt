@@ -20,3 +20,6 @@ celery[redis]
 redis
 flower
 kombu
+sqlalchemy
+psycopg2-binary
+alembic
