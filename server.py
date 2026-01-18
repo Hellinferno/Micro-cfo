@@ -475,7 +475,10 @@ def check_compliance_law(query: str, user_context: str = "") -> LegalRisk:
             return LegalRisk(
                 risk_level=RiskLevel.LOW,
                 relevant_section="No applicable provisions found",
-                compliant_action=f"Based on your turnover tier ({profile.get('turnover_tier', 'unknown')}), you may be exempt from the queried provisions. Consult a CA for confirmation."
+                compliant_action=(
+                    f"Based on your turnover tier ({profile.get('turnover_tier', 'unknown')}), "
+                    "you may be exempt from the queried provisions. Consult a CA for confirmation."
+                )
             )
         
         # Analyze the most relevant chunk
@@ -502,7 +505,10 @@ def check_compliance_law(query: str, user_context: str = "") -> LegalRisk:
                 threshold = float(metadata['turnover_threshold'])
                 threshold_cr = threshold / 10000000
                 if user_turnover > 0 and user_turnover < threshold:
-                    compliant_action = f"EXEMPT: Your turnover ({profile.get('turnover_tier', 'unknown')}) is below the {threshold_cr} crore threshold. This provision does not apply to you."
+                    compliant_action = (
+                        f"EXEMPT: Your turnover ({profile.get('turnover_tier', 'unknown')}) "
+                        f"is below the {threshold_cr} crore threshold. This provision does not apply to you."
+                    )
                 else:
                     compliant_action = f"APPLICABLE: Your turnover exceeds {threshold_cr} crore threshold. "
             except ValueError:
@@ -577,7 +583,10 @@ def find_applicable_subsidies(sector: str, capex_amount: float) -> str:
         
         if not eligible_schemes:
             # Fallback to simple logic if no schemes found
-            return f"No specific schemes found in database. General recommendation: Check MSME schemes for {sector} sector with investment of ₹{capex_amount:,.0f}"
+            return (
+                f"No specific schemes found in database. General recommendation: "
+                f"Check MSME schemes for {sector} sector with investment of ₹{capex_amount:,.0f}"
+            )
         
         # Step 3: Benefit Calculation (The CA Touch)
         results = []
