@@ -1,0 +1,139 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: microcfo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-microcfo}
+      POSTGRES_USER: ${POSTGRES_USER:-microcfo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-microcfo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microcfo-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: microcfo-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - microcfo-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microcfo-backend
+    restart: unless-stopped
+    environment:
+      # Server configuration
+      HOST: 0.0.0.0
+      PORT: 8000
+      DEBUG: ${DEBUG:-false}
+      
+      # Database configuration
+      DATABASE_URL: postgresql://${POSTGRES_USER:-microcfo}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-microcfo}
+      
+      # Redis configuration
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      
+      # Security
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRATION_HOURS: 24
+      
+      # CORS
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      
+      # API Keys (from .env file)
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      
+      # Python environment
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    volumes:
+      # Persistent data volumes
+      - legal_db:/app/legal_db
+      - scheme_db:/app/scheme_db
+      - temp_uploads:/app/temp_uploads
+      - logs:/app/logs
+      # Mount .env file for API keys
+      - ./.env:/app/.env:ro
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - microcfo-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: microcfo-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - microcfo-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  legal_db:
+    driver: local
+  scheme_db:
+    driver: local
+  temp_uploads:
+    driver: local
+  logs:
+    driver: local
+
+networks:
+  microcfo-network:
+    driver: bridge

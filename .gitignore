@@ -42,3 +42,21 @@ test_output/
 # *.png
 # *.jpg
 # *.jpeg
+
+# Docker
+.env
+.env.local
+.env.production
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+
+# Temporary uploads
+temp_uploads/
+
+# Database backups
+*.sql
+*.dump
+backup/
