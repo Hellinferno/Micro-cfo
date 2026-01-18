@@ -44,7 +44,22 @@ class APIConfig(BaseModel):
     """API configuration settings"""
     v1_prefix: str = "/api/v1"
     title: str = "MicroCFO Integration API"
-    description: str = "FastAPI integration layer for MicroCFO MCP Server"
+    description: str = """
+The MicroCFO Integration API provides a comprehensive suite of endpoints to power AI-driven financial operations. It acts as a bridge between a frontend application and the backend Model Context Protocol (MCP) server where the intelligent agents (Visual Auditor, Legal Sentinel, etc.) reside.
+
+The API is organized into the following functional areas:
+
+- **Authentication**: Endpoints for user login, profile management, and JWT token handling.
+- **Onboarding**: A step-by-step flow for setting up new user and company profiles.
+- **Visual Auditor (Agent A)**: Process invoices from URLs or direct file uploads to extract data, detect fraud, and check for compliance issues.
+- **Legal Sentinel (Agent B)**: Query the legislative RAG for compliance information and risk assessment.
+- **Subsidy Hunter (Agent C)**: Discover applicable government subsidies based on a business sector and capital expenditure.
+- **Negotiator (Agent D)**: Generate professional negotiation drafts (emails, WhatsApp messages) for managing payables and receivables.
+- **ERP Export**: Export processed invoice data into formats compatible with Tally, Zoho Books, and standard CSV/JSON.
+- **Async Tasks**: Submit long-running jobs like document processing and retrieve their status and results asynchronously.
+- **Audit Trail**: Query and export comprehensive audit logs for all system activities.
+- **WebSocket**: A real-time communication channel for receiving live updates, such as legal notifications and processing statuses.
+"""
     version: str = "1.0.0"
 
 

@@ -9,6 +9,7 @@ lxml
 schedule
 torch
 google-generativeai
+google-genai>=0.2.0
 pillow
 python-dotenv
 fastapi

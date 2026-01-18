@@ -89,7 +89,8 @@ jobs:
 
       - name: Initialize database
         run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -d microcfo -f init-db.sql
+          # Use Alembic to create tables instead of missing SQL file
+          alembic upgrade head
 
       - name: Run integration tests
         run: |
