@@ -14,7 +14,7 @@ from tasks import (
     search_subsidies_async,
     generate_negotiation_email_async
 )
-from middleware.authorization import get_current_user
+from middleware.auth import get_current_user, UserContext
 import os
 import uuid
 from datetime import datetime

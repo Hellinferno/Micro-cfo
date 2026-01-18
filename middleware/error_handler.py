@@ -328,4 +328,4 @@ def register_error_handlers(app):
             expose_details=expose_details
         )
     
-    logger.info("✅ Error handlers registered successfully")
+    logger.info("Error handlers registered successfully")

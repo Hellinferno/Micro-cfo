@@ -43,15 +43,15 @@ class ErrorResponse(BaseModel):
 async def lifespan(app: FastAPI):
     """Manage application startup and shutdown"""
     # Startup
-    logger.info("🚀 Starting MicroCFO Integration Server")
-    logger.info(f"📡 CORS enabled for origins: {config.cors.allowed_origins}")
-    logger.info(f"🔧 Debug mode: {config.server.debug}")
-    logger.info(f"🌐 Server will run on {config.server.host}:{config.server.port}")
+    logger.info("Starting MicroCFO Integration Server")
+    logger.info(f"CORS enabled for origins: {config.cors.allowed_origins}")
+    logger.info(f"Debug mode: {config.server.debug}")
+    logger.info(f"Server will run on {config.server.host}:{config.server.port}")
     
     # Initialize MCP bridge
     mcp_bridge = MCPBridge()
     app.state.mcp_bridge = mcp_bridge
-    logger.info("✅ MCP Bridge initialized successfully")
+    logger.info("MCP Bridge initialized successfully")
     
     # Initialize Legal Sentinel with WebSocket manager
     from websocket_manager import websocket_manager
@@ -63,9 +63,9 @@ async def lifespan(app: FastAPI):
     
     sentinel = LegalSentinel(websocket_manager=websocket_manager)
     app.state.sentinel = sentinel
-    logger.info("✅ Legal Sentinel initialized with WebSocket support")
-    logger.info("✅ Operation Tracker initialized with WebSocket support")
-    
+    logger.info("Legal Sentinel initialized with WebSocket support")
+    logger.info("Operation Tracker initialized with WebSocket support")
+
     # Start WebSocket heartbeat checker
     from websocket_manager import websocket_manager
     import asyncio
@@ -84,13 +84,13 @@ async def lifespan(app: FastAPI):
     
     heartbeat_task = asyncio.create_task(heartbeat_checker())
     cleanup_task = asyncio.create_task(operation_cleanup())
-    logger.info("✅ WebSocket heartbeat checker started")
-    logger.info("✅ Operation cleanup task started")
+    logger.info("WebSocket heartbeat checker started")
+    logger.info("Operation cleanup task started")
     
     yield
     
     # Shutdown
-    logger.info("🛑 Shutting down MicroCFO Integration Server")
+    logger.info("Shutting down MicroCFO Integration Server")
     
     # Cancel background tasks
     heartbeat_task.cancel()

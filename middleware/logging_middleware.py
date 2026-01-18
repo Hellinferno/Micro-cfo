@@ -98,8 +98,8 @@ def setup_logging(debug: bool = False):
     audit_logger.addHandler(audit_handler)
     audit_logger.propagate = False  # Don't propagate to root logger
     
-    logging.info(f"✅ Logging system initialized - Debug mode: {debug}")
-    logging.info(f"📁 Log files: {LOGS_DIR.absolute()}")
+    logging.info(f"Logging system initialized - Debug mode: {debug}")
+    logging.info(f"Log files: {LOGS_DIR.absolute()}")
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):

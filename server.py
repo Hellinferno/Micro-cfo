@@ -45,20 +45,20 @@ if GEMINI_API_KEY and not GEMINI_API_KEY.startswith("sk-or-") and genai:
         client = genai.Client(api_key=GEMINI_API_KEY)
         vision_model = client
         vision_provider = "gemini_new"
-        print("✅ Using Google Gemini 1.5 Flash (new SDK) for vision processing")
+        print("Using Google Gemini 1.5 Flash (new SDK) for vision processing")
     else:
         # Old google.generativeai package
         genai.configure(api_key=GEMINI_API_KEY)
         vision_model = genai.GenerativeModel('gemini-2.5-flash')
         vision_provider = "gemini_old"
-        print("✅ Using Google Gemini 2.5 Flash (legacy SDK) for vision processing")
+        print("Using Google Gemini 2.5 Flash (legacy SDK) for vision processing")
 elif OPENROUTER_API_KEY or (GEMINI_API_KEY and GEMINI_API_KEY.startswith("sk-or-")):
     # Use OpenRouter (supports GPT-4V, Claude 3, etc.)
     api_key = OPENROUTER_API_KEY or GEMINI_API_KEY
     vision_provider = "openrouter"
-    print("✅ Using OpenRouter for vision processing")
+    print("Using OpenRouter for vision processing")
 else:
-    print("⚠️ No vision API key found. Agent A will use mock data.")
+    print("No vision API key found. Agent A will use mock data.")
     print("Set GEMINI_API_KEY (Google) or OPENROUTER_API_KEY (OpenRouter)")
 
 # Phase 2: Enhanced Pydantic Models

@@ -46,7 +46,7 @@ USE_S3_STORAGE = is_s3_enabled()
 if USE_S3_STORAGE:
     logger.info("✅ S3 storage enabled for file uploads")
 else:
-    logger.warning("⚠️  S3 storage not configured, using local filesystem (NOT RECOMMENDED FOR PRODUCTION)")
+    logger.warning("S3 storage not configured, using local filesystem (NOT RECOMMENDED FOR PRODUCTION)")
 
 # Create router
 router = APIRouter(prefix="/agents/visual-auditor", tags=["Visual Auditor"])

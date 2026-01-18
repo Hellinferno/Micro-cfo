@@ -9,15 +9,12 @@ from typing import Optional, List
 from enum import Enum
 
 import jwt
+import bcrypt
 from pydantic import BaseModel, Field
-from passlib.context import CryptContext
 
 from config import config
 
 logger = logging.getLogger(__name__)
-
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UserRole(str, Enum):
@@ -170,7 +167,10 @@ class PasswordHandler:
         Returns:
             Hashed password
         """
-        return pwd_context.hash(password)
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password, salt).decode('utf-8')
     
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -184,7 +184,11 @@ class PasswordHandler:
         Returns:
             True if password matches, False otherwise
         """
-        return pwd_context.verify(plain_password, hashed_password)
+        if isinstance(plain_password, str):
+            plain_password = plain_password.encode('utf-8')
+        if isinstance(hashed_password, str):
+            hashed_password = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(plain_password, hashed_password)
 
 
 # Global token handler instance

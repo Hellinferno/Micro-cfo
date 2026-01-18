@@ -15,7 +15,7 @@ fastapi
 uvicorn[standard]
 python-multipart
 pyjwt
-passlib[bcrypt]
+bcrypt
 celery[redis]
 redis
 flower
