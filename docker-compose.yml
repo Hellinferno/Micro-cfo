@@ -100,6 +100,82 @@ services:
     networks:
       - microcfo-network
 
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microcfo-celery-worker
+    restart: unless-stopped
+    command: celery -A celery_app worker --loglevel=info --concurrency=4
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql://${POSTGRES_USER:-microcfo}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-microcfo}
+      
+      # Redis configuration
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/1
+      
+      # API Keys
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      
+      # Python environment
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    volumes:
+      - legal_db:/app/legal_db
+      - scheme_db:/app/scheme_db
+      - temp_uploads:/app/temp_uploads
+      - logs:/app/logs
+      - ./.env:/app/.env:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - microcfo-network
+
+  # Celery Beat (Periodic Tasks)
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microcfo-celery-beat
+    restart: unless-stopped
+    command: celery -A celery_app beat --loglevel=info
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/1
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ./.env:/app/.env:ro
+    depends_on:
+      - redis
+    networks:
+      - microcfo-network
+
+  # Flower (Celery Monitoring)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microcfo-flower
+    restart: unless-stopped
+    command: celery -A celery_app flower --port=5555
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/1
+    ports:
+      - "${FLOWER_PORT:-5555}:5555"
+    depends_on:
+      - redis
+      - celery_worker
+    networks:
+      - microcfo-network
+
   # Frontend
   frontend:
     build:

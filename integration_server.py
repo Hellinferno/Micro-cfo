@@ -189,6 +189,7 @@ from routers.subsidy_hunter import router as subsidy_hunter_router
 from routers.negotiator import router as negotiator_router
 from routers.auth import router as auth_router
 from routers.websocket import router as websocket_router
+from routers.tasks import router as tasks_router
 
 api_v1_router = APIRouter(prefix=config.api.v1_prefix)
 
@@ -198,6 +199,7 @@ api_v1_router.include_router(legal_sentinel_router)
 api_v1_router.include_router(subsidy_hunter_router)
 api_v1_router.include_router(negotiator_router)
 api_v1_router.include_router(auth_router)
+api_v1_router.include_router(tasks_router)
 
 # Include WebSocket router (not under api_v1 prefix for cleaner URLs)
 app.include_router(websocket_router)

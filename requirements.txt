@@ -16,3 +16,7 @@ uvicorn[standard]
 python-multipart
 pyjwt
 passlib[bcrypt]
+celery[redis]
+redis
+flower
+kombu
