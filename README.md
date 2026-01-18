@@ -4,7 +4,7 @@ A lightweight Model Context Protocol (MCP) server for AI-powered financial opera
 
 ## 🚀 Complete Implementation Status
 
-✅ **Agent A - Visual Auditor** (NEW!)
+✅ **Agent A - Visual Auditor**
 - **Gemini 2.5 Flash Integration**: Real invoice image processing
 - **Fraud Detection**: Tampering, handwriting, missing GSTIN detection
 - **Line Item Categorization**: Capital Goods, Raw Material, Personal/Entertainment, Service
@@ -22,12 +22,24 @@ A lightweight Model Context Protocol (MCP) server for AI-powered financial opera
 - **Benefit Calculation**: Estimated subsidy amounts
 - **Sector-Specific**: Textile, Manufacturing, Technology focus
 
-✅ **Agent D - Negotiator** (NEW!)
-- **Router Logic**: AI-powered strategy determination (Credit Extension, Payment Chase, Early Payment Offer)
+✅ **Agent D - Negotiator**
+- **Router Logic**: AI-powered strategy determination
 - **Gemini 3 Flash Integration**: Context-aware content generation
 - **A/B Testing**: Relationship-focused vs Transactional approaches
 - **Multi-format Output**: WhatsApp messages + Formal emails
 - **Cash Flow Intelligence**: Decisions based on financial position
+
+✅ **Phase 4: Business Logic & Integration** (NEW!)
+- **ERP Adapters**: Export to Tally, Zoho Books, CSV, JSON
+- **User Onboarding**: Industry and turnover tier selection
+- **Contextual Filtering**: Personalized compliance and subsidies
+- **API-First Design**: Production-ready integrations
+
+✅ **Security & Compliance** (NEW!)
+- **Data Encryption**: AES-256 encryption at rest
+- **Audit Trails**: Comprehensive logging of all actions
+- **Legal Disclaimers**: Prominent AI limitation warnings
+- **Guardrails**: Draft-only mode, verification required
 
 ## 🎯 Agent A: The Visual Auditor (Complete Implementation)
 
@@ -452,6 +464,87 @@ generate_negotiation_draft(counterparty, amount, type, due_date, cash_position) 
 - **Conservative CA-style compliance** checking
 - **Automated orchestration** between agents
 
+## 🆕 Phase 4: Business Logic & Integration
+
+### ERP Adapters
+Export invoices directly to your accounting system:
+
+**Supported Formats:**
+- **Tally ERP 9 / Tally Prime**: XML (single) and CSV (batch)
+- **Zoho Books**: JSON API payload
+- **Standard CSV**: For Excel and generic accounting software
+- **JSON**: Complete data export for custom integrations
+
+**Usage:**
+```bash
+# Export to Tally CSV
+curl -X POST http://localhost:8000/api/v1/erp-export/export \
+  -H "Content-Type: application/json" \
+  -d '{"invoice_ids": ["inv-001"], "format": "tally_csv"}'
+
+# Get supported formats
+curl http://localhost:8000/api/v1/erp-export/formats
+```
+
+### User Onboarding
+Capture user context for personalized experience:
+
+**12 Industry Types:**
+- Textile & Apparel, Manufacturing, Technology & IT
+- Trading, Services, Retail, Construction
+- Healthcare, Education, Hospitality, Agriculture, Other
+
+**4 Turnover Tiers:**
+- **Micro**: < ₹5 Crore (Composition scheme eligible)
+- **Small**: ₹5-20 Crore (MSME benefits)
+- **Medium**: ₹20-50 Crore (PLI schemes)
+- **Large**: > ₹50 Crore (Full compliance)
+
+**Benefits:**
+- Agent B filters legal compliance by turnover tier
+- Agent C shows industry-specific subsidies
+- Targeted recommendations and alerts
+
+**Usage:**
+```bash
+# Start onboarding
+curl -X POST http://localhost:8000/api/v1/onboarding/start
+
+# Get industries
+curl http://localhost:8000/api/v1/onboarding/industries
+
+# Submit industry selection
+curl -X POST http://localhost:8000/api/v1/onboarding/step \
+  -H "Content-Type: application/json" \
+  -d '{"step": "industry_selection", "data": {"industry_type": "textile"}}'
+```
+
+## 🔒 Security & Compliance
+
+### Data Encryption
+- **At Rest**: AES-256 encryption for sensitive database columns
+- **In Transit**: HTTPS/TLS for all API communication
+- **S3 Storage**: Server-side encryption (SSE-S3/SSE-KMS)
+- **Key Management**: Secure key storage with rotation support
+
+### Audit Trails
+- **Comprehensive Logging**: Who, What, When, Where (IP), How
+- **30+ Action Types**: All operations tracked
+- **Query & Export**: API endpoints for audit log access
+- **Retention**: Configurable retention policies
+
+### Legal Disclaimers
+- **Prominent Warnings**: "AI assistant, not a chartered accountant"
+- **Specific Disclaimers**: Legal, financial, tax, negotiation, invoice, subsidy
+- **Guardrails**: Draft-only mode, verification required, no auto-send
+- **User Acceptance**: Session-based disclaimer tracking
+
+### Guardrails
+- **Negotiator**: NEVER auto-sends emails (draft-only mode enforced)
+- **Invoice Processing**: Verification required, no auto-approval
+- **Legal Queries**: No legal advice, always recommend professionals
+- **High-Amount Flagging**: Transactions over ₹50,000 flagged
+
 ## 🚀 Ready for Production!
 
 ✅ **Agent A**: Gemini 2.5 Flash vision processing with fraud detection  
@@ -459,6 +552,9 @@ generate_negotiation_draft(counterparty, amount, type, due_date, cash_position) 
 ✅ **Agent C**: Subsidy discovery with benefit calculation  
 ✅ **Agent D**: Professional communication generation  
 ✅ **Orchestrator**: Automatic agent triggers and workflow  
-✅ **Conservative Approach**: CA-style risk assessment and flagging  
+✅ **ERP Integration**: Export to Tally, Zoho Books, CSV, JSON  
+✅ **User Onboarding**: Industry and turnover tier selection  
+✅ **Security**: Encryption, audit trails, legal disclaimers  
+✅ **Compliance**: Guardrails, verification, professional recommendations  
 
-The MicroCFO MCP Server is now a complete autonomous CFO assistant ready for integration with any AI system!
+The MicroCFO MCP Server is now a complete, production-ready autonomous CFO assistant with enterprise-grade security and ERP connectivity!

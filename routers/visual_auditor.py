@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Visual Auditor Router for MicroCFO Integration Server
-Handles Agent A (Visual Auditor) REST endpoints
+Handles Agent A (Visual Auditor) REST endpoints with S3 storage
 """
 
 import logging
@@ -20,12 +20,14 @@ from file_validator import (
     FileValidationError,
     FileFormat
 )
+from s3_storage import get_s3_manager, is_s3_enabled
+from legal_disclaimers import LegalDisclaimers, DisclaimerType, get_invoice_disclaimer
 
 logger = logging.getLogger(__name__)
 
 # Configuration for file uploads
-UPLOAD_DIR = Path("temp_uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
+TEMP_DIR = Path("temp_uploads")
+TEMP_DIR.mkdir(exist_ok=True)
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB (increased for large documents)
 CHUNK_SIZE = 1024 * 1024  # 1MB chunks for streaming
 ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg"}
@@ -38,6 +40,13 @@ ALLOWED_MIME_TYPES = {
 # Timeout settings for large file processing
 UPLOAD_TIMEOUT = 300  # 5 minutes for large uploads
 PROCESSING_TIMEOUT = 600  # 10 minutes for processing
+
+# Check if S3 is enabled
+USE_S3_STORAGE = is_s3_enabled()
+if USE_S3_STORAGE:
+    logger.info("✅ S3 storage enabled for file uploads")
+else:
+    logger.warning("⚠️  S3 storage not configured, using local filesystem (NOT RECOMMENDED FOR PRODUCTION)")
 
 # Create router
 router = APIRouter(prefix="/agents/visual-auditor", tags=["Visual Auditor"])
@@ -67,6 +76,8 @@ class ScanInvoiceResponse(BaseModel):
     compliance_flags: list[str] = []
     confidence_score: float = 1.0
     processing_time: float = 0.0
+    disclaimer: Optional[str] = None
+    disclaimer_short: Optional[str] = None
 
 class UploadDocumentResponse(BaseModel):
     """Response model for document upload"""
@@ -285,7 +296,10 @@ async def scan_invoice(request: Request, scan_request: ScanInvoiceRequest):
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
         
-        # Create response
+        # Get disclaimer for invoice processing
+        disclaimer_data = get_invoice_disclaimer()
+        
+        # Create response with disclaimer
         response = ScanInvoiceResponse(
             vendor_name=invoice_data["vendor_name"],
             invoice_date=invoice_data["invoice_date"],
@@ -297,7 +311,9 @@ async def scan_invoice(request: Request, scan_request: ScanInvoiceRequest):
             tampering_detected=invoice_data.get("tampering_detected", False),
             compliance_flags=invoice_data.get("compliance_flags", []),
             confidence_score=invoice_data.get("confidence_score", 1.0),
-            processing_time=processing_time
+            processing_time=processing_time,
+            disclaimer=disclaimer_data["disclaimer"],
+            disclaimer_short=disclaimer_data["disclaimer_short"]
         )
         
         logger.info(f"Invoice scan completed successfully in {processing_time:.2f}s")
@@ -428,6 +444,9 @@ async def upload_document(
                             category=item["category"]
                         ))
                     
+                    # Get disclaimer for invoice processing
+                    disclaimer_data = get_invoice_disclaimer()
+                    
                     # Add invoice data to response
                     response_data["invoice_data"] = ScanInvoiceResponse(
                         vendor_name=invoice_data["vendor_name"],
@@ -440,7 +459,9 @@ async def upload_document(
                         tampering_detected=invoice_data.get("tampering_detected", False),
                         compliance_flags=invoice_data.get("compliance_flags", []),
                         confidence_score=invoice_data.get("confidence_score", 1.0),
-                        processing_time=0.0  # Will be calculated by the MCP tool
+                        processing_time=0.0,  # Will be calculated by the MCP tool
+                        disclaimer=disclaimer_data["disclaimer"],
+                        disclaimer_short=disclaimer_data["disclaimer_short"]
                     )
                     
                     response_data["message"] = "File uploaded and processed successfully"

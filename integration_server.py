@@ -143,6 +143,24 @@ app.add_middleware(RateLimitMiddleware, enabled=rate_limit_enabled)
 from middleware.logging_middleware import RequestLoggingMiddleware
 app.add_middleware(RequestLoggingMiddleware)
 
+# Add audit middleware for comprehensive audit trails
+from middleware.audit_middleware import AuditMiddleware
+audit_enabled = os.getenv("AUDIT_ENABLED", "true").lower() == "true"
+app.add_middleware(AuditMiddleware, enabled=audit_enabled)
+if audit_enabled:
+    logger.info("✅ Audit middleware enabled - all actions will be logged")
+else:
+    logger.warning("⚠️  Audit middleware disabled")
+
+# Add disclaimer middleware for legal disclaimers
+from middleware.disclaimer_middleware import DisclaimerMiddleware
+disclaimer_enabled = os.getenv("DISCLAIMER_ENABLED", "true").lower() == "true"
+app.add_middleware(DisclaimerMiddleware, enabled=disclaimer_enabled)
+if disclaimer_enabled:
+    logger.info("✅ Disclaimer middleware enabled - legal disclaimers will be added to responses")
+else:
+    logger.warning("⚠️  Disclaimer middleware disabled")
+
 # Add trusted host middleware for security
 app.add_middleware(
     TrustedHostMiddleware,
@@ -190,6 +208,9 @@ from routers.negotiator import router as negotiator_router
 from routers.auth import router as auth_router
 from routers.websocket import router as websocket_router
 from routers.tasks import router as tasks_router
+from routers.audit import router as audit_router
+from routers.erp_export import router as erp_export_router
+from routers.onboarding import router as onboarding_router
 
 api_v1_router = APIRouter(prefix=config.api.v1_prefix)
 
@@ -200,6 +221,9 @@ api_v1_router.include_router(subsidy_hunter_router)
 api_v1_router.include_router(negotiator_router)
 api_v1_router.include_router(auth_router)
 api_v1_router.include_router(tasks_router)
+api_v1_router.include_router(audit_router)
+api_v1_router.include_router(erp_export_router)
+api_v1_router.include_router(onboarding_router)
 
 # Include WebSocket router (not under api_v1 prefix for cleaner URLs)
 app.include_router(websocket_router)

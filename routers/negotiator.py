@@ -11,6 +11,10 @@ from pydantic import BaseModel, Field, validator
 from datetime import datetime
 
 from mcp_bridge import MCPBridge, MCPBridgeError
+from legal_disclaimers import (
+    LegalDisclaimers, DisclaimerType, Guardrails,
+    get_negotiator_disclaimer, check_can_send_email
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +73,9 @@ class GenerateDraftResponse(BaseModel):
     option_a: str = Field(..., description="Relationship-focused option")
     option_b: str = Field(..., description="Transactional-focused option")
     processing_time: float = Field(..., description="Processing time in seconds")
+    disclaimer: str = Field(..., description="Legal disclaimer for negotiation drafts")
+    disclaimer_short: str = Field(..., description="Short disclaimer for UI")
+    draft_only: bool = Field(default=True, description="Indicates this is a draft only, not sent")
 
 class ErrorResponse(BaseModel):
     """Error response model"""
@@ -88,6 +95,9 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
     - A/B testing options (relationship-focused vs transactional)
     - Context-aware messaging for WhatsApp and formal email
     
+    IMPORTANT: This endpoint ONLY generates drafts. It will NEVER automatically send emails.
+    All generated content must be reviewed and approved by the user before sending.
+    
     Args:
         draft_request: The negotiation parameters including counterparty, amount, and financial context
     
@@ -97,6 +107,11 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
     Requirements: 1.3
     """
     start_time = datetime.now()
+    
+    # Enforce guardrails - check if email sending is allowed (it's not)
+    can_send, reason = check_can_send_email()
+    if not can_send:
+        logger.info(f"Guardrail enforced: {reason}")
     
     try:
         logger.info(
@@ -133,7 +148,10 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
         
-        # Create response
+        # Get disclaimer for negotiation
+        disclaimer_data = get_negotiator_disclaimer()
+        
+        # Create response with disclaimer
         response = GenerateDraftResponse(
             intent=negotiation_data["intent"],
             strategy_explanation=negotiation_data["strategy_explanation"],
@@ -141,12 +159,15 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
             formal_email=negotiation_data["formal_email"],
             option_a=negotiation_data["option_a"],
             option_b=negotiation_data["option_b"],
-            processing_time=processing_time
+            processing_time=processing_time,
+            disclaimer=disclaimer_data["disclaimer"],
+            disclaimer_short=disclaimer_data["disclaimer_short"],
+            draft_only=True  # Always true - enforced by guardrails
         )
         
         logger.info(
             f"Negotiation draft completed successfully in {processing_time:.2f}s - "
-            f"Intent: {negotiation_data['intent']}"
+            f"Intent: {negotiation_data['intent']} (DRAFT ONLY - user approval required)"
         )
         return response
         

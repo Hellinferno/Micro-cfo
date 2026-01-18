@@ -1,6 +1,6 @@
 """
 SQLAlchemy ORM Models for MicroCFO
-Maps to PostgreSQL database schema
+Maps to PostgreSQL database schema with encryption for sensitive data
 """
 
 from sqlalchemy import (
@@ -11,6 +11,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
+from encryption import EncryptedString, EncryptedText, EncryptedNumeric
 import uuid
 
 class User(Base):
@@ -41,15 +42,15 @@ class User(Base):
         return f"<User(email='{self.email}', company='{self.company_name}')>"
 
 class UserProfile(Base):
-    """Extended user profile with business details"""
+    """Extended user profile with business details and encrypted sensitive data"""
     __tablename__ = 'user_profiles'
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     business_type = Column(String(100))
-    gst_number = Column(String(50))
-    pan_number = Column(String(20))
-    registered_address = Column(Text)
+    gst_number = Column(EncryptedString(50))  # Encrypted - sensitive tax ID
+    pan_number = Column(EncryptedString(20))  # Encrypted - sensitive tax ID
+    registered_address = Column(EncryptedText)  # Encrypted - PII
     preferences = Column(JSONB, default={})
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -58,24 +59,24 @@ class UserProfile(Base):
     user = relationship("User", back_populates="profile")
     
     def __repr__(self):
-        return f"<UserProfile(user_id='{self.user_id}', gst='{self.gst_number}')>"
+        return f"<UserProfile(user_id='{self.user_id}')>"
 
 class Invoice(Base):
-    """Invoice records from Agent A (Visual Auditor)"""
+    """Invoice records from Agent A (Visual Auditor) with encrypted sensitive data"""
     __tablename__ = 'invoices'
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
-    invoice_number = Column(String(100))
-    vendor_name = Column(String(255))
+    invoice_number = Column(EncryptedString(100))  # Encrypted
+    vendor_name = Column(EncryptedString(255))  # Encrypted
     invoice_date = Column(Date)
     due_date = Column(Date)
-    total_amount = Column(DECIMAL(15, 2))
-    tax_amount = Column(DECIMAL(15, 2))
+    total_amount = Column(EncryptedNumeric(15, 2))  # Encrypted
+    tax_amount = Column(EncryptedNumeric(15, 2))  # Encrypted
     currency = Column(String(10), default='INR')
     status = Column(String(50), default='pending', index=True)
-    file_path = Column(Text)
-    extracted_data = Column(JSONB)
+    file_path = Column(EncryptedText)  # Encrypted S3 key
+    extracted_data = Column(JSONB)  # Consider encrypting if contains PII
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -83,7 +84,7 @@ class Invoice(Base):
     user = relationship("User", back_populates="invoices")
     
     def __repr__(self):
-        return f"<Invoice(number='{self.invoice_number}', vendor='{self.vendor_name}', amount={self.total_amount})>"
+        return f"<Invoice(id='{self.id}', status='{self.status}')>"
 
 class LegalQuery(Base):
     """Legal compliance queries from Agent B (Legal Sentinel)"""
@@ -125,14 +126,14 @@ class SubsidyApplication(Base):
         return f"<SubsidyApplication(scheme='{self.scheme_name}', status='{self.application_status}')>"
 
 class Negotiation(Base):
-    """Negotiation emails from Agent D (Negotiator)"""
+    """Negotiation emails from Agent D (Negotiator) with encrypted content"""
     __tablename__ = 'negotiations'
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
-    vendor_name = Column(String(255))
+    vendor_name = Column(EncryptedString(255))  # Encrypted
     negotiation_type = Column(String(100))
-    email_content = Column(Text)
+    email_content = Column(EncryptedText)  # Encrypted - sensitive business communication
     status = Column(String(50), default='draft')
     sent_at = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -142,7 +143,7 @@ class Negotiation(Base):
     user = relationship("User", back_populates="negotiations")
     
     def __repr__(self):
-        return f"<Negotiation(vendor='{self.vendor_name}', type='{self.negotiation_type}')>"
+        return f"<Negotiation(id='{self.id}', type='{self.negotiation_type}')>"
 
 class AuditLog(Base):
     """Audit trail for all user actions"""
