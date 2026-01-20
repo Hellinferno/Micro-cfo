@@ -211,6 +211,7 @@ from routers.tasks import router as tasks_router
 from routers.audit import router as audit_router
 from routers.erp_export import router as erp_export_router
 from routers.onboarding import router as onboarding_router
+from routers.admin import router as admin_router
 
 api_v1_router = APIRouter(prefix=config.api.v1_prefix)
 
@@ -224,6 +225,7 @@ api_v1_router.include_router(tasks_router)
 api_v1_router.include_router(audit_router)
 api_v1_router.include_router(erp_export_router)
 api_v1_router.include_router(onboarding_router)
+api_v1_router.include_router(admin_router)
 
 # Include WebSocket router (not under api_v1 prefix for cleaner URLs)
 app.include_router(websocket_router)
