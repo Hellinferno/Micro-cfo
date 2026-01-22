@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../../services/api'; // Assuming you have an api service wrapper
+import api from '../../services/api';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
@@ -13,13 +13,13 @@ const AdminDashboard = () => {
 
     const fetchData = async () => {
         try {
-            // Parallel fetch for speed
+            // Parallel fetch for speed using admin API
             const [statsRes, usersRes] = await Promise.all([
-                api.get('/api/v1/admin/overview'),
-                api.get('/api/v1/admin/users')
+                api.admin.getOverview(),
+                api.admin.getUsers()
             ]);
-            setStats(statsRes.data);
-            setUsers(usersRes.data);
+            setStats(statsRes);
+            setUsers(usersRes);
         } catch (error) {
             console.error("Admin Access Denied", error);
         } finally {
@@ -29,7 +29,11 @@ const AdminDashboard = () => {
 
     const toggleUserStatus = async (userId) => {
         try {
-            await api.patch(`/api/v1/admin/users/${userId}/toggle-status`);
+            // Use apiFetch for custom endpoints not in API wrapper
+            const { apiFetch } = await import('../../services/api');
+            await apiFetch(`/api/v1/admin/users/${userId}/toggle-status`, {
+                method: 'PATCH'
+            });
             fetchData(); // Refresh list
         } catch (error) {
             alert("Failed to update user status");

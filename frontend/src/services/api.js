@@ -503,6 +503,45 @@ export class WebSocketManager {
 }
 
 /**
+ * Admin API
+ */
+export const adminAPI = {
+    /**
+     * Get admin dashboard overview
+     * @returns {Promise<Object>} Dashboard statistics
+     */
+    async getOverview() {
+        return apiFetch(`${API_V1_PREFIX}/admin/overview`);
+    },
+    
+    /**
+     * Get all users
+     * @returns {Promise<Array>} List of users
+     */
+    async getUsers() {
+        return apiFetch(`${API_V1_PREFIX}/admin/users`);
+    },
+    
+    /**
+     * Get audit logs
+     * @param {Object} filters - Filter parameters
+     * @returns {Promise<Array>} Audit logs
+     */
+    async getAuditLogs(filters = {}) {
+        const params = new URLSearchParams(filters);
+        return apiFetch(`${API_V1_PREFIX}/admin/audit-logs?${params}`);
+    },
+    
+    /**
+     * Get system metrics
+     * @returns {Promise<Object>} System metrics
+     */
+    async getMetrics() {
+        return apiFetch(`${API_V1_PREFIX}/admin/metrics`);
+    },
+};
+
+/**
  * Health Check API
  */
 export const healthAPI = {
@@ -523,6 +562,9 @@ export const healthAPI = {
     },
 };
 
+// Export apiFetch for direct use
+export { apiFetch };
+
 // Export default API object
 export default {
     visualAuditor: visualAuditorAPI,
@@ -531,6 +573,7 @@ export default {
     negotiator: negotiatorAPI,
     tasks: tasksAPI,
     auth: authAPI,
+    admin: adminAPI,
     health: healthAPI,
     WebSocketManager,
 };

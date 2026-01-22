@@ -133,7 +133,7 @@ jobs:
           cp .env.docker .env
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
           echo "JWT_SECRET_KEY=test-secret-key-for-ci" >> .env
-          docker-compose up -d
+          docker compose up -d
           sleep 30
           curl -f http://localhost:8000/health || exit 1
-          docker-compose down -v
+          docker compose down -v
