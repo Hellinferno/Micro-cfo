@@ -1,0 +1,4 @@
+# file: D:\CFO\legal_ingestion.py
+# hypothesis_version: 6.150.2
+
+[10000000, ' {2,}', '-', 'CGST', 'COMPANIES ACT', 'Corporate Law', 'GST', 'General', 'IGST', 'INCOME TAX', 'IT', 'IT ACT', 'Income Tax', 'MCA', 'Manufacturing', 'PLI', 'SCHEME', 'Subsidy Scheme', 'Technology', 'Textile', 'Trading', '\\([a-z0-9]+\\)', '\\b', '\\n{3,}', '^Notification\\s+No\\.', '^Rule\\s+(\\d+[A-Z]*)', '^\\s*\\([a-z0-9]+\\)', '_', '__main__', 'apparel', 'clothing', 'commerce', 'computer', 'dealer', 'digital', 'effective_date', 'fabric', 'factory', 'garment', 'industrial', 'main', 'manufacture', 'manufacturing', 'merchant', 'producer', 'production', 'proviso', 'r', 'retail', 'sector_tag', 'software', 'spinning', 'sub_clause', 'technology', 'textile', 'trade', 'trading', 'turnover_threshold', 'utf-8', 'weaving', 'wholesale', 'works_contract']

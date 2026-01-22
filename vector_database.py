@@ -10,7 +10,11 @@ from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Optional, Any
 import json
 import os
+import logging
 from legal_ingestion import LegalChunk
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class LegalVectorDB:
     """Vector database for legal document chunks"""
@@ -36,13 +40,20 @@ class LegalVectorDB:
         print(f"Loading embedding model: {model_name}")
         self.embedding_model = SentenceTransformer(model_name)
         
-        # Get or create collection
+        # Get or create collection for legal chunks
         self.collection = self.client.get_or_create_collection(
             name="legal_chunks",
             metadata={"description": "Legal document chunks with metadata"}
         )
         
+        # Get or create collection for processing metadata
+        self.metadata_collection = self.client.get_or_create_collection(
+            name="processing_metadata",
+            metadata={"description": "Metadata for processed documents to enable idempotency"}
+        )
+        
         print(f"Vector DB initialized. Collection has {self.collection.count()} documents.")
+        print(f"Processing metadata collection has {self.metadata_collection.count()} entries.")
     
     def add_chunks(self, chunks: List[LegalChunk]) -> None:
         """
@@ -67,7 +78,9 @@ class LegalVectorDB:
                 "turnover_threshold": str(chunk.turnover_threshold) if chunk.turnover_threshold else "",
                 "sector_tag": chunk.sector_tag or "",
                 "effective_date": chunk.effective_date or "",
-                "chunk_type": chunk.chunk_type
+                "chunk_type": chunk.chunk_type,
+                "source_file": chunk.source_file or "",
+                "file_hash": chunk.file_hash or ""
             }
             
             documents.append(chunk.text)
@@ -206,6 +219,118 @@ class LegalVectorDB:
             'law_type_distribution': law_types,
             'db_path': self.db_path
         }
+    
+    def save_processing_metadata(self, metadata_dict: Dict[str, Any]) -> None:
+        """
+        Save processing metadata to enable idempotent operations.
+        
+        Stores metadata about processed documents including file hash,
+        timestamp, and processing statistics. This enables duplicate
+        detection and safe re-execution of the seeding pipeline.
+        
+        Args:
+            metadata_dict: Dictionary containing processing metadata with keys:
+                - file_path: Path to processed file
+                - file_hash: SHA256 hash of file content
+                - processing_timestamp: ISO format timestamp
+                - chunks_created: Number of chunks created
+                - law_type: Detected law type
+        
+        Validates Requirement: 8.5
+        """
+        file_path = metadata_dict['file_path']
+        
+        # Use file_path as unique ID (hash it to ensure valid ID format)
+        import hashlib
+        path_hash = hashlib.md5(file_path.encode()).hexdigest()
+        metadata_id = f"metadata_{path_hash}"
+        
+        # Store metadata in dedicated collection
+        # We use a dummy embedding since ChromaDB requires it
+        dummy_embedding = [0.0] * 384  # Match embedding dimension
+        
+        self.metadata_collection.upsert(
+            ids=[metadata_id],
+            documents=[file_path],  # Store file path as document
+            metadatas=[{
+                'file_path': metadata_dict['file_path'],
+                'file_hash': metadata_dict['file_hash'],
+                'processing_timestamp': metadata_dict['processing_timestamp'],
+                'chunks_created': str(metadata_dict['chunks_created']),
+                'law_type': metadata_dict['law_type']
+            }],
+            embeddings=[dummy_embedding]
+        )
+        
+        logger.info(f"Saved processing metadata for {file_path}")
+    
+    def load_processing_metadata(self, file_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Load processing metadata for a given file path.
+        
+        Retrieves stored metadata about a previously processed document
+        to enable duplicate detection and idempotent operations.
+        
+        Args:
+            file_path: Path to the file to check
+            
+        Returns:
+            Dict containing metadata if found, None otherwise
+            
+        Validates Requirement: 8.5
+        """
+        try:
+            # Query by file_path in metadata
+            results = self.metadata_collection.get(
+                where={"file_path": file_path}
+            )
+            
+            if not results or not results['metadatas'] or len(results['metadatas']) == 0:
+                return None
+            
+            # Return the first matching metadata
+            metadata = results['metadatas'][0]
+            
+            return {
+                'file_path': metadata['file_path'],
+                'file_hash': metadata['file_hash'],
+                'processing_timestamp': metadata['processing_timestamp'],
+                'chunks_created': int(metadata['chunks_created']),
+                'law_type': metadata['law_type']
+            }
+            
+        except Exception as e:
+            logger.warning(f"Error loading processing metadata for {file_path}: {e}")
+            return None
+    
+    def get_all_processed_files(self) -> List[Dict[str, Any]]:
+        """
+        Get metadata for all processed files.
+        
+        Returns:
+            List of metadata dictionaries for all processed documents
+        """
+        try:
+            results = self.metadata_collection.get()
+            
+            if not results or not results['metadatas']:
+                return []
+            
+            processed_files = []
+            for metadata in results['metadatas']:
+                processed_files.append({
+                    'file_path': metadata['file_path'],
+                    'file_hash': metadata['file_hash'],
+                    'processing_timestamp': metadata['processing_timestamp'],
+                    'chunks_created': int(metadata['chunks_created']),
+                    'law_type': metadata['law_type']
+                })
+            
+            return processed_files
+            
+        except Exception as e:
+            logger.warning(f"Error getting processed files: {e}")
+            return []
 
 
 # Example usage and testing
