@@ -10,9 +10,12 @@ import uuid
 import base64
 from typing import Optional
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File, Form, Depends
 from pydantic import BaseModel, Field
 from datetime import datetime
+from sqlalchemy.orm import Session
+from database import get_db
+from models import Invoice as InvoiceModel, WorkflowState
 
 from mcp_bridge import MCPBridge, MCPBridgeError
 from file_validator import (
@@ -283,6 +286,58 @@ async def scan_invoice(request: Request, scan_request: ScanInvoiceRequest):
             )
         
         invoice_data = result["result"]
+        
+        # Self-Correction / Verification Loop
+        # If confidence is low, we flag it for manual review (Simulated self-correction)
+        confidence = invoice_data.get("confidence_score", 1.0)
+        if confidence < 0.8:
+            logger.warning(f"Low confidence score ({confidence}). Flagging for review.")
+            if "compliance_flags" not in invoice_data:
+                invoice_data["compliance_flags"] = []
+            invoice_data["compliance_flags"].append("⚠️ Low Confidence - Manual Review Recommended")
+        
+        # --- Persistence Layer (The Memory) ---
+        try:
+            # Get DB session
+            db: Session = request.state.db
+            
+            # 1. Create Invoice Record
+            new_invoice = InvoiceModel(
+                user_id=request.state.user.user_id if hasattr(request.state, "user") and request.state.user else None, # Handle anonymous for now
+                vendor_name=invoice_data["vendor_name"],
+                invoice_date=datetime.strptime(invoice_data["invoice_date"], "%Y-%m-%d").date() if invoice_data["invoice_date"] else None,
+                total_amount=invoice_data["total_amount"],
+                tax_amount=invoice_data["tax_amount"],
+                status="processed",
+                extracted_data=invoice_data # Store full JSON
+            )
+            
+            # Handle anonymous user case (if auth not enforced yet)
+            # In a real app, this would be strictly enforced.
+            # For now, we skip saving if no user.
+            if new_invoice.user_id:
+                db.add(new_invoice)
+                db.flush() # Get ID
+                
+                # 2. Update Workflow State (The Brain)
+                workflow = WorkflowState(
+                    invoice_id=new_invoice.id,
+                    status="AUDIT_COMPLETE",
+                    current_step="risk_analysis",
+                    history=[{
+                        "step": "visual_audit",
+                        "timestamp": datetime.now().isoformat(),
+                        "confidence": confidence,
+                        "flags": invoice_data.get("compliance_flags", [])
+                    }]
+                )
+                db.add(workflow)
+                db.commit()
+                logger.info(f"Persisted invoice {new_invoice.id} and workflow state")
+                
+        except Exception as db_err:
+            logger.error(f"Failed to persist invoice data: {db_err}")
+            # Don't block the response, just log error
         
         # Convert line items to response format
         line_items = []

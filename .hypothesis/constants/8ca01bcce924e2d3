@@ -1,4 +1,0 @@
-# file: D:\CFO\routers\legal_sentinel.py
-# hypothesis_version: 6.150.2
-
-[1000, 3600, '/check-compliance', '/health', '/invalidate-cache', 'Legal Sentinel', 'agent', 'compliant_action', 'endpoints', 'error', 'healthy', 'legal_query', 'message', 'processing_time', 'relevant_section', 'result', 'risk_level', 'status', 'success', 'timestamp']

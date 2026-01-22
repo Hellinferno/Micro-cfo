@@ -1,4 +1,0 @@
-# file: D:\CFO\vector_database.py
-# hypothesis_version: 6.150.2
-
-['./legal_db', '16', 'GST', '__main__', 'all-MiniLM-L6-v2', 'chunk_type', 'db_path', 'description', 'distance', 'distances', 'documents', 'effective_date', 'id', 'ids', 'law_type', 'legal_chunks', 'metadata', 'metadatas', 'section_number', 'sector_tag', 'text', 'total_chunks', 'turnover_threshold', 'unknown']

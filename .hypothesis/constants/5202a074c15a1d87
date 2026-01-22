@@ -1,4 +1,0 @@
-# file: D:\CFO\middleware\logging_middleware.py
-# hypothesis_version: 6.150.2
-
-['/api/v1/auth', 'X-Process-Time', 'X-Request-ID', 'anonymous', 'args', 'audit', 'audit.log', 'client_host', 'client_ip', 'created', 'error', 'error_type', 'errors.log', 'event_type', 'exc_info', 'exc_text', 'extra_data', 'filename', 'funcName', 'levelname', 'levelno', 'lineno', 'logs', 'message', 'method', 'microcfo.log', 'module', 'msecs', 'msg', 'name', 'none', 'operation', 'path', 'pathname', 'process', 'processName', 'process_time', 'query_params', 'relativeCreated', 'request', 'request_id', 'security', 'stack_info', 'status', 'status_code', 'success', 'thread', 'threadName', 'timestamp', 'unknown', 'user', 'user-agent', 'user_agent', 'user_id', 'user_role', 'warning', '{}']

@@ -1,4 +1,0 @@
-# file: D:\CFO\routers\negotiator.py
-# hypothesis_version: 6.150.2
-
-[100, 200, 100000000000, '%Y-%m-%d', '/agents/negotiator', '/generate-draft', '/health', 'Formal email content', 'Negotiator', 'Negotiator (Agent D)', 'agent', 'amount', 'counterparty_name', 'due_date', 'endpoints', 'error', 'formal_email', 'healthy', 'intent', 'option_a', 'option_b', 'payable', 'receivable', 'result', 'status', 'strategy_explanation', 'success', 'timestamp', 'transaction_type', 'whatsapp_message']

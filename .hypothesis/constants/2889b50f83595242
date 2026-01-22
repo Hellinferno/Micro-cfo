@@ -1,4 +1,0 @@
-# file: D:\CFO\middleware\auth.py
-# hypothesis_version: 6.150.2
-
-['/', '/api/v1/auth/login', '/api/v1/status', '/docs', '/health', '/openapi.json', '/redoc', 'Authorization', 'Bearer', 'Bearer ', 'WWW-Authenticate', 'error', 'message', 'timestamp', 'user']

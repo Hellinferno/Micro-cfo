@@ -5,7 +5,7 @@ Maps to PostgreSQL database schema with encryption for sensitive data
 
 from sqlalchemy import (
     Column, String, Boolean, DateTime, Date, Numeric, Text,
-    ForeignKey, Index, DECIMAL, Integer
+    ForeignKey, Index, DECIMAL, Integer, Float
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
 from sqlalchemy.orm import relationship
@@ -164,6 +164,42 @@ class AuditLog(Base):
     
     def __repr__(self):
         return f"<AuditLog(action='{self.action}', resource='{self.resource_type}')>"
+
+class WorkflowState(Base):
+    """Tracks the state of complex, multi-step agent workflows (The Brain's Memory)"""
+    __tablename__ = "workflow_states"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE"), nullable=True)
+    status = Column(String(50)) # e.g., "AUDIT_COMPLETE", "NEGOTIATION_SUGGESTED"
+    current_step = Column(String(100)) # "waiting_for_user_approval"
+    context_data = Column(JSONB, default={}) # Stores data passed between agents
+    history = Column(JSONB, default=[]) # Audit trail of AI decisions
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    invoice = relationship("Invoice")
+
+    def __repr__(self):
+        return f"<WorkflowState(status='{self.status}', step='{self.current_step}')>"
+
+class VendorProfile(Base):
+    """Vendor CRM profile for AI negotiation strategy (The Memory)"""
+    __tablename__ = "vendor_profiles"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), index=True)
+    average_spend_monthly = Column(Float, default=0.0)
+    negotiation_hardness_score = Column(Float, default=5.0) # 1-10 (AI estimated)
+    last_negotiation_date = Column(DateTime(timezone=True))
+    successful_tactics = Column(Text) # e.g., "Responds well to bulk discount offers"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<VendorProfile(name='{self.name}', hardness='{self.negotiation_hardness_score}')>"
+
 
 # Create indexes
 Index('idx_invoices_user_status', Invoice.user_id, Invoice.status)

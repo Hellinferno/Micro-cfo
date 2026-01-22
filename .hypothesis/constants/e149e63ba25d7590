@@ -1,4 +1,0 @@
-# file: D:\CFO\middleware\authorization.py
-# hypothesis_version: 6.150.2
-
-['/api/v1/auth/profile', 'access_denied', 'error', 'manage:users', 'message', 'read:compliance', 'read:invoices', 'read:negotiations', 'read:profile', 'read:subsidies', 'request', 'timestamp', 'user', 'write:compliance', 'write:invoices', 'write:negotiations', 'write:profile', 'write:subsidies']

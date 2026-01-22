@@ -1,4 +1,0 @@
-# file: D:\CFO\scheme_ingestion.py
-# hypothesis_version: 6.150.2
-
-[1000, 100000, 10000000, '  Benefit %: None', '  Max Benefit: None', '(\\d+(?:\\.\\d+)?)\\s*%', ',', 'PLI Textiles', 'Unknown Scheme', '\\bgrant\\b', '__main__', 'agriculture', 'application', 'benefit_percentage', 'benefit_type', 'capital\\s+subsidy', 'capital_subsidy', 'credit\\s+guarantee', 'credit_guarantee', 'crore', 'eligibility', 'food_processing', 'grant', 'interest_subvention', 'lakh', 'location_restriction', 'main', 'manufacturing', 'max_benefit_amount', 'max_investment', 'min_investment', 'objective', 'quantum', 'renewable_energy', 'rupees', 'target_sector', 'tax_exemption', 'technology', 'temp', 'textile', 'thousand']

@@ -10,12 +10,16 @@ export default {
                 primary: {
                     light: '#34D399', // Emerald 400
                     DEFAULT: '#10B981', // Emerald 500
-                    dark: '#059669', // Emerald 600
+                    dark: '#047857', // Darker for better contrast
                 },
                 secondary: {
                     light: '#94A3B8', // Slate 400
                     DEFAULT: '#64748B', // Slate 500
                     dark: '#475569', // Slate 600
+                },
+                corporate: {
+                    DEFAULT: '#1E293B', // Slate 900 - Use for main headers/sidebar bg
+                    accent: '#334155',
                 },
                 chat: {
                     user: '#FFFFFF',

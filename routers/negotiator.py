@@ -6,7 +6,10 @@ Handles Agent D (Negotiator) REST endpoints
 
 import logging
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status, Request, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from models import VendorProfile
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 
@@ -124,6 +127,26 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
         # Get MCP bridge from app state
         mcp_bridge: MCPBridge = request.app.state.mcp_bridge
         
+        # Get database session
+        db: Session = request.state.db
+        
+        # Look up vendor profile
+        vendor_profile = db.query(VendorProfile).filter(
+            VendorProfile.name.ilike(draft_request.counterparty_name)
+        ).first()
+
+        # Contextualize with history if available
+        profile_context = {}
+        if vendor_profile:
+            profile_context = {
+                "hardness_score": vendor_profile.negotiation_hardness_score,
+                "history": vendor_profile.successful_tactics,
+                "average_spend": vendor_profile.average_spend_monthly
+            }
+            logger.info(f"Loaded vendor profile for {draft_request.counterparty_name}: {profile_context}")
+        else:
+            logger.info(f"No vendor profile found for {draft_request.counterparty_name}, using default context")
+
         # Call Agent D via MCP bridge
         result = await mcp_bridge.call_agent_d(
             counterparty_name=draft_request.counterparty_name,
@@ -132,7 +155,8 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
             due_date=draft_request.due_date,
             current_cash_position=draft_request.current_cash_position,
             upcoming_outflows=draft_request.upcoming_outflows,
-            invoice_id=draft_request.invoice_id
+            invoice_id=draft_request.invoice_id,
+            vendor_context=profile_context # Injected context
         )
         
         # Extract the negotiation draft data from MCP result

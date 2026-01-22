@@ -1,4 +1,0 @@
-# file: D:\CFO\scripts\seed_data.py
-# hypothesis_version: 6.150.2
-
-[0.0, 100, 4096, '*.pdf', '-', '--data-dir', '--db-path', '..', './data/initial_acts/', './legal_db/', '=', 'Common causes:', 'Document Details:', 'Document Processing', 'Full traceback:', 'Processing', 'ProcessingMetadata', 'Skipped', 'Summary:', 'Unknown', '__main__', 'chunks_created', 'file_hash', 'file_path', 'law_type', 'processing_timestamp', 'rb', '✓ SUCCESS', '✗ FAILED']

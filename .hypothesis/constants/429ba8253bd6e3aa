@@ -1,4 +1,0 @@
-# file: D:\CFO\legal_ingestion.py
-# hypothesis_version: 6.150.2
-
-[10000000, ' {2,}', '-', 'CGST', 'COMPANIES ACT', 'Corporate Law', 'GST', 'General', 'IGST', 'INCOME TAX', 'IT ACT', 'Income Tax', 'MCA', 'PLI', 'SCHEME', 'Subsidy Scheme', '\\([a-z0-9]+\\)', '\\n{3,}', '^Notification\\s+No\\.', '^Rule\\s+(\\d+[A-Z]*)', '^\\s*Provided\\s+that', '^\\s*\\([a-z0-9]+\\)', '_', '__main__', 'main', 'manufacturing', 'proviso', 'r', 'sub_clause', 'technology', 'textile', 'utf-8', 'works_contract']

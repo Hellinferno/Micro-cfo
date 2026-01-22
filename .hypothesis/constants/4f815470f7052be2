@@ -1,4 +1,0 @@
-# file: D:\CFO\middleware\rate_limiter.py
-# hypothesis_version: 6.150.2
-
-[100, 300, 1000, '/api/v1/auth/login', '/health', '/ws', '0', 'Retry-After', 'X-RateLimit-Limit', 'X-RateLimit-Reset', 'active_clients', 'client_id', 'details', 'error', 'last_cleanup', 'limit', 'message', 'path', 'rate_limit', 'rate_limit_exceeded', 'reset_time', 'timestamp', 'unknown', 'user', 'user_id', 'warning', 'window']

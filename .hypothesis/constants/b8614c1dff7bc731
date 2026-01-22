@@ -1,4 +1,0 @@
-# file: D:\CFO\cache_manager.py
-# hypothesis_version: 6.150.2
-
-[100, 3600, 'default_ttl_seconds', 'evictions', 'hit_rate_percent', 'hits', 'misses', 'size', 'total_requests']

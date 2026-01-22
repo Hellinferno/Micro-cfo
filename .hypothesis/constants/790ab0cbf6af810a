@@ -1,4 +1,0 @@
-# file: D:\CFO\middleware\error_handler.py
-# hypothesis_version: 6.150.2
-
-[400, 500, ' -> ', 'authentication_error', 'authorization_error', 'error', 'error_type', 'errors', 'field', 'file_error', 'loc', 'mcp_service_error', 'message', 'method', 'msg', 'not_found', 'path', 'rate_limit_exceeded', 'request_id', 'status_code', 'type', 'validation_error', 'validation_errors']

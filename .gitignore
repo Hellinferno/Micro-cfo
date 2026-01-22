@@ -1,62 +1,36 @@
-# Python
+# --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
+.env
+.env.*
+!.env.example
 venv/
-env/
-ENV/
+.venv/
 
-# Vector Databases (runtime generated)
-legal_db/
-scheme_db/
-test_legal_db/
-test_scheme_db/
+# --- Logs & Traces ---
+*.log
+*_trace.txt
+status.txt
+installed.txt
+test_results.txt
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# --- Testing ---
+.hypothesis/
+.pytest_cache/
+.coverage
+htmlcov/
 
-# OS
+# --- Uploads & Media ---
+# Ignore all content in temp_uploads but keep the folder itself
+temp_uploads/*
+!temp_uploads/.gitkeep
+
+# --- OS Junk ---
 .DS_Store
 Thumbs.db
 
-# API Keys and Secrets (CRITICAL - NEVER COMMIT THESE!)
-.env
-.env.local
-*.key
-*.pem
-secrets.json
-config.json
-credentials.json
-
-# Test outputs
-*.log
-test_output/
-
-# Images (optional - keep sample images)
-# *.png
-# *.jpg
-# *.jpeg
-
-# Docker
-.env
-.env.local
-.env.production
-docker-compose.override.yml
-
-# Logs
-logs/
-*.log
-
-# Temporary uploads
-temp_uploads/
-
-# Database backups
-*.sql
-*.dump
-backup/
+# --- IDEs ---
+.vscode/
+.idea/

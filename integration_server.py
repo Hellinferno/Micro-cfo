@@ -132,6 +132,10 @@ app.add_middleware(AuthenticationMiddleware)
 from middleware.authorization import AuthorizationMiddleware
 app.add_middleware(AuthorizationMiddleware)
 
+# Add Idempotency middleware (before RateLimit so validated requests are cached, but after Auth)
+from middleware.idempotency import IdempotencyMiddleware
+app.add_middleware(IdempotencyMiddleware)
+
 # Add rate limiting middleware
 from middleware.rate_limiter import RateLimitMiddleware
 import os
@@ -142,6 +146,10 @@ app.add_middleware(RateLimitMiddleware, enabled=rate_limit_enabled)
 # Add request logging middleware
 from middleware.logging_middleware import RequestLoggingMiddleware
 app.add_middleware(RequestLoggingMiddleware)
+
+# Add PII Redaction middleware (before Audit so logs are safe)
+from middleware.pii_redactor import PIIRedactionMiddleware
+app.add_middleware(PIIRedactionMiddleware)
 
 # Add audit middleware for comprehensive audit trails
 from middleware.audit_middleware import AuditMiddleware
@@ -212,6 +220,7 @@ from routers.audit import router as audit_router
 from routers.erp_export import router as erp_export_router
 from routers.onboarding import router as onboarding_router
 from routers.admin import router as admin_router
+from routers.orchestrator import router as orchestrator_router
 
 api_v1_router = APIRouter(prefix=config.api.v1_prefix)
 
@@ -226,6 +235,7 @@ api_v1_router.include_router(audit_router)
 api_v1_router.include_router(erp_export_router)
 api_v1_router.include_router(onboarding_router)
 api_v1_router.include_router(admin_router)
+api_v1_router.include_router(orchestrator_router)
 
 # Include WebSocket router (not under api_v1 prefix for cleaner URLs)
 app.include_router(websocket_router)

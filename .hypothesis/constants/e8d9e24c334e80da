@@ -1,4 +1,0 @@
-# file: D:\CFO\scheme_database.py
-# hypothesis_version: 6.150.2
-
-[100, 500000, './scheme_db', 'PMFME', 'Unable to calculate', 'Unknown', '__main__', 'all-MiniLM-L6-v2', 'assistance', 'benefit_percentage', 'benefit_type', 'calculation_method', 'chunk_type', 'db_path', 'description', 'distance', 'distances', 'documents', 'effective_date', 'estimated_benefit', 'food_processing', 'id', 'ids', 'location_restriction', 'max_benefit', 'max_benefit_amount', 'max_investment', 'metadata', 'metadatas', 'min_investment', 'notes', 'quantum', 'scheme_chunks', 'scheme_name', 'sector_distribution', 'target_sector', 'text', 'total_schemes', 'unknown']
