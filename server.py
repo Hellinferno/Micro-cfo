@@ -221,7 +221,7 @@ Be conservative in your assessment. When in doubt, flag it."""
                         {'text': auditor_prompt},
                         {'inline_data': {
                             'mime_type': 'image/png',
-                            'data': _image_to_base64(image)
+                            'data': _image_to_base64(content_obj)
                         }}
                     ]}
                 ]
@@ -229,10 +229,10 @@ Be conservative in your assessment. When in doubt, flag it."""
             response_text = response.text.strip()
         elif vision_provider == "gemini_old":
             # Old google.generativeai SDK
-            response = vision_model.generate_content([auditor_prompt, image])
+            response = vision_model.generate_content([auditor_prompt, content_obj])
             response_text = response.text.strip()
         elif vision_provider == "openrouter":
-            response_text = _call_openrouter_vision(auditor_prompt, image)
+            response_text = _call_openrouter_vision(auditor_prompt, content_obj)
         else:
             raise Exception("No vision provider configured")
         
