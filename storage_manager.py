@@ -29,7 +29,7 @@ class StorageManager:
         if self.use_s3:
             try:
                 self.s3_manager = get_s3_manager()
-                logger.info("✅ Storage manager initialized with S3")
+                logger.info("[OK] Storage manager initialized with S3")
             except Exception as e:
                 logger.error(f"Failed to initialize S3, falling back to local storage: {e}")
                 self.use_s3 = False
@@ -38,7 +38,7 @@ class StorageManager:
             # Setup local storage directory
             self.local_storage_dir = Path(os.getenv('LOCAL_STORAGE_DIR', 'file_storage'))
             self.local_storage_dir.mkdir(exist_ok=True, parents=True)
-            logger.info(f"✅ Storage manager initialized with local filesystem: {self.local_storage_dir}")
+            logger.info(f"[OK] Storage manager initialized with local filesystem: {self.local_storage_dir}")
     
     def save_file(
         self,

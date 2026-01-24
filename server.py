@@ -579,101 +579,430 @@ def check_compliance_law(query: str, user_context: str = "") -> LegalRisk:
             )
 
 @mcp.tool()
-def find_applicable_subsidies(sector: str, capex_amount: float) -> str:
+def find_applicable_subsidies(sector: str, capex_amount: float, state: str = None) -> str:
     """
     Tool 3: The Subsidy Hunter (Agent C)
     Enhanced scheme-aware subsidy discovery with benefit calculation
     """
-    try:
-        from scheme_database import SchemeVectorDB
-        import json
-        
-        # Step 1: Context Fetching - Get user profile
-        try:
-            profile_resource = mcp.resources["microcfo://data/profile"]
-            profile_data = profile_resource()
-            profile = json.loads(profile_data)
-        except:
-            # Fallback profile
-            profile = {
-                "business_name": "Sample Business Ltd",
-                "turnover_tier": "< 5Cr",
-                "industry_code": sector.lower()
-            }
-        
-        user_sector = profile.get('industry_code', sector.lower())
-        user_location = profile.get('location', 'India')
-        
-        # Step 2: Initialize Scheme DB and perform filtered search
-        scheme_db = SchemeVectorDB()
-        
-        # Search for eligible schemes
-        eligible_schemes = scheme_db.search_eligible_schemes(
-            user_sector=user_sector,
-            user_investment=capex_amount,
-            query=f"{sector} subsidy scheme",
-            n_results=3
-        )
-        
-        if not eligible_schemes:
-            # Fallback to simple logic if no schemes found
-            return (
-                f"No specific schemes found in database. General recommendation: "
-                f"Check MSME schemes for {sector} sector with investment of ₹{capex_amount:,.0f}"
-            )
-        
-        # Step 3: Benefit Calculation (The CA Touch)
-        results = []
-        total_potential_benefit = 0
-        
-        for scheme in eligible_schemes:
-            benefit_calc = scheme_db.calculate_benefit(scheme, capex_amount)
-            
-            scheme_name = benefit_calc['scheme_name']
-            estimated_benefit = benefit_calc['estimated_benefit']
-            calculation_method = benefit_calc['calculation_method']
-            
-            if estimated_benefit > 0:
-                total_potential_benefit += estimated_benefit
-                results.append(f"• {scheme_name}: ₹{estimated_benefit:,.0f} ({calculation_method})")
-            else:
-                results.append(f"• {scheme_name}: Benefit calculation requires detailed assessment")
-        
-        # Format response
-        if results:
-            response = f"🎯 SUBSIDY OPPORTUNITIES FOUND for {sector.title()} Sector\n\n"
-            response += f"Investment Amount: ₹{capex_amount:,.0f}\n"
-            response += f"Business Profile: {profile.get('business_name', 'Your Business')}\n\n"
-            response += "ELIGIBLE SCHEMES:\n"
-            response += "\n".join(results)
-            
-            if total_potential_benefit > 0:
-                response += f"\n\n💰 TOTAL ESTIMATED BENEFIT: ₹{total_potential_benefit:,.0f}"
-                response += f"\n📊 Benefit Ratio: {(total_potential_benefit/capex_amount)*100:.1f}% of investment"
-            
-            response += "\n\n⚠️ NEXT STEPS:"
-            response += "\n• Verify eligibility criteria in detail"
-            response += "\n• Prepare required documentation"
-            response += "\n• Submit applications before deadlines"
-            response += "\n• Consult CA for compliance requirements"
-            
-            return response
-        else:
-            return f"Schemes found but benefit calculation requires manual assessment. Consult CA for {sector} sector schemes."
+    print(f"DEBUG: find_applicable_subsidies called with sector='{sector}', amount={capex_amount}, state='{state}'")
     
-    except Exception as e:
-        # Enhanced fallback logic
-        if sector.lower() == "textile":
-            if capex_amount > 10000000:  # 1 Crore
-                return f"PLI Scheme for Textiles - Up to 15% incentive on incremental sales. Estimated benefit: ₹{capex_amount * 0.15:,.0f} (15% of investment)"
-            else:
-                return f"TUFS Scheme - Up to 25% subsidy on machinery. Estimated benefit: ₹{min(capex_amount * 0.25, 2500000):,.0f}"
-        elif sector.lower() == "food_processing":
-            return f"PMFME Scheme - Up to 35% capital subsidy. Estimated benefit: ₹{min(capex_amount * 0.35, 1000000):,.0f} (max ₹10 lakh)"
-        elif sector.lower() == "manufacturing":
-            return f"MSME Schemes - Credit guarantee and interest subvention available. Estimated benefit: ₹{capex_amount * 0.10:,.0f} (10% interest savings)"
+    # Comprehensive scheme database with sector-specific schemes
+    SCHEME_DATABASE = {
+        "textile": [
+            {
+                "name": "Technology Upgradation Fund Scheme (TUFS)",
+                "benefit": "25% capital subsidy on eligible machinery",
+                "max_subsidy": 25000000,
+                "eligibility": "MSME textile units, new & expansion projects",
+                "link": "https://texmin.nic.in/schemes/technology-upgradation-fund-scheme-tufs",
+                "ministry": "Ministry of Textiles"
+            },
+            {
+                "name": "PM MITRA Parks Scheme",
+                "benefit": "30% capital subsidy + PLI incentives",
+                "max_subsidy": 50000000,
+                "eligibility": "Investment > 50 lakhs in PM MITRA parks",
+                "link": "https://pmmitra.gov.in",
+                "ministry": "Ministry of Textiles"
+            },
+            {
+                "name": "Amended Technology Upgradation Fund Scheme (A-TUFS)",
+                "benefit": "15% capital subsidy on technology upgradation",
+                "max_subsidy": 20000000,
+                "eligibility": "All textile segments including weaving, processing",
+                "link": "https://www.txcindia.gov.in/html/atufs.htm",
+                "ministry": "Ministry of Textiles"
+            }
+        ],
+        "manufacturing": [
+            {
+                "name": "Credit Linked Capital Subsidy Scheme (CLCSS)",
+                "benefit": "15% capital subsidy on plant & machinery",
+                "max_subsidy": 1500000,  # 15 Lakhs
+                "eligibility": "MSEs in manufacturing, investment up to Rs 1 Cr",
+                "link": "https://msme.gov.in/schemes/clcss",
+                "ministry": "Ministry of MSME"
+            },
+            {
+                "name": "Credit Guarantee Fund Scheme (CGS)",
+                "benefit": "Collateral-free loans up to Rs 2 Cr",
+                "max_subsidy": 20000000,
+                "eligibility": "MSMEs with viable business plans",
+                "link": "https://www.cgtmse.in",
+                "ministry": "Ministry of MSME"
+            },
+            {
+                "name": "Production Linked Incentive (PLI) Scheme",
+                "benefit": "4% incentive on incremental sales",
+                "max_subsidy": 100000000,
+                "eligibility": "Manufacturing units meeting threshold criteria",
+                "link": "https://invest.gov.in/pli-schemes/",
+                "ministry": "DPIIT"
+            }
+        ],
+        "food_processing": [
+            {
+                "name": "PM Formalization of Micro Food Processing (PMFME)",
+                "benefit": "35% capital subsidy, max Rs 10 lakhs",
+                "max_subsidy": 1000000,
+                "eligibility": "Micro food processing enterprises",
+                "link": "https://pmfme.mofpi.gov.in",
+                "ministry": "Ministry of Food Processing"
+            },
+            {
+                "name": "Pradhan Mantri Kisan SAMPADA Yojana",
+                "benefit": "35% capital subsidy for cold chains",
+                "max_subsidy": 100000000,
+                "eligibility": "Food processing, cold chain, mega food parks",
+                "link": "https://sampada.mofpi.gov.in",
+                "ministry": "Ministry of Food Processing"
+            },
+            {
+                "name": "Operation Greens (TOP to Total)",
+                "benefit": "50% subsidy on supply chain infrastructure",
+                "max_subsidy": 50000000,
+                "eligibility": "Fruits & vegetables processing",
+                "link": "https://mofpi.gov.in/schemes/operation-greens",
+                "ministry": "Ministry of Food Processing"
+            }
+        ],
+        "agriculture": [
+            {
+                "name": "Agriculture Infrastructure Fund (AIF)",
+                "benefit": "3% interest subvention + credit guarantee",
+                "max_subsidy": 20000000,
+                "eligibility": "Agri-infrastructure projects",
+                "link": "https://agriinfra.dac.gov.in",
+                "ministry": "Ministry of Agriculture"
+            },
+            {
+                "name": "Sub-Mission on Agricultural Mechanization (SMAM)",
+                "benefit": "40% subsidy on farm machinery",
+                "max_subsidy": 5000000,
+                "eligibility": "Farmers, FPOs, Custom Hiring Centers",
+                "link": "https://agrimachinery.nic.in",
+                "ministry": "Ministry of Agriculture"
+            },
+            {
+                "name": "Micro Irrigation Fund (MIF)",
+                "benefit": "Interest subvention on micro irrigation",
+                "max_subsidy": 10000000,
+                "eligibility": "Drip and sprinkler irrigation projects",
+                "link": "https://pmksy.gov.in",
+                "ministry": "Ministry of Agriculture"
+            }
+        ],
+        "pharma": [
+            {
+                "name": "PLI Scheme for Pharmaceuticals",
+                "benefit": "10% incentive on incremental sales",
+                "max_subsidy": 200000000,
+                "eligibility": "API and KSM manufacturers",
+                "link": "https://pharmaceuticals.gov.in/schemes",
+                "ministry": "Department of Pharmaceuticals"
+            },
+            {
+                "name": "Bulk Drug Parks Scheme",
+                "benefit": "70% grant for common infrastructure",
+                "max_subsidy": 100000000,
+                "eligibility": "Units in bulk drug parks",
+                "link": "https://pharmaceuticals.gov.in/bulk-drug-parks",
+                "ministry": "Department of Pharmaceuticals"
+            }
+        ],
+        "it": [
+            {
+                "name": "STPI Registration Benefits",
+                "benefit": "100% FDI, duty-free imports",
+                "max_subsidy": 50000000,
+                "eligibility": "Software export units",
+                "link": "https://stpi.in",
+                "ministry": "MeitY"
+            },
+            {
+                "name": "Digital MSME Scheme",
+                "benefit": "Up to 90% subsidy on cloud computing",
+                "max_subsidy": 500000,
+                "eligibility": "MSMEs for ICT adoption",
+                "link": "https://msme.gov.in/digital-msme",
+                "ministry": "Ministry of MSME"
+            }
+        ],
+        "technology": [
+            {
+                "name": "STPI Registration Benefits",
+                "benefit": "100% FDI, duty-free imports",
+                "max_subsidy": 50000000,
+                "eligibility": "Software export units",
+                "link": "https://stpi.in",
+                "ministry": "MeitY"
+            },
+            {
+                "name": "PLI for IT Hardware",
+                "benefit": "4-6% incentive on net incremental sales",
+                "max_subsidy": 100000000,
+                "eligibility": "Laptops, tablets, servers manufacturing",
+                "link": "https://meity.gov.in/schemes",
+                "ministry": "MeitY"
+            }
+        ],
+        "services": [
+            {
+                "name": "MSME Credit Guarantee Scheme",
+                "benefit": "Collateral-free loans up to Rs 2 Cr",
+                "max_subsidy": 20000000,
+                "eligibility": "Service sector MSMEs",
+                "link": "https://www.cgtmse.in",
+                "ministry": "Ministry of MSME"
+            },
+            {
+                "name": "Skill Development Subsidy",
+                "benefit": "75% training cost subsidy",
+                "max_subsidy": 1000000,
+                "eligibility": "Skill training for employees",
+                "link": "https://msde.gov.in/en/schemes-initiatives",
+                "ministry": "Ministry of Skill Development"
+            }
+        ],
+        "women_entrepreneur": [
+            {
+                "name": "Stand Up India Scheme",
+                "benefit": "Bank loans between ₹10 Lakh and ₹1 Crore",
+                "max_subsidy": 10000000,
+                "eligibility": "SC/ST and/or Woman entrepreneur (Greenfield projects)",
+                "link": "https://www.standupmitra.in/",
+                "ministry": "Ministry of Finance"
+            },
+            {
+                "name": "Pradhan Mantri MUDRA Yojana (Tarun)",
+                "benefit": "Collateral-free loans up to ₹10 Lakhs",
+                "max_subsidy": 1000000,
+                "eligibility": "Non-Corporate Small Business Segment (NCSBS)",
+                "link": "https://www.mudra.org.in/",
+                "ministry": "Ministry of Finance"
+            },
+            {
+                "name": "Prime Minister's Employment Generation Programme (PMEGP)",
+                "benefit": "Up to 35% subsidy (Margin Money) in rural areas",
+                "max_subsidy": 5000000,  # Max project cost 50L for mfg
+                "eligibility": "New micro-enterprises, special category (Women/SC/ST)",
+                "link": "https://www.kviconline.gov.in/pmegpeportal/pmegphome/index.jsp",
+                "ministry": "Ministry of MSME"
+            }
+        ],
+        "rural_business": [
+            {
+                "name": "Prime Minister's Employment Generation Programme (PMEGP)",
+                "benefit": "Subsidy: 35% (Rural), 25% (Urban) for Special Category",
+                "max_subsidy": 5000000,
+                "eligibility": "Any individual above 18 years, new projects",
+                "link": "https://www.kviconline.gov.in/pmegpeportal/pmegphome/index.jsp",
+                "ministry": "Ministry of MSME"
+            },
+            {
+                "name": "Deendayal Antyodaya Yojana (NRLM)",
+                "benefit": "Revolving Fund & Community Investment Support",
+                "max_subsidy": 500000,
+                "eligibility": "Women SHGs in rural areas",
+                "link": "https://aajeevika.gov.in/",
+                "ministry": "Ministry of Rural Development"
+            },
+            {
+                "name": "Aspire Scheme (LBI)",
+                "benefit": "100% grant for Livelihood Business Incubators",
+                "max_subsidy": 10000000,
+                "eligibility": "Agencies setting up incubators in rural areas",
+                "link": "https://msme.gov.in/sites/default/files/ASPIRE-Scheme-Guidelines.pdf",
+                "ministry": "Ministry of MSME"
+            }
+        ]
+    }
+    
+    # State specific schemes (Major States)
+    STATE_SCHEMES = {
+        "maharashtra": [
+            {
+                "name": "Magnet Maharashtra - PSI 2019",
+                "benefit": "100% SGST refund + 5% Interest Subsidy",
+                "max_subsidy": 50000000,
+                "eligibility": "MSMEs and Large units in Maharashtra",
+                "link": "https://di.maharashtra.gov.in",
+                "ministry": "Govt of Maharashtra"
+            },
+            {
+                "name": "Mukhyamantri Rojgar Nirman Yojana",
+                "benefit": "Up to 35% subsidy on project cost",
+                "max_subsidy": 2500000,
+                "eligibility": "Unemployed youth in Maharashtra",
+                "link": "https://cmegp.gov.in",
+                "ministry": "Govt of Maharashtra"
+            }
+        ],
+        "gujarat": [
+            {
+                "name": "Gujarat Industrial Policy 2020",
+                "benefit": "Capital subsidy @ 25% + 7% Interest Subsidy",
+                "max_subsidy": 3500000,
+                "eligibility": "MSMEs in Gujarat",
+                "link": "https://ic.gujarat.gov.in",
+                "ministry": "Govt of Gujarat"
+            }
+        ],
+        "karnataka": [
+            {
+                "name": "Karnataka Industrial Policy 2020-25",
+                "benefit": "Inv. Promotion Subsidy based on zone (up to 25%)",
+                "max_subsidy": 50000000,
+                "eligibility": "New enterprises in Karnataka",
+                "link": "https://kum.karnataka.gov.in",
+                "ministry": "Govt of Karnataka"
+            }
+        ],
+        "tamil_nadu": [
+            {
+                "name": "TN MSME Policy 2021",
+                "benefit": "Capital Subsidy 25% on plant & machinery",
+                "max_subsidy": 15000000,
+                "eligibility": "New & existing MSMEs in TN",
+                "link": "https://msmeonline.tn.gov.in",
+                "ministry": "Govt of Tamil Nadu"
+            }
+        ]
+    }
+    
+    # Get sector-specific schemes
+    sector_key = sector.lower().replace(" ", "_").replace("-", "_")
+    
+    # Check for sector aliases
+    sector_aliases = {
+        "textiles": "textile",
+        "food": "food_processing",
+        "agri": "agriculture",
+        "pharma": "pharma",
+        "pharmaceutical": "pharma",
+        "information technology": "it",
+        "tech": "technology",
+        "service": "services"
+    }
+    sector_key = sector_aliases.get(sector_key, sector_key)
+    
+    schemes = SCHEME_DATABASE.get(sector_key)
+    
+    if not schemes and sector_key != "manufacturing":
+        # Try semantic search if SchemeVectorDB is available
+        try:
+            from scheme_database import SchemeVectorDB
+            print(f"DEBUG: Falling back to Semantic Search for '{sector}'")
+            scheme_db = SchemeVectorDB()
+            
+            # Search for eligible schemes using vector search
+            eligible_schemes = scheme_db.search_eligible_schemes(
+                user_sector=sector,
+                user_investment=capex_amount,
+                query=f"{sector} subsidy scheme",
+                n_results=3
+            )
+            
+            if eligible_schemes:
+                schemes = []
+                for s in eligible_schemes:
+                    schemes.append({
+                        "name": s.get('scheme_name', 'Unknown Scheme'),
+                        "benefit": s.get('benefit_summary', 'Benefit details in link'),
+                        "max_subsidy": s.get('max_benefit', 1000000), 
+                        "eligibility": s.get('eligibility', 'Check details'),
+                        "link": s.get('url', '#'),
+                        "ministry": s.get('ministry', 'Government of India')
+                    })
+                sector_display = f"{sector.title()} (AI Matched Schemes)"
+        except Exception as e:
+            print(f"DEBUG: Vector search failed: {e}")
+            schemes = None
+
+    if not schemes:
+        # Default to manufacturing if sector not found
+        schemes = SCHEME_DATABASE["manufacturing"]
+        sector_display = f"{sector.title()} (using general Manufacturing schemes)"
+    elif 'sector_display' not in locals():
+        sector_display = sector.title()
+        
+    # Add State Schemes if state matches
+    state_display = ""
+    state_schemes_list = []
+    
+    if state:
+        state_key = state.lower().replace(" ", "_")
+        state_schemes_list = STATE_SCHEMES.get(state_key, [])
+        if state_schemes_list:
+            state_display = f" & {state.title()} State"
+    
+    # Build comprehensive response
+    response = f"🎯 SUBSIDY OPPORTUNITIES for {sector_display} Sector{state_display}\n\n"
+    response += f"📊 Investment Amount: Rs {capex_amount:,.0f}\n"
+    response += "=" * 50 + "\n\n"
+    
+    # 1. Central/Sector Schemes
+    response += f"🏛️ CENTRAL/SECTOR SPECIFIC SCHEMES:\n"
+    
+    total_potential = 0
+    for i, scheme in enumerate(schemes, 1):
+        # Calculate estimated benefit
+        benefit_text = scheme['benefit']
+        if '%' in benefit_text:
+            try:
+                subsidy_rate = float(benefit_text.split('%')[0].split()[-1]) / 100
+            except:
+                subsidy_rate = 0.25
         else:
-            return f"Database error: {str(e)}. General MSME schemes available for {sector} sector."
+            subsidy_rate = 0.25
+        
+        estimated = min(capex_amount * subsidy_rate, scheme['max_subsidy'])
+        total_potential += estimated
+        
+        response += f"**{i}. {scheme['name']}**\n"
+        response += f"   Benefit: {scheme['benefit']}\n"
+        response += f"   Estimated for you: Rs {estimated:,.0f}\n"
+        response += f"   Eligibility: {scheme['eligibility']}\n"
+        response += f"   Ministry: {scheme['ministry']}\n"
+        response += f"   Official Link: {scheme['link']}\n\n"
+    
+    # 2. State Schemes (if applicable)
+    if state_schemes_list:
+        response += f"📍 STATE SPECIFIC SCHEMES ({state.title()}):\n"
+        for i, scheme in enumerate(state_schemes_list, 1):
+             # Calculate estimated benefit (simple logic for now)
+            benefit_text = scheme['benefit']
+            if '%' in benefit_text:
+                try:
+                    subsidy_rate = float(benefit_text.split('%')[0].split()[-1]) / 100
+                except:
+                    subsidy_rate = 0.10 # Conservative default for state
+            else:
+                subsidy_rate = 0.10
+            
+            estimated = min(capex_amount * subsidy_rate, scheme['max_subsidy'])
+            # Don't add to total potential blindly as they might be mutually exclusive or additive, keeps it simple
+            
+            response += f"**S{i}. {scheme['name']}**\n"
+            response += f"   Benefit: {scheme['benefit']}\n"
+            response += f"   Estimated: Rs {estimated:,.0f} (Check overlap rules)\n"
+            response += f"   Eligibility: {scheme['eligibility']}\n"
+            response += f"   Ministry: {scheme['ministry']}\n"
+            response += f"   Official Link: {scheme['link']}\n\n"
+            
+    response += "=" * 50 + "\n"
+    response += f"TOTAL POTENTIAL BENEFIT (Central): Rs {total_potential:,.0f}\n"
+    response += f"Benefit Ratio: {(total_potential/capex_amount)*100:.1f}% of investment\n\n"
+    
+    response += "IMPORTANT NEXT STEPS:\n"
+    response += "1. Visit official links above to verify current scheme status\n"
+    response += "2. Check if State and Central schemes can be clubbed (often allowed up to 50% max)\n"
+    response += "3. Prepare: Registration certificate, Bank details, Project report\n"
+    response += "4. Consult a CA for compliance and application assistance\n"
+    response += "5. Apply before scheme deadline (check respective portals)\n\n"
+    response += "Note: Amounts are estimates. Actual benefits depend on eligibility verification."
+    
+    return response
 
 # Phase 1: Router Logic - The Decision Maker
 class NegotiationIntent(str, Enum):

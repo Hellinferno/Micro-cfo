@@ -12,22 +12,22 @@ const API_V1_PREFIX = '/api/v1';
  */
 async function apiFetch(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const defaultHeaders = {
         'Accept': 'application/json',
     };
-    
+
     // Add Content-Type for JSON requests (not for FormData)
     if (options.body && !(options.body instanceof FormData)) {
         defaultHeaders['Content-Type'] = 'application/json';
     }
-    
+
     // Get auth token from localStorage
     const token = localStorage.getItem('auth_token');
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
-    
+
     const config = {
         ...options,
         headers: {
@@ -35,10 +35,10 @@ async function apiFetch(endpoint, options = {}) {
             ...options.headers,
         },
     };
-    
+
     try {
         const response = await fetch(url, config);
-        
+
         // Handle non-JSON responses
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
@@ -47,13 +47,13 @@ async function apiFetch(endpoint, options = {}) {
             }
             return { success: true };
         }
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.message || data.detail || `HTTP ${response.status}`);
         }
-        
+
         return data;
     } catch (error) {
         console.error(`API Error [${endpoint}]:`, error);
@@ -75,13 +75,13 @@ export const visualAuditorAPI = {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('process_immediately', processImmediately.toString());
-        
+
         return apiFetch(`${API_V1_PREFIX}/agents/visual-auditor/upload-document`, {
             method: 'POST',
             body: formData,
         });
     },
-    
+
     /**
      * Scan invoice with image URL or base64
      * @param {string} imageUrl - URL or base64 encoded image
@@ -97,7 +97,7 @@ export const visualAuditorAPI = {
             }),
         });
     },
-    
+
     /**
      * Health check for Visual Auditor
      */
@@ -111,21 +111,28 @@ export const visualAuditorAPI = {
  */
 export const legalSentinelAPI = {
     /**
-     * Search legal compliance information
+     * Check legal compliance
      * @param {string} query - Legal query
-     * @param {Object} userProfile - User business profile
-     * @returns {Promise<Object>} Legal search results
+     * @param {string} userContext - Optional user context
+     * @returns {Promise<Object>} Compliance check results
      */
-    async searchCompliance(query, userProfile = null) {
-        return apiFetch(`${API_V1_PREFIX}/agents/legal-sentinel/search`, {
+    async checkCompliance(query, userContext = null) {
+        return apiFetch(`${API_V1_PREFIX}/agents/legal-sentinel/check-compliance`, {
             method: 'POST',
             body: JSON.stringify({
                 query,
-                user_profile: userProfile,
+                user_context: userContext || '',
             }),
         });
     },
-    
+
+    /**
+     * Legacy: Search compliance (alias for checkCompliance)
+     */
+    async searchCompliance(query, userProfile = null) {
+        return this.checkCompliance(query, userProfile ? JSON.stringify(userProfile) : null);
+    },
+
     /**
      * Assess legal risk for invoice
      * @param {Object} invoiceData - Invoice data
@@ -147,22 +154,90 @@ export const legalSentinelAPI = {
  * Subsidy Hunter (Agent C) API
  */
 export const subsidyHunterAPI = {
+
     /**
-     * Search for subsidies
-     * @param {string} query - Subsidy search query
-     * @param {Object} userProfile - User business profile
-     * @returns {Promise<Object>} Subsidy search results
+     * Legacy: Search subsidies with text query (parses sector from query)
      */
     async searchSubsidies(query, userProfile = null) {
-        return apiFetch(`${API_V1_PREFIX}/agents/subsidy-hunter/search`, {
-            method: 'POST',
-            body: JSON.stringify({
-                query,
-                user_profile: userProfile,
-            }),
-        });
+        // Robust keyword mapping to backend sectors
+        const sectorKeywords = {
+            'women_entrepreneur': ['women', 'woman', 'female', 'girl', 'lady', 'widow', 'housewife'],
+            'rural_business': ['rural', 'village', 'panchayat', 'farm', 'agri', 'agriculture'], // Agri also maps here if specific rural business context
+            'textile': ['textile', 'garment', 'apparel', 'fabric', 'yarn', 'spinning', 'weaving', 'clothing', 'knitwear'],
+            'food_processing': ['food', 'dairy', 'milk', 'bakery', 'beverage', 'snack', 'meat', 'processing', 'cold chain', 'sugar'],
+            'pharma': ['pharma', 'drug', 'medicine', 'medical', 'biotech', 'chemical'],
+            'it': ['it', 'software', 'tech', 'computer', 'digital', 'saas', 'app', 'web', 'data'],
+            'manufacturing': ['manufacturing', 'factory', 'plant', 'machinery', 'production', 'industrial', 'engineering'],
+            'services': ['service', 'consulting', 'tourism', 'hotel', 'hospital', 'logistics', 'education', 'training'],
+            'technology': ['hardware', 'electronic', 'device', 'gadget', 'semiconductor']
+        };
+
+        const lowerQuery = query.toLowerCase();
+        let detectedSector = null;
+
+        // Find best matching sector (prioritize top formatting)
+        for (const [sector, keywords] of Object.entries(sectorKeywords)) {
+            if (keywords.some(keyword => lowerQuery.includes(keyword))) {
+                detectedSector = sector;
+                break;
+            }
+        }
+
+        // If no specific sector detected, use the relevant part of the query
+        if (!detectedSector) {
+            // Remove common words to find the core subject
+            const commonWords = ['subsidy', 'subsidies', 'scheme', 'schemes', 'benefit', 'loan', 'grant', 'for', 'in', 'startup', 'business', 'start', 'i', 'want', 'need', 'give', 'me', 'help'];
+            const words = lowerQuery.split(/\s+/).filter(w => !commonWords.includes(w) && w.length > 2);
+
+            if (words.length > 0) {
+                detectedSector = words.join(' ');
+            } else {
+                detectedSector = 'manufacturing'; // Detailed fallback if query is just "give me subsidy"
+            }
+        }
+
+
+        // Extract state (Indian context)
+        const states = [
+            'maharashtra', 'gujarat', 'karnataka', 'tamil nadu', 'telangana', 'delhi',
+            'uttar pradesh', 'haryana', 'rajasthan', 'madhya pradesh', 'punjab', 'west bengal',
+            'bihar', 'odisha', 'andhra pradesh'
+        ];
+
+        let detectedState = null;
+        for (const state of states) {
+            if (lowerQuery.includes(state)) {
+                detectedState = state;
+                break;
+            }
+        }
+
+        // Extract amount (supports "1 crore", "50 lakhs", "100000")
+        let capexAmount = 1000000; // Default 10L
+
+        // Try to parse natural language numbers
+        const croreMatch = lowerQuery.match(/(\d+(?:\.\d+)?)\s*cr(?:ore)?s?/);
+        const lakhMatch = lowerQuery.match(/(\d+(?:\.\d+)?)\s*lakh?s?/);
+
+        if (croreMatch) {
+            capexAmount = parseFloat(croreMatch[1]) * 10000000;
+        } else if (lakhMatch) {
+            capexAmount = parseFloat(lakhMatch[1]) * 100000;
+        } else {
+            // Fallback to raw numbers
+            const numMatch = query.match(/(\d+(?:,\d{3})*(?:\.\d+)?)/);
+            if (numMatch) {
+                const val = parseFloat(numMatch[0].replace(/,/g, ''));
+                // Simple heuristic: if user types "50000", they usually mean literal amount. 
+                // If they type tiny number like "50", they might mean lakhs, but safer to assume literal if no unit specified.
+                capexAmount = val;
+            }
+        }
+
+        console.log(`[Frontend] Parsed Query: "${query}" -> Sector: ${detectedSector}, State: ${detectedState}, Amount: ${capexAmount}`);
+        return this.findSubsidies(detectedSector, capexAmount, detectedState);
     },
-    
+
     /**
      * Find subsidies for invoice
      * @param {Object} invoiceData - Invoice data
@@ -176,6 +251,27 @@ export const subsidyHunterAPI = {
                 invoice_data: invoiceData,
                 user_profile: userProfile,
             }),
+        });
+    },
+
+    // --- Core Agent Methods ---
+
+    /**
+     * Find subsidies by sector and amount
+     * @param {string} sector - Industry sector
+     * @param {number} capexAmount - Investment amount
+     * @param {string} state - State name (optional)
+     */
+    async findSubsidies(sector, capexAmount, state = null) {
+        const body = {
+            sector,
+            capex_amount: capexAmount,
+        };
+        if (state) body.state = state;
+
+        return apiFetch(`${API_V1_PREFIX}/agents/subsidy-hunter/find-subsidies`, {
+            method: 'POST',
+            body: JSON.stringify(body),
         });
     },
 };
@@ -213,13 +309,13 @@ export const tasksAPI = {
     async submitInvoiceScan(file) {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         return apiFetch('/api/tasks/invoice/scan', {
             method: 'POST',
             body: formData,
         });
     },
-    
+
     /**
      * Submit legal search task
      * @param {string} query - Legal query
@@ -235,7 +331,7 @@ export const tasksAPI = {
             }),
         });
     },
-    
+
     /**
      * Submit subsidy search task
      * @param {string} query - Subsidy query
@@ -251,7 +347,7 @@ export const tasksAPI = {
             }),
         });
     },
-    
+
     /**
      * Get task status
      * @param {string} taskId - Task ID
@@ -260,7 +356,7 @@ export const tasksAPI = {
     async getTaskStatus(taskId) {
         return apiFetch(`/api/tasks/status/${taskId}`);
     },
-    
+
     /**
      * Get task result
      * @param {string} taskId - Task ID
@@ -269,7 +365,7 @@ export const tasksAPI = {
     async getTaskResult(taskId) {
         return apiFetch(`/api/tasks/result/${taskId}`);
     },
-    
+
     /**
      * Cancel task
      * @param {string} taskId - Task ID
@@ -280,7 +376,7 @@ export const tasksAPI = {
             method: 'DELETE',
         });
     },
-    
+
     /**
      * Poll task until completion
      * @param {string} taskId - Task ID
@@ -293,12 +389,12 @@ export const tasksAPI = {
             const poll = async () => {
                 try {
                     const status = await this.getTaskStatus(taskId);
-                    
+
                     // Call progress callback
                     if (onProgress) {
                         onProgress(status);
                     }
-                    
+
                     // Check if task is complete
                     if (status.status === 'success') {
                         resolve(status.result);
@@ -312,7 +408,7 @@ export const tasksAPI = {
                     reject(error);
                 }
             };
-            
+
             poll();
         });
     },
@@ -332,20 +428,20 @@ export const authAPI = {
         const formData = new FormData();
         formData.append('username', username);
         formData.append('password', password);
-        
+
         const response = await apiFetch(`${API_V1_PREFIX}/auth/login`, {
             method: 'POST',
             body: formData,
         });
-        
+
         // Store token
         if (response.access_token) {
             localStorage.setItem('auth_token', response.access_token);
         }
-        
+
         return response;
     },
-    
+
     /**
      * Register new user
      * @param {Object} userData - User registration data
@@ -357,14 +453,14 @@ export const authAPI = {
             body: JSON.stringify(userData),
         });
     },
-    
+
     /**
      * Logout user
      */
     logout() {
         localStorage.removeItem('auth_token');
     },
-    
+
     /**
      * Get current user
      * @returns {Promise<Object>} User data
@@ -385,27 +481,27 @@ export class WebSocketManager {
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000;
     }
-    
+
     /**
      * Connect to WebSocket
      * @param {string} userId - User ID
      */
     connect(userId) {
         const wsUrl = `${API_BASE_URL.replace('http', 'ws')}/ws/${userId}`;
-        
+
         this.ws = new WebSocket(wsUrl);
-        
+
         this.ws.onopen = () => {
             console.log('WebSocket connected');
             this.reconnectAttempts = 0;
             this.emit('connected');
         };
-        
+
         this.ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 this.emit('message', data);
-                
+
                 // Emit specific event types
                 if (data.type) {
                     this.emit(data.type, data);
@@ -414,16 +510,16 @@ export class WebSocketManager {
                 console.error('WebSocket message parse error:', error);
             }
         };
-        
+
         this.ws.onerror = (error) => {
             console.error('WebSocket error:', error);
             this.emit('error', error);
         };
-        
+
         this.ws.onclose = () => {
             console.log('WebSocket disconnected');
             this.emit('disconnected');
-            
+
             // Attempt reconnection
             if (this.reconnectAttempts < this.maxReconnectAttempts) {
                 this.reconnectAttempts++;
@@ -434,7 +530,7 @@ export class WebSocketManager {
             }
         };
     }
-    
+
     /**
      * Disconnect WebSocket
      */
@@ -444,7 +540,7 @@ export class WebSocketManager {
             this.ws = null;
         }
     }
-    
+
     /**
      * Send message
      * @param {Object} data - Message data
@@ -456,7 +552,7 @@ export class WebSocketManager {
             console.warn('WebSocket not connected');
         }
     }
-    
+
     /**
      * Add event listener
      * @param {string} event - Event name
@@ -468,7 +564,7 @@ export class WebSocketManager {
         }
         this.listeners.get(event).push(callback);
     }
-    
+
     /**
      * Remove event listener
      * @param {string} event - Event name
@@ -483,7 +579,7 @@ export class WebSocketManager {
             }
         }
     }
-    
+
     /**
      * Emit event to listeners
      * @param {string} event - Event name
@@ -513,7 +609,7 @@ export const adminAPI = {
     async getOverview() {
         return apiFetch(`${API_V1_PREFIX}/admin/overview`);
     },
-    
+
     /**
      * Get all users
      * @returns {Promise<Array>} List of users
@@ -521,7 +617,7 @@ export const adminAPI = {
     async getUsers() {
         return apiFetch(`${API_V1_PREFIX}/admin/users`);
     },
-    
+
     /**
      * Get audit logs
      * @param {Object} filters - Filter parameters
@@ -531,7 +627,7 @@ export const adminAPI = {
         const params = new URLSearchParams(filters);
         return apiFetch(`${API_V1_PREFIX}/admin/audit-logs?${params}`);
     },
-    
+
     /**
      * Get system metrics
      * @returns {Promise<Object>} System metrics
@@ -552,7 +648,7 @@ export const healthAPI = {
     async check() {
         return apiFetch('/health');
     },
-    
+
     /**
      * Check API v1 status
      * @returns {Promise<Object>} API status

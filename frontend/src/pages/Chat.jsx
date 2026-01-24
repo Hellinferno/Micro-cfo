@@ -147,16 +147,76 @@ const Chat = () => {
         }
     };
 
-    const handleSend = (text) => {
+    const handleSend = async (text) => {
         if (!text.trim()) return;
 
         // Add user message
         addMessage(text, 'user');
+        setIsProcessing(true);
 
-        // Add bot response
-        setTimeout(() => {
-            addMessage("I'm analyzing that for you...", 'bot');
-        }, 500);
+        // Add processing message
+        const processingMsg = addMessage("I'm analyzing that for you...", 'bot');
+
+        try {
+            // Simple intent detection
+            const lowerText = text.toLowerCase();
+            let response;
+
+            if (lowerText.includes('subsid') || lowerText.includes('subsd') || lowerText.includes('scheme') || lowerText.includes('grant') ||
+                lowerText.includes('benefit') || lowerText.includes('loan') || lowerText.includes('fund') || lowerText.includes('incentive') ||
+                lowerText.includes('policy') || lowerText.includes('startup') || lowerText.includes('business')) {
+                // Call Subsidy Hunter API
+                response = await api.subsidyHunter.searchSubsidies(text);
+
+                // Remove processing message
+                setMessages(prev => prev.filter(msg => msg.id !== processingMsg.id));
+
+                // Handle subsidy response format: {subsidy_information, processing_time, sector_searched, capex_amount_searched}
+                if (response.subsidy_information) {
+                    addMessage(`🎯 Subsidy Information:\n\n${response.subsidy_information}`, 'bot');
+                } else if (response.error) {
+                    addMessage(`Could not find subsidies: ${response.message || response.error}. Try specifying a sector like "find subsidies for textile sector".`, 'bot');
+                } else {
+                    addMessage("I searched for subsidies but couldn't find matching schemes. Please try with more specific details about your business sector and investment amount.", 'bot');
+                }
+
+            } else if (lowerText.includes('legal') || lowerText.includes('compliance') || lowerText.includes('gst') || lowerText.includes('tax') || lowerText.includes('itc')) {
+                // Call Legal Sentinel API
+                response = await api.legalSentinel.searchCompliance(text);
+
+                // Remove processing message
+                setMessages(prev => prev.filter(msg => msg.id !== processingMsg.id));
+
+                // Handle legal response format: {risk_level, relevant_section, compliant_action, processing_time}
+                if (response.risk_level && response.compliant_action) {
+                    let resultText = `⚖️ Legal Compliance Check:\n\n`;
+                    resultText += `**Risk Level:** ${response.risk_level}\n\n`;
+                    resultText += `**Relevant Section:** ${response.relevant_section}\n\n`;
+                    resultText += `**Recommended Action:** ${response.compliant_action}`;
+                    addMessage(resultText, 'bot');
+                } else if (response.error) {
+                    addMessage(`Could not check compliance: ${response.message || response.error}`, 'bot');
+                } else {
+                    addMessage("I couldn't find specific legal information. Please consult a qualified professional.", 'bot');
+                }
+
+            } else if (lowerText.includes('invoice') || lowerText.includes('inv-') || lowerText.includes('bill')) {
+                // For invoice queries, guide user to upload
+                setMessages(prev => prev.filter(msg => msg.id !== processingMsg.id));
+                addMessage("To analyze an invoice, please upload it using the attachment button (📎). Once uploaded, I can:\n\n• Extract all invoice details\n• Check for compliance issues\n• Find applicable subsidies\n• Help with vendor negotiations", 'bot');
+
+            } else {
+                // Default: general response
+                setMessages(prev => prev.filter(msg => msg.id !== processingMsg.id));
+                addMessage("I can help you with:\n\n• **Upload Invoice** - Extract and analyze invoice data\n• **Find Subsidies** - Search for applicable government schemes\n• **Legal Compliance** - Check GST and tax compliance\n• **Negotiate** - Generate vendor negotiation emails\n\nTry asking something like 'find subsidies for textile machinery' or 'what are the GST rules for input tax credit?'", 'bot');
+            }
+        } catch (error) {
+            console.error('Chat error:', error);
+            setMessages(prev => prev.filter(msg => msg.id !== processingMsg.id));
+            addMessage(`Sorry, I encountered an error: ${error.message}. Please try again.`, 'bot');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     return (

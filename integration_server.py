@@ -156,18 +156,18 @@ from middleware.audit_middleware import AuditMiddleware
 audit_enabled = os.getenv("AUDIT_ENABLED", "true").lower() == "true"
 app.add_middleware(AuditMiddleware, enabled=audit_enabled)
 if audit_enabled:
-    logger.info("✅ Audit middleware enabled - all actions will be logged")
+    logger.info("[OK] Audit middleware enabled - all actions will be logged")
 else:
-    logger.warning("⚠️  Audit middleware disabled")
+    logger.warning("[WARN] Audit middleware disabled")
 
 # Add disclaimer middleware for legal disclaimers
 from middleware.disclaimer_middleware import DisclaimerMiddleware
 disclaimer_enabled = os.getenv("DISCLAIMER_ENABLED", "true").lower() == "true"
 app.add_middleware(DisclaimerMiddleware, enabled=disclaimer_enabled)
 if disclaimer_enabled:
-    logger.info("✅ Disclaimer middleware enabled - legal disclaimers will be added to responses")
+    logger.info("[OK] Disclaimer middleware enabled - legal disclaimers will be added to responses")
 else:
-    logger.warning("⚠️  Disclaimer middleware disabled")
+    logger.warning("[WARN] Disclaimer middleware disabled")
 
 # Add trusted host middleware for security
 app.add_middleware(

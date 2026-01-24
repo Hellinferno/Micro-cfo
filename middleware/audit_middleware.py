@@ -70,9 +70,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.enabled = enabled
         if enabled:
-            logger.info("✅ Audit middleware enabled")
+            logger.info("[OK] Audit middleware enabled")
         else:
-            logger.warning("⚠️  Audit middleware disabled")
+            logger.warning("[WARN] Audit middleware disabled")
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
