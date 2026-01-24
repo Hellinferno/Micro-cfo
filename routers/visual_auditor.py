@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration for file uploads
 TEMP_DIR = Path("temp_uploads")
+UPLOAD_DIR = TEMP_DIR  # Fix for F821 undefined name
 TEMP_DIR.mkdir(exist_ok=True)
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB (increased for large documents)
 CHUNK_SIZE = 1024 * 1024  # 1MB chunks for streaming
