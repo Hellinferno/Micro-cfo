@@ -1,42 +1,39 @@
 ---
-name: Bug Report
+name: Bug report
 about: Create a report to help us improve
 title: '[BUG] '
 labels: bug
 assignees: ''
 ---
 
-## Bug Description
+**Describe the bug**
 A clear and concise description of what the bug is.
 
-## Steps to Reproduce
+**To Reproduce**
+Steps to reproduce the behavior:
 1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
+2. Click on '....'
+3. Scroll down to '....'
 4. See error
 
-## Expected Behavior
+**Expected behavior**
 A clear and concise description of what you expected to happen.
 
-## Actual Behavior
-What actually happened.
-
-## Screenshots
+**Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-## Environment
-- OS: [e.g. Windows 11, Ubuntu 22.04]
-- Python Version: [e.g. 3.11.5]
-- Docker Version: [e.g. 24.0.6]
-- Browser: [e.g. Chrome 120, Firefox 121]
+**Environment (please complete the following information):**
+ - OS: [e.g. Windows, macOS, Linux]
+ - Python Version: [e.g. 3.11]
+ - Docker Version: [e.g. 24.0.0]
+ - Browser: [e.g. chrome, safari]
+ - Version: [e.g. 2.0.0]
 
-## Additional Context
+**Logs**
+Please attach relevant log files or error messages:
+```
+Paste logs here
+```
+
+**Additional context**
 Add any other context about the problem here.
-
-## Logs
-```
-Paste relevant logs here
-```
-
-## Possible Solution
-If you have suggestions on how to fix the bug, please describe them here.

@@ -1,98 +1,74 @@
-# Makefile for MicroCFO Docker Operations
+.PHONY: help build up down logs restart clean test shell db-init health
 
-.PHONY: help build up down restart logs clean dev prod test db-init db-migrate
-
-# Default target
 help:
 	@echo "MicroCFO Docker Commands:"
 	@echo "  make build       - Build all Docker images"
-	@echo "  make up          - Start all services (production)"
+	@echo "  make up          - Start all services"
 	@echo "  make down        - Stop all services"
-	@echo "  make restart     - Restart all services"
 	@echo "  make logs        - View logs from all services"
+	@echo "  make restart     - Restart all services"
 	@echo "  make clean       - Remove all containers, volumes, and images"
-	@echo "  make dev         - Start development environment with hot reload"
-	@echo "  make prod        - Start production environment"
-	@echo "  make test        - Run tests in Docker"
-	@echo "  make db-init     - Initialize database"
-	@echo "  make db-migrate  - Run database migrations"
-	@echo "  make shell-backend  - Open shell in backend container"
-	@echo "  make shell-frontend - Open shell in frontend container"
+	@echo "  make test        - Run tests in backend container"
+	@echo "  make shell       - Open shell in backend container"
+	@echo "  make db-init     - Initialize databases"
+	@echo "  make health      - Check health of all services"
 
-# Build all images
 build:
-	docker-compose build
+	docker-compose build --no-cache
 
-# Start production environment
 up:
 	docker-compose up -d
+	@echo "Services starting... Check status with 'make health'"
 
-# Start production environment (alias)
-prod: up
-
-# Start development environment
-dev:
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-
-# Stop all services
 down:
 	docker-compose down
 
-# Restart all services
-restart: down up
-
-# View logs
 logs:
 	docker-compose logs -f
 
-# View backend logs only
 logs-backend:
 	docker-compose logs -f backend
 
-# View frontend logs only
 logs-frontend:
 	docker-compose logs -f frontend
 
-# Clean everything (WARNING: removes volumes)
+logs-celery:
+	docker-compose logs -f celery-worker
+
+restart:
+	docker-compose restart
+
 clean:
-	docker-compose down -v --rmi all --remove-orphans
-	docker system prune -f
+	docker-compose down -v
+	docker system prune -af
 
-# Initialize database
-db-init:
-	docker-compose exec backend python setup_legal_db.py
-	docker-compose exec backend python setup_scheme_db.py
-
-# Run database migrations (placeholder for future)
-db-migrate:
-	@echo "Database migrations not yet implemented"
-
-# Open shell in backend container
-shell-backend:
-	docker-compose exec backend /bin/bash
-
-# Open shell in frontend container
-shell-frontend:
-	docker-compose exec frontend /bin/sh
-
-# Run tests in backend
 test:
 	docker-compose exec backend pytest -v
 
-# Check service health
+shell:
+	docker-compose exec backend /bin/bash
+
+shell-backend:
+	docker-compose exec backend /bin/bash
+
+shell-frontend:
+	docker-compose exec frontend /bin/sh
+
+db-init:
+	docker-compose exec backend python scripts/setup_legal_db.py
+	docker-compose exec backend python scripts/setup_scheme_db.py
+	docker-compose exec backend alembic upgrade head
+
 health:
 	@echo "Checking service health..."
-	@curl -f http://localhost:8000/health || echo "Backend: UNHEALTHY"
-	@curl -f http://localhost/health || echo "Frontend: UNHEALTHY"
+	@docker-compose ps
+	@echo "\nBackend health:"
+	@curl -s http://localhost:8000/health || echo "Backend not responding"
+	@echo "\nFrontend health:"
+	@curl -s http://localhost/ > /dev/null && echo "Frontend OK" || echo "Frontend not responding"
 
-# Show service status
-status:
-	docker-compose ps
+dev:
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
-# Pull latest images
-pull:
-	docker-compose pull
-
-# Push images to registry (configure registry first)
-push:
-	docker-compose push
+prod:
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d

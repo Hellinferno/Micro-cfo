@@ -26,24 +26,39 @@ class SchemeVectorDB:
         self.db_path = db_path
         self.model_name = model_name
         
-        # Initialize ChromaDB
-        self.client = chromadb.PersistentClient(
-            path=db_path,
-            settings=Settings(anonymized_telemetry=False)
-        )
+        self.db_path = db_path
+        self.model_name = model_name
+        self._client = None
+        self._embedding_model = None
+        self._collection = None
         
-        # Initialize embedding model
-        print(f"Loading embedding model: {model_name}")
-        self.embedding_model = SentenceTransformer(model_name)
-        
-        # Get or create collection
-        self.collection = self.client.get_or_create_collection(
-            name="scheme_chunks",
-            metadata={"description": "Government scheme chunks with eligibility metadata"}
-        )
-        
-        print(f"Scheme DB initialized. Collection has {self.collection.count()} documents.")
-    
+    @property
+    def client(self):
+        if self._client is None:
+            print("Initializing Scheme ChromaDB client...")
+            self._client = chromadb.PersistentClient(
+                path=self.db_path,
+                settings=Settings(anonymized_telemetry=False)
+            )
+        return self._client
+
+    @property
+    def embedding_model(self):
+        if self._embedding_model is None:
+            print(f"Loading embedding model: {self.model_name}")
+            self._embedding_model = SentenceTransformer(self.model_name)
+        return self._embedding_model
+
+    @property
+    def collection(self):
+        if self._collection is None:
+            self._collection = self.client.get_or_create_collection(
+                name="scheme_chunks",
+                metadata={"description": "Government scheme chunks with eligibility metadata"}
+            )
+            print(f"Scheme DB initialized. Collection has {self._collection.count()} documents.")
+        return self._collection
+
     def add_scheme_chunks(self, chunks: List[SchemeChunk]) -> None:
         """
         Add scheme chunks to the vector database

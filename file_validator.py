@@ -19,6 +19,7 @@ class FileFormat(Enum):
     PDF = "pdf"
     PNG = "png"
     JPEG = "jpeg"
+    MARKDOWN = "md"
     UNKNOWN = "unknown"
 
 
@@ -81,6 +82,19 @@ class FileFormatDetector:
                     if header.startswith(magic_bytes):
                         logger.debug(f"Detected format {file_format.value} for {file_path.name}")
                         return file_format
+            
+            # Fallback: Check if it's a text/markdown file
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    # Read sample content
+                    content = f.read(1024)
+                    # Check for printable characters only (heuristic for text file)
+                    if content and all(c.isprintable() or c.isspace() for c in content):
+                        logger.debug(f"Detected format {FileFormat.MARKDOWN.value} for {file_path.name}")
+                        return FileFormat.MARKDOWN
+            except UnicodeDecodeError:
+                # Not a text file
+                pass
             
             logger.warning(f"Unknown file format for {file_path.name}")
             return FileFormat.UNKNOWN
@@ -295,7 +309,7 @@ class ComprehensiveFileValidator:
     Requirements: 4.5
     """
     
-    SUPPORTED_FORMATS = [FileFormat.PDF, FileFormat.PNG, FileFormat.JPEG]
+    SUPPORTED_FORMATS = [FileFormat.PDF, FileFormat.PNG, FileFormat.JPEG, FileFormat.MARKDOWN]
     
     @classmethod
     def validate_file(cls, file_path: Path) -> Tuple[FileFormat, bool, Optional[str]]:
@@ -345,6 +359,9 @@ class ComprehensiveFileValidator:
             is_valid, error_message = ImageValidator.validate_png(file_path)
         elif detected_format == FileFormat.JPEG:
             is_valid, error_message = ImageValidator.validate_jpeg(file_path)
+        elif detected_format == FileFormat.MARKDOWN:
+            # Basic validation for markdown - already checked it's text
+            is_valid, error_message = True, None
         
         if not is_valid:
             raise FileValidationError(

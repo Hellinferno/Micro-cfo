@@ -125,7 +125,7 @@ def scan_invoice_document(image_url: str, use_mock: bool = False) -> Invoice:
     Enhanced with fraud detection, compliance checking, and proactive subsidy triggers
     
     Args:
-        image_url: URL or base64 encoded image of the invoice
+        image_url: URL or base64 encoded image of the invoice (or text/markdown content)
         use_mock: If True, returns mock data for testing (default: False)
     """
     
@@ -134,8 +134,8 @@ def scan_invoice_document(image_url: str, use_mock: bool = False) -> Invoice:
         return _get_mock_invoice()
     
     try:
-        # Step 1: Load the image
-        image = _load_image(image_url)
+        # Step 1: Load the content (Image or Text)
+        content_obj, is_text = _load_content(image_url)
         
         # Step 2: The Auditor Prompt - Not just OCR, but intelligent analysis
         auditor_prompt = """You are a strict Financial Auditor for an Indian MSME. Analyze this invoice image.
@@ -194,7 +194,25 @@ def scan_invoice_document(image_url: str, use_mock: bool = False) -> Invoice:
 Be conservative in your assessment. When in doubt, flag it."""
 
         # Step 3: Call Vision API based on provider
-        if vision_provider == "gemini_new":
+        if is_text:
+             # Text-only processing
+            prompt_parts = [auditor_prompt, f"\n\nINVOICE CONTENT:\n{content_obj}"]
+            
+            if vision_provider == "gemini_new":
+                response = vision_model.models.generate_content(
+                    model='gemini-1.5-flash',
+                    contents=[{'role': 'user', 'parts': [{'text': p} for p in prompt_parts]}]
+                )
+                response_text = response.text.strip()
+            elif vision_provider == "gemini_old":
+                response = vision_model.generate_content(prompt_parts)
+                response_text = response.text.strip()
+            # fallback for openrouter text
+            elif vision_provider == "openrouter":
+                 # Implementation for text-only openrouter call if needed
+                 pass 
+
+        elif vision_provider == "gemini_new":
             # New google.genai SDK
             response = vision_model.models.generate_content(
                 model='gemini-1.5-flash',
@@ -310,6 +328,22 @@ def _image_to_base64(image):
             return base64.b64encode(image).decode()
         else:
             return str(image)
+
+def _load_content(input_url: str):
+    """Load content from URL or base64 string, auto-detecting image or text"""
+    # Check for text mime types in data URL
+    if input_url.startswith('data:text/markdown') or input_url.startswith('data:text/plain'):
+        try:
+             # Extract base64 content
+            base64_data = input_url.split(',')[1]
+            decoded_text = base64.b64decode(base64_data).decode('utf-8')
+            return decoded_text, True
+        except Exception as e:
+            print(f"Error decoding text content: {e}")
+            raise
+            
+    # Fallback to image loading
+    return _load_image(input_url), False
 
 def _load_image(image_url: str):
     """Load image from URL or base64 string"""

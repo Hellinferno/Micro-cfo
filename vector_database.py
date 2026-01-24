@@ -29,32 +29,48 @@ class LegalVectorDB:
         """
         self.db_path = db_path
         self.model_name = model_name
+        self._client = None
+        self._embedding_model = None
+        self._collection = None
+        self._metadata_collection = None
         
-        # Initialize ChromaDB
-        self.client = chromadb.PersistentClient(
-            path=db_path,
-            settings=Settings(anonymized_telemetry=False)
-        )
-        
-        # Initialize embedding model
-        print(f"Loading embedding model: {model_name}")
-        self.embedding_model = SentenceTransformer(model_name)
-        
-        # Get or create collection for legal chunks
-        self.collection = self.client.get_or_create_collection(
-            name="legal_chunks",
-            metadata={"description": "Legal document chunks with metadata"}
-        )
-        
-        # Get or create collection for processing metadata
-        self.metadata_collection = self.client.get_or_create_collection(
-            name="processing_metadata",
-            metadata={"description": "Metadata for processed documents to enable idempotency"}
-        )
-        
-        print(f"Vector DB initialized. Collection has {self.collection.count()} documents.")
-        print(f"Processing metadata collection has {self.metadata_collection.count()} entries.")
-    
+    @property
+    def client(self):
+        if self._client is None:
+            print("Initializing ChromaDB client...")
+            self._client = chromadb.PersistentClient(
+                path=self.db_path,
+                settings=Settings(anonymized_telemetry=False)
+            )
+        return self._client
+
+    @property
+    def embedding_model(self):
+        if self._embedding_model is None:
+            print(f"Loading embedding model: {self.model_name}")
+            self._embedding_model = SentenceTransformer(self.model_name)
+        return self._embedding_model
+
+    @property
+    def collection(self):
+        if self._collection is None:
+            self._collection = self.client.get_or_create_collection(
+                name="legal_chunks",
+                metadata={"description": "Legal document chunks with metadata"}
+            )
+            print(f"Vector DB initialized. Collection has {self._collection.count()} documents.")
+        return self._collection
+
+    @property
+    def metadata_collection(self):
+        if self._metadata_collection is None:
+            self._metadata_collection = self.client.get_or_create_collection(
+                name="processing_metadata",
+                metadata={"description": "Metadata for processed documents to enable idempotency"}
+            )
+            print(f"Processing metadata collection has {self._metadata_collection.count()} entries.")
+        return self._metadata_collection
+
     def add_chunks(self, chunks: List[LegalChunk]) -> None:
         """
         Add legal chunks to the vector database

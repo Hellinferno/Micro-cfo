@@ -1,221 +1,114 @@
-# 🐳 Docker Quick Start Guide
+# Docker Quick Start Guide
 
-Get MicroCFO running in 5 minutes with Docker!
+Get MicroCFO running with Docker in 5 minutes!
 
 ## Prerequisites
 
-- Docker Desktop installed ([Download here](https://www.docker.com/products/docker-desktop))
-- 4GB RAM available
-- 10GB disk space
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- 4GB RAM minimum
+- 10GB free disk space
 
 ## Quick Start
 
-### 1️⃣ Clone the Repository
-
+### 1. Clone Repository
 ```bash
 git clone https://github.com/Hellinferno/Micro-cfo.git
 cd Micro-cfo
 ```
 
-### 2️⃣ Configure Environment
-
+### 2. Configure Environment
 ```bash
-# Copy the environment template
+# Copy environment template
 cp .env.docker .env
 
-# Edit with your favorite editor
-nano .env  # or vim, code, etc.
+# Edit with your values (REQUIRED)
+nano .env  # or use any text editor
 ```
 
-**Minimum required changes in `.env`:**
-
+**Minimum required configuration:**
 ```bash
-# Security - Generate strong passwords!
-JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-now
-POSTGRES_PASSWORD=change-this-secure-password
-REDIS_PASSWORD=change-this-redis-password
+# Security (REQUIRED)
+JWT_SECRET_KEY=your-super-secret-jwt-key-min-32-chars
+POSTGRES_PASSWORD=secure_database_password
+REDIS_PASSWORD=secure_redis_password
 
-# API Keys - Get from Google AI Studio
+# AI API Key (REQUIRED)
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-💡 **Tip:** Generate secure passwords:
+### 3. Start Services
 ```bash
-openssl rand -base64 32
-```
-
-### 3️⃣ Start Everything
-
-```bash
-# Build and start all services
+# Build and start
 docker-compose up -d
 
-# Watch the logs (optional)
-docker-compose logs -f
+# Check status
+docker-compose ps
 ```
 
-### 4️⃣ Initialize Databases
-
+### 4. Initialize Databases
 ```bash
-# Setup legal and scheme databases
-docker-compose exec backend python setup_legal_db.py
-docker-compose exec backend python setup_scheme_db.py
+# Run database setup
+docker-compose exec backend python scripts/setup_legal_db.py
+docker-compose exec backend python scripts/setup_scheme_db.py
 ```
 
-### 5️⃣ Access the Application
-
-🎉 **You're done!** Access:
-
+### 5. Access Application
 - **Frontend**: http://localhost
 - **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/health
-
-## Default Credentials
-
-**Admin User:**
-- Email: `admin@microcfo.com`
-- Password: `admin123`
-
-⚠️ **Change this immediately in production!**
+- **API Docs**: http://localhost:8000/docs
+- **Flower (Task Monitor)**: http://localhost:5555
 
 ## Common Commands
 
-### Using Make (Recommended)
-
 ```bash
-make help          # Show all available commands
-make build         # Build Docker images
-make up            # Start services
-make down          # Stop services
-make logs          # View logs
-make restart       # Restart all services
-make test          # Run tests
-make clean         # Clean everything (⚠️ removes data)
-```
+# View logs
+docker-compose logs -f
 
-### Using Docker Compose
-
-```bash
-# Start services
-docker-compose up -d
+# Restart services
+docker-compose restart
 
 # Stop services
 docker-compose down
 
-# View logs
-docker-compose logs -f backend
-
-# Restart a service
-docker-compose restart backend
-
-# Run commands in containers
-docker-compose exec backend python manage.py
-docker-compose exec postgres psql -U microcfo
+# Clean everything
+docker-compose down -v
+docker system prune -af
 ```
-
-## Development Mode
-
-For development with hot reload:
-
-```bash
-# Start with development overrides
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-
-# Or use Make
-make dev
-```
-
-Development mode includes:
-- ✅ Hot reload for backend and frontend
-- ✅ Source code mounted (changes reflect immediately)
-- ✅ pgAdmin at http://localhost:5050
-- ✅ Redis Commander at http://localhost:8081
 
 ## Troubleshooting
 
-### Port Already in Use
-
+### Services won't start
 ```bash
-# Check what's using the port
-lsof -i :8000  # or :80, :5432, etc.
+# Check logs
+docker-compose logs backend
 
+# Verify environment
+docker-compose config
+```
+
+### Database connection errors
+```bash
+# Reset database
+docker-compose down -v
+docker-compose up -d postgres
+sleep 10
+docker-compose up -d
+```
+
+### Port conflicts
+```bash
 # Change ports in .env
 BACKEND_PORT=8001
 FRONTEND_PORT=8080
 ```
 
-### Backend Won't Start
-
-```bash
-# Check logs
-docker-compose logs backend
-
-# Common fixes:
-# 1. Verify API keys in .env
-docker-compose exec backend env | grep GEMINI_API_KEY
-
-# 2. Restart services
-docker-compose restart backend
-
-# 3. Rebuild if needed
-docker-compose build --no-cache backend
-docker-compose up -d backend
-```
-
-### Database Connection Issues
-
-```bash
-# Check if PostgreSQL is running
-docker-compose ps postgres
-
-# Check database logs
-docker-compose logs postgres
-
-# Reset database (⚠️ deletes data)
-docker-compose down -v
-docker-compose up -d
-```
-
-### Out of Disk Space
-
-```bash
-# Clean up Docker
-docker system prune -a --volumes
-
-# Remove unused images
-docker image prune -a
-
-# Check disk usage
-docker system df
-```
-
-## Stopping and Cleaning Up
-
-```bash
-# Stop services (keeps data)
-docker-compose down
-
-# Stop and remove volumes (⚠️ deletes all data)
-docker-compose down -v
-
-# Complete cleanup
-make clean
-```
-
 ## Next Steps
 
-- 📖 Read the [Full Docker Deployment Guide](DOCKER_DEPLOYMENT.md)
-- ☁️ Deploy to [AWS/GCP/Azure](DOCKER_DEPLOYMENT.md#cloud-deployment)
-- 🔒 Review [Security Best Practices](SECURITY.md)
-- 🧪 Run the [Test Suite](TEST_STATUS_SUMMARY.md)
+- Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for detailed documentation
+- Check [DOCKER_TROUBLESHOOTING.md](DOCKER_TROUBLESHOOTING.md) for common issues
+- See [README.md](README.md) for API usage
 
 ## Need Help?
 
-- 📝 [Full Documentation](README.md)
-- 🐛 [Report Issues](https://github.com/Hellinferno/Micro-cfo/issues)
-- 💬 [Discussions](https://github.com/Hellinferno/Micro-cfo/discussions)
-
----
-
-**Happy Coding! 🚀**
+Open an issue at: https://github.com/Hellinferno/Micro-cfo/issues

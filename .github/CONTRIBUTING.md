@@ -2,195 +2,224 @@
 
 Thank you for your interest in contributing to MicroCFO! This document provides guidelines and instructions for contributing.
 
+## Code of Conduct
+
+By participating in this project, you agree to maintain a respectful and inclusive environment for all contributors.
+
+## How to Contribute
+
+### Reporting Bugs
+
+1. Check if the bug has already been reported in [Issues](https://github.com/Hellinferno/Micro-cfo/issues)
+2. If not, create a new issue using the bug report template
+3. Provide detailed information including:
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Environment details
+   - Relevant logs or screenshots
+
+### Suggesting Features
+
+1. Check if the feature has already been suggested
+2. Create a new issue using the feature request template
+3. Clearly describe the feature and its benefits
+4. Discuss implementation approaches if applicable
+
+### Pull Requests
+
+1. **Fork the repository** and create your branch from `main`
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes**
+   - Follow the existing code style
+   - Add tests for new functionality
+   - Update documentation as needed
+
+3. **Test your changes**
+   ```bash
+   # Run tests
+   pytest tests/ -v
+   
+   # Run linting
+   flake8 .
+   
+   # Test Docker build
+   docker-compose build
+   ```
+
+4. **Commit your changes**
+   - Use clear, descriptive commit messages
+   - Follow conventional commits format:
+     ```
+     feat: add new feature
+     fix: resolve bug in component
+     docs: update documentation
+     test: add test coverage
+     refactor: improve code structure
+     ```
+
+5. **Push to your fork**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+6. **Create a Pull Request**
+   - Provide a clear description of changes
+   - Reference related issues
+   - Ensure all CI checks pass
+
 ## Development Setup
 
 ### Prerequisites
 - Python 3.11+
 - Docker and Docker Compose
-- PostgreSQL 15+ (for local development)
-- Node.js 18+ (for frontend development)
+- Node.js 20+ (for frontend)
 
-### Quick Start
+### Local Development
 
-1. Clone the repository:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Hellinferno/Micro-cfo.git
+   cd Micro-cfo
+   ```
+
+2. **Set up Python environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+4. **Initialize databases**
+   ```bash
+   python scripts/setup_legal_db.py
+   python scripts/setup_scheme_db.py
+   ```
+
+5. **Run tests**
+   ```bash
+   pytest tests/ -v
+   ```
+
+### Docker Development
+
 ```bash
-git clone https://github.com/yourusername/microcfo.git
-cd microcfo
+# Build and start services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Run tests in container
+docker-compose exec backend pytest -v
+
+# Stop services
+docker-compose down
 ```
 
-2. Set up Python environment:
-```bash
-python setup.py
-```
+## Code Style
 
-3. Configure environment:
-```bash
-cp .env.example .env
-# Edit .env with your API keys
-```
-
-4. Initialize databases:
-```bash
-python setup_legal_db.py
-python setup_scheme_db.py
-```
-
-5. Run tests:
-```bash
-pytest test_*.py -v
-```
-
-## Development Workflow
-
-### Branch Strategy
-- `main`: Production-ready code
-- `develop`: Integration branch for features
-- `feature/*`: New features
-- `bugfix/*`: Bug fixes
-- `hotfix/*`: Urgent production fixes
-
-### Making Changes
-
-1. Create a feature branch:
-```bash
-git checkout -b feature/your-feature-name
-```
-
-2. Make your changes and test:
-```bash
-pytest test_*.py -v
-```
-
-3. Run linting:
-```bash
-flake8 . --max-line-length=127
-```
-
-4. Commit with descriptive messages:
-```bash
-git commit -m "feat: add new feature description"
-```
-
-5. Push and create a pull request:
-```bash
-git push origin feature/your-feature-name
-```
-
-## Coding Standards
-
-### Python Style
+### Python
 - Follow PEP 8 guidelines
+- Use type hints where applicable
 - Maximum line length: 127 characters
-- Use type hints where appropriate
-- Document functions with docstrings
+- Use meaningful variable and function names
 
-### Testing Requirements
-- Write unit tests for new features
-- Maintain test coverage above 80%
-- Include integration tests for API endpoints
-- Use property-based testing for complex logic
-
-### Commit Message Format
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-Types:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes
-- `refactor`: Code refactoring
-- `test`: Test additions/changes
-- `chore`: Build/tooling changes
+### JavaScript/React
+- Follow ESLint configuration
+- Use functional components with hooks
+- Maintain consistent formatting with Prettier
 
 ## Testing
+
+### Writing Tests
+- Place tests in the `tests/` directory
+- Name test files with `test_` prefix
+- Use descriptive test names
+- Aim for high code coverage
 
 ### Running Tests
 ```bash
 # All tests
-pytest test_*.py -v
+pytest tests/ -v
 
 # Specific test file
-pytest test_visual_auditor.py -v
+pytest tests/test_integration_server.py -v
 
 # With coverage
-pytest test_*.py --cov=. --cov-report=html
-
-# Property-based tests
-pytest test_*_properties.py -v
-```
-
-### Docker Testing
-```bash
-# Build and test with Docker
-docker-compose -f docker-compose.dev.yml up --build
-
-# Run tests in container
-docker-compose exec backend pytest -v
+pytest tests/ --cov=. --cov-report=html
 ```
 
 ## Documentation
 
-### Code Documentation
-- Add docstrings to all public functions and classes
-- Include parameter types and return types
-- Provide usage examples for complex functions
-
-### Project Documentation
 - Update README.md for user-facing changes
-- Update technical docs in `.kiro/steering/` for architecture changes
-- Add deployment notes to DEPLOYMENT_READY.md
+- Add docstrings to new functions and classes
+- Update API documentation for endpoint changes
+- Include examples for new features
 
-## Pull Request Process
+## Project Structure
 
-1. Update documentation for your changes
-2. Add tests for new functionality
-3. Ensure all tests pass
-4. Update CHANGELOG.md if applicable
-5. Request review from maintainers
-6. Address review feedback
-7. Squash commits if requested
+```
+MicroCFO/
+├── server.py              # Main MCP server
+├── integration_server.py  # FastAPI integration
+├── models.py              # Database models
+├── routers/               # API endpoints
+├── middleware/            # Middleware components
+├── tasks/                 # Celery tasks
+├── tests/                 # Test suite
+├── frontend/              # React frontend
+├── scripts/               # Utility scripts
+└── docs/                  # Documentation
+```
 
-## Code Review Guidelines
+## Commit Message Guidelines
 
-### For Authors
-- Keep PRs focused and reasonably sized
-- Provide context in PR description
-- Respond to feedback promptly
-- Test thoroughly before requesting review
+Use conventional commits format:
 
-### For Reviewers
-- Be constructive and respectful
-- Focus on code quality and maintainability
-- Check for security issues
-- Verify test coverage
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation changes
+- `style:` Code style changes (formatting)
+- `refactor:` Code refactoring
+- `test:` Test additions or changes
+- `chore:` Build process or auxiliary tool changes
 
-## Security
+Example:
+```
+feat: add subsidy calculation for textile sector
 
-### Reporting Vulnerabilities
-- Do NOT open public issues for security vulnerabilities
-- Email security concerns to: [security contact]
-- Include detailed reproduction steps
-- Allow time for fixes before disclosure
+- Implement benefit calculation logic
+- Add tests for edge cases
+- Update documentation
+```
 
-### Security Best Practices
-- Never commit API keys or secrets
-- Use environment variables for configuration
-- Validate all user inputs
-- Follow OWASP guidelines
+## Review Process
 
-## Getting Help
+1. All PRs require at least one approval
+2. CI checks must pass
+3. Code coverage should not decrease
+4. Documentation must be updated
+5. Breaking changes require discussion
 
-- Check existing issues and documentation
-- Join our community discussions
-- Ask questions in pull requests
-- Contact maintainers for guidance
+## Questions?
+
+- Open an issue for questions
+- Check existing documentation
+- Review closed issues for similar questions
 
 ## License
 
 By contributing, you agree that your contributions will be licensed under the same license as the project.
+
+---
+
+Thank you for contributing to MicroCFO! 🚀

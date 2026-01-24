@@ -4,6 +4,12 @@
 Write-Host "🚀 Starting MicroCFO Development Environment..." -ForegroundColor Cyan
 Write-Host ""
 
+# Determine Project Root (parent of the scripts folder)
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent $ScriptDir
+Set-Location $ProjectRoot
+Write-Host "📂 Working Directory: $ProjectRoot" -ForegroundColor Gray
+
 # Check if Python is available
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
     Write-Host "❌ Python not found. Please install Python 3.7+ first." -ForegroundColor Red
@@ -22,8 +28,8 @@ Write-Host ""
 # Start Backend Server
 Write-Host "📡 Starting FastAPI Backend Server..." -ForegroundColor Yellow
 $backendJob = Start-Job -ScriptBlock {
-    Set-Location $using:PWD
-    python integration_server.py
+    Set-Location $using:ProjectRoot
+    & ".\venv\Scripts\python.exe" integration_server.py
 }
 Write-Host "✅ Backend server starting (Job ID: $($backendJob.Id))" -ForegroundColor Green
 Write-Host "   Backend will be available at: http://localhost:8000" -ForegroundColor Cyan
@@ -36,7 +42,7 @@ Start-Sleep -Seconds 3
 # Start Frontend Server
 Write-Host "🎨 Starting React Frontend Server..." -ForegroundColor Yellow
 $frontendJob = Start-Job -ScriptBlock {
-    Set-Location $using:PWD/frontend
+    Set-Location "$using:ProjectRoot\frontend"
     npm run dev
 }
 Write-Host "✅ Frontend server starting (Job ID: $($frontendJob.Id))" -ForegroundColor Green

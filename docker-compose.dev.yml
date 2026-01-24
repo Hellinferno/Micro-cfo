@@ -1,64 +1,53 @@
 version: '3.8'
 
-# Development override for docker-compose
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-
+# Development overrides for docker-compose.yml
 services:
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-      target: builder  # Use builder stage for development
+      target: builder
+    volumes:
+      - .:/app
+      - /app/venv
     environment:
       DEBUG: "true"
-      RELOAD: "true"
-    volumes:
-      # Mount source code for hot reload
-      - ./:/app
-      - /app/venv  # Exclude venv from mount
-      - /app/__pycache__  # Exclude pycache
-    command: python -m uvicorn integration_server:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn integration_server:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
     volumes:
-      # Mount source code for hot reload
       - ./frontend:/app
-      - /app/node_modules  # Exclude node_modules from mount
+      - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
-    ports:
-      - "5173:5173"
+      VITE_API_URL: http://localhost:8000
     command: npm run dev -- --host 0.0.0.0
 
-  # Add pgAdmin for database management
+  # Development tools
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: microcfo-pgadmin
-    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@microcfo.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
       - "5050:80"
-    depends_on:
-      - postgres
     networks:
       - microcfo-network
+    depends_on:
+      - postgres
 
-  # Redis Commander for Redis management
   redis-commander:
     image: rediscommander/redis-commander:latest
     container_name: microcfo-redis-commander
-    restart: unless-stopped
     environment:
-      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD:-changeme}
+      REDIS_HOSTS: local:redis:6379:0:${REDIS_PASSWORD}
     ports:
       - "8081:8081"
-    depends_on:
-      - redis
     networks:
       - microcfo-network
+    depends_on:
+      - redis

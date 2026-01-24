@@ -8,7 +8,7 @@ const InputBar = ({ onSend, onFileUpload, isProcessing = false }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         if (selectedFile) {
             // Handle file upload
             onFileUpload(selectedFile);
@@ -24,23 +24,27 @@ const InputBar = ({ onSend, onFileUpload, isProcessing = false }) => {
         const file = e.target.files?.[0];
         if (file) {
             // Validate file type
-            const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-            if (!validTypes.includes(file.type)) {
-                alert('Please upload a PDF, PNG, or JPG file');
+            // Validate file type
+            const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'text/markdown', 'text/plain', ''];
+            // Check extension if type is empty or generic text
+            const isMarkdown = file.name.toLowerCase().endsWith('.md');
+
+            if (!validTypes.includes(file.type) && !isMarkdown) {
+                alert('Please upload a PDF, PNG, JPG, or Markdown file');
                 return;
             }
-            
+
             // Validate file size (50MB max)
             const maxSize = 50 * 1024 * 1024;
             if (file.size > maxSize) {
                 alert('File size must be less than 50MB');
                 return;
             }
-            
+
             setSelectedFile(file);
             setInput(''); // Clear text input when file is selected
         }
-        
+
         // Reset file input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -76,25 +80,25 @@ const InputBar = ({ onSend, onFileUpload, isProcessing = false }) => {
                         </button>
                     </div>
                 )}
-                
+
                 <div className="flex items-center space-x-2 lg:space-x-4">
                     {/* Hidden File Input */}
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept=".pdf,.png,.jpg,.jpeg"
+                        accept=".pdf,.png,.jpg,.jpeg,.md"
                         onChange={handleFileSelect}
                         className="hidden"
                         disabled={isProcessing}
                     />
-                    
+
                     {/* Attach Button */}
                     <button
                         type="button"
                         onClick={handleAttachClick}
                         disabled={isProcessing}
                         className="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-slate-50 rounded-full disabled:opacity-50"
-                        title="Upload invoice (PDF, PNG, JPG)"
+                        title="Upload invoice or document (PDF, PNG, JPG, MD)"
                     >
                         <Paperclip size={24} />
                     </button>

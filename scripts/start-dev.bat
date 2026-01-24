@@ -8,6 +8,10 @@ echo   MicroCFO Development Environment
 echo ========================================
 echo.
 
+REM Change to project root directory
+cd /d "%~dp0.."
+echo [INFO] Working directory: %CD%
+
 REM Check if Python is available
 python --version >nul 2>&1
 if errorlevel 1 (
@@ -29,7 +33,7 @@ echo.
 
 REM Start Backend Server
 echo [STARTING] FastAPI Backend Server...
-start "MicroCFO Backend" cmd /k "python integration_server.py"
+start "MicroCFO Backend" cmd /k "venv\Scripts\python.exe integration_server.py"
 echo [OK] Backend server starting in new window
 echo     Backend: http://localhost:8000
 echo     API Docs: http://localhost:8000/docs
@@ -57,4 +61,9 @@ echo.
 echo To stop servers, close the terminal windows
 echo or press Ctrl+C in each window.
 echo.
+echo.
+echo Launching browser...
+timeout /t 5 /nobreak >nul
+start http://localhost:5173
+
 pause

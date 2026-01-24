@@ -18,6 +18,15 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 import sys
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Override sqlalchemy.url with environment variable
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
+
 sys.path.append(os.getcwd())
 from models import Base
 target_metadata = Base.metadata

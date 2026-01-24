@@ -33,12 +33,14 @@ TEMP_DIR = Path("temp_uploads")
 TEMP_DIR.mkdir(exist_ok=True)
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB (increased for large documents)
 CHUNK_SIZE = 1024 * 1024  # 1MB chunks for streaming
-ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg"}
+ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".md"}
 ALLOWED_MIME_TYPES = {
     "application/pdf",
     "image/png", 
     "image/jpeg",
-    "image/jpg"
+    "image/jpg",
+    "text/plain",
+    "application/octet-stream" # Allow generic binary stream (common for .md)
 }
 # Timeout settings for large file processing
 UPLOAD_TIMEOUT = 300  # 5 minutes for large uploads
@@ -125,10 +127,18 @@ def validate_file(file: UploadFile) -> None:
     
     # Check MIME type
     if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"MIME type '{file.content_type}' not allowed. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}"
-        )
+        # Special case: Allow octet-stream only if extension is .md
+        if file.content_type == "application/octet-stream":
+             if file.filename and not file.filename.lower().endswith('.md'):
+                 raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"MIME type '{file.content_type}' not allowed for this extension."
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"MIME type '{file.content_type}' not allowed. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}"
+            )
 
 
 def validate_file_content(file_path: Path, filename: Optional[str] = None) -> FileFormat:
@@ -239,6 +249,8 @@ def file_to_base64_url(file_path: Path) -> str:
         mime_type = "image/jpeg"
     elif file_ext == ".png":
         mime_type = "image/png"
+    elif file_ext == ".md":
+        mime_type = "text/markdown"
     else:
         mime_type = "application/octet-stream"
     

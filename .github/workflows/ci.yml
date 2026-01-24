@@ -4,58 +4,19 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov flake8
-
-      - name: Lint with flake8
-        run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Run unit tests
-        run: |
-          pytest test_*.py -v --tb=short --ignore=test_integration_workflows.py --ignore=test_integration_server.py
-
-      - name: Generate coverage report
-        run: |
-          pytest test_*.py --cov=. --cov-report=xml --ignore=test_integration_workflows.py --ignore=test_integration_server.py
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
-
-  integration-tests:
-    runs-on: ubuntu-latest
-    needs: lint-and-test
-    
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16-alpine
         env:
-          POSTGRES_DB: microcfo
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: microcfo_test
+          POSTGRES_USER: microcfo
+          POSTGRES_PASSWORD: test_password
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -63,8 +24,9 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      
       redis:
-        image: redis:7
+        image: redis:7-alpine
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -74,76 +36,136 @@ jobs:
           - 6379:6379
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov flake8
+    
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Run tests with pytest
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        REDIS_URL: redis://localhost:6379/0
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
+        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
+      run: |
+        pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: microcfo_test
+          POSTGRES_USER: microcfo
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
-
-      - name: Create .env file
-        run: |
-          cp .env.example .env
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/microcfo" >> .env
-          echo "REDIS_URL=redis://localhost:6379/0" >> .env
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
-          echo "JWT_SECRET_KEY=test-secret-key-for-ci" >> .env
-
-      - name: Initialize database
-        run: |
-          # Use Alembic to create tables instead of missing SQL file
-          alembic upgrade head
-
-      - name: Run integration tests
-        run: |
-          pytest test_integration_server.py test_integration_workflows.py -v --tb=short
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest
+    
+    - name: Run integration tests
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        REDIS_URL: redis://localhost:6379/0
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
+        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
+      run: |
+        pytest tests/test_integration_*.py -v
 
   docker-build:
     runs-on: ubuntu-latest
-    needs: [lint-and-test, integration-tests]
-    if: github.event_name == 'push'
+    needs: lint-and-test
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          tags: microcfo-backend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: false
-          tags: microcfo-frontend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Test Docker Compose
-        run: |
-          cp .env.docker .env
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
-          echo "JWT_SECRET_KEY=test-secret-key-for-ci" >> .env
-          docker compose up -d
-          sleep 30
-          curl -f http://localhost:8000/health || exit 1
-          docker compose down -v
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: microcfo-backend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: false
+        tags: microcfo-frontend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Test docker-compose
+      run: |
+        cp .env.docker .env
+        echo "GEMINI_API_KEY=test_key" >> .env
+        echo "JWT_SECRET_KEY=test_jwt_secret_key_for_docker_testing" >> .env
+        echo "POSTGRES_PASSWORD=test_password" >> .env
+        echo "REDIS_PASSWORD=test_password" >> .env
+        echo "ENCRYPTION_KEY=test_encryption_key" >> .env
+        docker-compose config

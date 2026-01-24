@@ -35,6 +35,13 @@ class EncryptionManager:
         """
         # Get master key from environment or parameter
         key_str = master_key or os.getenv('ENCRYPTION_KEY')
+        import sys
+        print(f"DEBUG: Read key: '{key_str}'", file=sys.stderr)
+        if key_str:
+            key_str = key_str.strip()
+            print(f"DEBUG: Stripped key: '{key_str}'", file=sys.stderr)
+            print(f"DEBUG: Key length: {len(key_str)}", file=sys.stderr)
+            print(f"DEBUG: Key bytes: {key_str.encode('utf-8')}", file=sys.stderr)
         
         if not key_str:
             # Generate a new key if none exists (development only)
