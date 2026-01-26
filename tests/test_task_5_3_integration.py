@@ -128,8 +128,7 @@ def test_is_already_processed_with_metadata():
         print("  ✓ 8.2: Processing Idempotency")
         print("  ✓ 8.5: Duplicate Detection Consistency")
         
-        # Close database connection
-        del processor
+        # Processor cleanup handled by garbage collection; explicit delete not required
         
     finally:
         # Clean up temporary directories
