@@ -45,10 +45,6 @@ def test_is_already_processed_new_file():
         # Check if file is already processed (should be False)
         result = processor._is_already_processed(test_pdf)
         
-        # Clean up database connection before temp directory cleanup
-        del processor.vector_db
-        del processor
-        
         assert result is False, "New file should not be marked as already processed"
         print("✓ Test passed: New file correctly identified as not processed")
 
@@ -91,10 +87,6 @@ def test_is_already_processed_existing_file():
         
         # Now check if file is already processed (should be True)
         result = processor._is_already_processed(test_pdf)
-        
-        # Clean up database connection before temp directory cleanup
-        del processor.vector_db
-        del processor
         
         assert result is True, "Existing file with matching hash should be marked as already processed"
         print("✓ Test passed: Existing file with matching hash correctly identified")
@@ -139,10 +131,6 @@ def test_is_already_processed_modified_file():
         # Now check if file is already processed (should be False because hash changed)
         result = processor._is_already_processed(test_pdf)
         
-        # Clean up database connection before temp directory cleanup
-        del processor.vector_db
-        del processor
-        
         assert result is False, "Modified file with different hash should not be marked as already processed"
         print("✓ Test passed: Modified file correctly identified as needing reprocessing")
 
@@ -168,16 +156,8 @@ def test_is_already_processed_error_handling():
             result = processor._is_already_processed(non_existent_file)
             # Should return False or raise an error that we can catch
             
-            # Clean up database connection before temp directory cleanup
-            del processor.vector_db
-            del processor
-            
             print("✓ Test passed: Error handling works correctly")
         except Exception as e:
-            # Clean up database connection before temp directory cleanup
-            del processor.vector_db
-            del processor
-            
             # This is also acceptable - the method should handle errors
             print(f"✓ Test passed: Error raised as expected: {e}")
 
