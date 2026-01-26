@@ -22,8 +22,7 @@ if openrouter_key:
     print(f"✅ OpenRouter API Key: {openrouter_key[:15]}...")
     print("   Provider: OpenRouter (GPT-4V)")
 else:
-    print("❌ No API key found")
-    sys.exit(1)
+    print("⚠️  No OpenRouter API key found; skipping live API checks and continuing with mock validation")
 
 # Test 2: Import and test mock invoice
 print("\n📋 Test 2: Mock Invoice Processing")
