@@ -5,9 +5,10 @@ Direct test of Gemini 1.5 Flash without MCP wrapper
 
 import os
 import json
-import base64
-from PIL import Image, ImageDraw, ImageFont
 import io
+
+import pytest
+from PIL import Image, ImageDraw, ImageFont
 
 # SECURITY: Load API keys from environment variables only
 # Set your API key before running: export GEMINI_API_KEY='your-key-here'
@@ -16,17 +17,19 @@ import io
 # Import Gemini
 try:
     import google.generativeai as genai
-    api_key = os.getenv('GEMINI_API_KEY')
-    if not api_key:
-        print("❌ GEMINI_API_KEY not set. Please set it as an environment variable.")
-        print("   Example: export GEMINI_API_KEY='your-key-here'")
-        exit(1)
+except ImportError as import_error:
+    pytest.skip(f"Gemini SDK unavailable: {import_error}")
+
+api_key = os.getenv('GEMINI_API_KEY')
+if not api_key:
+    pytest.skip("GEMINI_API_KEY not set. Skipping Gemini direct test.")
+
+try:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash')
     print("✅ Gemini 2.5 Flash configured")
-except Exception as e:
-    print(f"❌ Gemini setup error: {e}")
-    exit(1)
+except Exception as setup_error:
+    pytest.skip(f"Gemini setup failed: {setup_error}")
 
 def create_simple_invoice():
     """Create a simple text-based invoice image"""
