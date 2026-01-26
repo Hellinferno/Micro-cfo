@@ -3,11 +3,16 @@ Test suite for PostgreSQL database integration
 Tests models, CRUD operations, and database functionality
 """
 
+import os
+import sys
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import date, datetime
 import uuid
+
+# Ensure src directory is on the path for imports during test collection
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 from database import Base, get_db_context
 from models import User, UserProfile, Invoice, LegalQuery, SubsidyApplication, Negotiation, AuditLog
