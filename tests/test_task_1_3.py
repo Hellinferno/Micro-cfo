@@ -16,41 +16,90 @@ import tempfile
 import logging
 from pathlib import Path
 from PyPDF2 import PdfWriter, PdfReader
-from io import BytesIO
+from PyPDF2.generic import NameObject, DictionaryObject, NumberObject, DecodedStreamObject
 
 from legal_ingestion import LegalDocumentProcessor, detect_law_type_from_filename, clean_pdf_text
 
 
-def create_simple_pdf(content: str, filename: str) -> str:
+def _escape_pdf_text(text: str) -> str:
+    """Escape characters that have special meaning in PDF text objects."""
+    return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def create_test_pdf(content: str, filename: str) -> str:
+    """Create a test PDF containing the provided content.
+
+    The helper first attempts to use reportlab for convenience. If the
+    dependency is unavailable we fall back to constructing a simple PDF using
+    PyPDF2 primitives so that downstream text extraction still works during
+    tests.
     """
-    Create a simple test PDF file with the given content using PyPDF2.
-    
-    Args:
-        content: Text content to include in the PDF
-        filename: Name of the PDF file to create
-    
-    Returns:
-        str: Path to the created PDF file
-    """
-    # For testing purposes, we'll use a mock approach
-    # Create a temporary directory for test files
+
     temp_dir = tempfile.mkdtemp()
     pdf_path = os.path.join(temp_dir, filename)
-    
-    # Create a minimal PDF structure
-    # Note: This is a simplified approach for testing
-    # In production, you'd use a proper PDF library
-    from PyPDF2 import PdfWriter
-    from PyPDF2.generic import TextStringObject, NameObject, DictionaryObject, ArrayObject
-    
-    writer = PdfWriter()
-    writer.add_blank_page(width=612, height=792)
-    
-    # Write to file
-    with open(pdf_path, 'wb') as f:
-        writer.write(f)
-    
-    return pdf_path
+
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+
+        canvas_obj = canvas.Canvas(pdf_path, pagesize=letter)
+        y_position = 750
+        for raw_line in content.splitlines():
+            line = raw_line.strip() or " "
+            canvas_obj.drawString(40, y_position, line[:90])
+            y_position -= 15
+            if y_position < 40:
+                canvas_obj.showPage()
+                y_position = 750
+        canvas_obj.save()
+        return pdf_path
+    except ImportError:
+        # Fallback: build a minimal PDF using PyPDF2 primitives.
+        writer = PdfWriter()
+        page = writer.add_blank_page(width=612, height=792)
+
+        # Register Helvetica font resource for the page.
+        font_dict = DictionaryObject()
+        font_dict[NameObject("/Type")] = NameObject("/Font")
+        font_dict[NameObject("/Subtype")] = NameObject("/Type1")
+        font_dict[NameObject("/BaseFont")] = NameObject("/Helvetica")
+        font_ref = writer._add_object(font_dict)
+
+        resources = DictionaryObject()
+        resources[NameObject("/Font")] = DictionaryObject({NameObject("/F1"): font_ref})
+        page[NameObject("/Resources")] = resources
+
+        # Prepare text drawing commands.
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        if not lines:
+            lines = [" "]
+
+        commands = [
+            "BT",
+            "/F1 12 Tf",
+            "1 0 0 1 50 760 Tm",
+        ]
+
+        for index, raw_line in enumerate(lines):
+            escaped = _escape_pdf_text(raw_line[:100])
+            if index > 0:
+                commands.append("0 -14 Td")
+            commands.append(f"({escaped}) Tj")
+
+        commands.append("ET")
+        content_stream = "\n".join(commands)
+
+        stream_object = DecodedStreamObject()
+        stream_data = content_stream.encode("utf-8")
+        stream_object.set_data(stream_data)
+        stream_object[NameObject("/Length")] = NumberObject(len(stream_data))
+        stream_ref = writer._add_object(stream_object)
+        page[NameObject("/Contents")] = stream_ref
+
+        with open(pdf_path, "wb") as pdf_file:
+            writer.write(pdf_file)
+
+        return pdf_path
 
 
 def test_auto_detect_law_type():

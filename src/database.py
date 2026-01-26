@@ -17,11 +17,22 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Database URL from environment
-DATABASE_URL = os.getenv(
-    'DATABASE_URL',
-    'postgresql://microcfo:changeme@localhost:5432/microcfo'
-)
+# Database URL from environment, allowing fallbacks via individual settings
+_explicit_database_url = os.getenv('DATABASE_URL')
+
+if _explicit_database_url:
+    DATABASE_URL = _explicit_database_url
+else:
+    db_user = os.getenv('POSTGRES_USER', 'microcfo')
+    db_password = os.getenv('POSTGRES_PASSWORD', 'changeme')
+    db_host = os.getenv('POSTGRES_HOST', 'localhost')
+    db_port = os.getenv('POSTGRES_PORT', '5432')
+    db_name = os.getenv('POSTGRES_DB', 'microcfo')
+
+    if db_user == 'root':
+        logger.warning("Database user is set to 'root'. Expected dedicated user like 'microcfo'.")
+
+    DATABASE_URL = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 # Create SQLAlchemy engine with connection pooling
 engine = create_engine(
