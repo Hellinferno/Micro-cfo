@@ -6,6 +6,9 @@ Quick test for Agent A - Visual Auditor
 import os
 import sys
 
+# Make sure the src directory is on the Python path so test imports work in CI
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
 # SECURITY: Load API keys from environment variables only
 # Set your API key before running: export OPENROUTER_API_KEY='your-key-here'
 # Or create a .env file (see .env.example)
