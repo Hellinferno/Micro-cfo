@@ -3,6 +3,10 @@ Database configuration and session management
 SQLAlchemy setup for PostgreSQL integration
 """
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session

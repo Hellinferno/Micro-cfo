@@ -6,6 +6,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+!config/.env.docker
+!config/.env.integration
 venv/
 .venv/
 

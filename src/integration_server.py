@@ -4,6 +4,10 @@ FastAPI Integration Server for MicroCFO
 Bridges React frontend with MCP server backend
 """
 
+# Load environment variables from .env file FIRST before any other imports
+from dotenv import load_dotenv
+load_dotenv()
+
 import logging
 from typing import Optional
 from contextlib import asynccontextmanager
