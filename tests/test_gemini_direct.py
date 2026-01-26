@@ -18,18 +18,18 @@ from PIL import Image, ImageDraw, ImageFont
 try:
     import google.generativeai as genai
 except ImportError as import_error:
-    pytest.skip(f"Gemini SDK unavailable: {import_error}")
+    pytest.skip(f"Gemini SDK unavailable: {import_error}", allow_module_level=True)
 
 api_key = os.getenv('GEMINI_API_KEY')
 if not api_key:
-    pytest.skip("GEMINI_API_KEY not set. Skipping Gemini direct test.")
+    pytest.skip("GEMINI_API_KEY not set. Skipping Gemini direct test.", allow_module_level=True)
 
 try:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash')
     print("✅ Gemini 2.5 Flash configured")
 except Exception as setup_error:
-    pytest.skip(f"Gemini setup failed: {setup_error}")
+    pytest.skip(f"Gemini setup failed: {setup_error}", allow_module_level=True)
 
 def create_simple_invoice():
     """Create a simple text-based invoice image"""

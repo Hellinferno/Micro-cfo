@@ -27,3 +27,4 @@ alembic
 boto3
 azure-ai-formrecognizer
 cryptography
+hypothesis

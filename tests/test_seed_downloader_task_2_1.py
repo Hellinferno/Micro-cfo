@@ -15,10 +15,10 @@ import tempfile
 import shutil
 from pathlib import Path
 
-# Add scripts directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'scripts'))
+# Add project root to path so scripts package imports resolve
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from seed_downloader import SeedDownloader
+from scripts.seed_downloader import SeedDownloader
 
 
 def test_initialization_with_default_directory():
