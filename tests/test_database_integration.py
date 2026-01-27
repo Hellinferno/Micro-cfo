@@ -33,18 +33,18 @@ TEST_DATABASE_URL = "sqlite:///:memory:"
 def test_db():
     """Create test database and session with proper cleanup"""
     # Use environment DATABASE_URL if set (for CI), otherwise use in-memory SQLite
-    test_db_url = os.getenv('DATABASE_URL', TEST_DATABASE_URL)
+    db_url = os.getenv('DATABASE_URL', TEST_DATABASE_URL)
     
     # Configure engine based on database type
-    if test_db_url.startswith('sqlite://'):
+    if db_url.startswith('sqlite://'):
         engine = create_engine(
-            test_db_url,
+            db_url,
             connect_args={"check_same_thread": False},
             poolclass=None
         )
     else:
         # PostgreSQL or other databases
-        engine = create_engine(test_db_url, poolclass=None)
+        engine = create_engine(db_url, poolclass=None)
     
     # Ensure clean state: drop all tables before creating
     # This prevents "index already exists" errors by starting fresh
