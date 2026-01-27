@@ -61,6 +61,13 @@ jobs:
         PGPASSWORD: test_password
       run: |
         psql -U microcfo -h localhost -d microcfo_test -c "CREATE DATABASE microcfo;" || true
+
+    - name: Initialize database schema
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
+      run: |
+        alembic upgrade head
     
     - name: Lint with flake8
       run: |
@@ -143,6 +150,13 @@ jobs:
         PGPASSWORD: test_password
       run: |
         psql -U microcfo -h localhost -d microcfo_test -c "CREATE DATABASE microcfo;" || true
+
+    - name: Initialize database schema
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
+      run: |
+        alembic upgrade head
     
     - name: Run integration tests
       env:
