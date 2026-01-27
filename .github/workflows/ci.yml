@@ -55,6 +55,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-cov flake8
+
+    - name: Ensure microcfo database exists
+      env:
+        PGPASSWORD: test_password
+      run: |
+        psql -U microcfo -h localhost -d microcfo_test -c "CREATE DATABASE microcfo;" || true
     
     - name: Lint with flake8
       run: |
@@ -131,6 +137,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest
+
+    - name: Ensure microcfo database exists
+      env:
+        PGPASSWORD: test_password
+      run: |
+        psql -U microcfo -h localhost -d microcfo_test -c "CREATE DATABASE microcfo;" || true
     
     - name: Run integration tests
       env:
