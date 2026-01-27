@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 # revision identifiers, used by Alembic.
 revision = '001_add_encryption'
-down_revision = None
+down_revision = '000_initial_schema'
 branch_labels = None
 depends_on = None
 
