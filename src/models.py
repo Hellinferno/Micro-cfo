@@ -17,6 +17,7 @@ import uuid
 class User(Base):
     """User model for authentication and profile"""
     __tablename__ = 'users'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
@@ -44,6 +45,7 @@ class User(Base):
 class UserProfile(Base):
     """Extended user profile with business details and encrypted sensitive data"""
     __tablename__ = 'user_profiles'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
@@ -64,6 +66,7 @@ class UserProfile(Base):
 class Invoice(Base):
     """Invoice records from Agent A (Visual Auditor) with encrypted sensitive data"""
     __tablename__ = 'invoices'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
@@ -89,6 +92,7 @@ class Invoice(Base):
 class LegalQuery(Base):
     """Legal compliance queries from Agent B (Legal Sentinel)"""
     __tablename__ = 'legal_queries'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
@@ -107,6 +111,7 @@ class LegalQuery(Base):
 class SubsidyApplication(Base):
     """Subsidy applications from Agent C (Subsidy Hunter)"""
     __tablename__ = 'subsidy_applications'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
@@ -128,6 +133,7 @@ class SubsidyApplication(Base):
 class Negotiation(Base):
     """Negotiation emails from Agent D (Negotiator) with encrypted content"""
     __tablename__ = 'negotiations'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
@@ -148,6 +154,7 @@ class Negotiation(Base):
 class AuditLog(Base):
     """Audit trail for all user actions"""
     __tablename__ = 'audit_logs'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='SET NULL'), index=True)
@@ -168,6 +175,7 @@ class AuditLog(Base):
 class WorkflowState(Base):
     """Tracks the state of complex, multi-step agent workflows (The Brain's Memory)"""
     __tablename__ = "workflow_states"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE"), nullable=True)
@@ -187,6 +195,7 @@ class WorkflowState(Base):
 class VendorProfile(Base):
     """Vendor CRM profile for AI negotiation strategy (The Memory)"""
     __tablename__ = "vendor_profiles"
+    __table_args__ = {'extend_existing': True}
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), index=True)

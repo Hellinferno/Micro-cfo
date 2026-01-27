@@ -13,7 +13,7 @@ from src.models import (
     User, UserProfile, Invoice, LegalQuery,
     SubsidyApplication, Negotiation, AuditLog
 )
-from auth import get_password_hash
+from src.auth import get_password_hash
 
 # ============================================
 # User CRUD Operations

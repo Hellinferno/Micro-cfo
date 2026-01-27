@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
 
-from config import config
+from src.config import config
 from mcp_bridge import MCPBridge, MCPBridgeError
 
 # Configure comprehensive logging system

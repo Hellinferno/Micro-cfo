@@ -12,7 +12,7 @@ import jwt
 import bcrypt
 from pydantic import BaseModel, Field
 
-from config import config
+from src.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +189,19 @@ class PasswordHandler:
         if isinstance(hashed_password, str):
             hashed_password = hashed_password.encode('utf-8')
         return bcrypt.checkpw(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    """
+    Hash a password using the configured password handler.
+
+    Args:
+        password: Plain text password
+
+    Returns:
+        Hashed password
+    """
+    return PasswordHandler.hash_password(password)
 
 
 # Global token handler instance
