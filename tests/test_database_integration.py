@@ -47,8 +47,10 @@ def test_db():
         engine = create_engine(test_db_url, poolclass=None)
     
     # Ensure clean state: drop all tables before creating
+    # This prevents "index already exists" errors by starting fresh
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
     db = TestingSessionLocal()
