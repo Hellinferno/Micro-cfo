@@ -100,7 +100,7 @@ if ($LASTEXITCODE -eq 0) {
         }
     } else {
         Write-Host "`n⏸️  Commit created but not pushed" -ForegroundColor Yellow
-        Write-Host "Run 'git push' when ready" -ForegroundColor Gray
+        Write-Host "Run git push when ready" -ForegroundColor Gray
     }
 } else {
     Write-Host "`n❌ Commit failed" -ForegroundColor Red

@@ -11,12 +11,12 @@ from sqlalchemy.orm import sessionmaker
 from datetime import date, datetime
 import uuid
 
-# Ensure src directory is on the path for imports during test collection
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+# Ensure project root is on the path for imports during test collection
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from database import Base, get_db_context
-from models import User, UserProfile, Invoice, LegalQuery, SubsidyApplication, Negotiation, AuditLog
-from crud import (
+from src.database import Base, get_db_context
+from src.models import User, UserProfile, Invoice, LegalQuery, SubsidyApplication, Negotiation, AuditLog
+from src.crud import (
     create_user, get_user_by_email, get_user_by_id, update_user,
     create_user_profile, get_user_profile, update_user_profile,
     create_invoice, get_invoice, get_user_invoices, update_invoice,
