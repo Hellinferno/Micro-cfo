@@ -67,7 +67,7 @@ jobs:
         DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
         ENCRYPTION_KEY: test_encryption_key_for_ci_testing
       run: |
-        alembic upgrade head
+        alembic -c config/alembic.ini upgrade head
     
     - name: Lint with flake8
       run: |
@@ -156,7 +156,7 @@ jobs:
         DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
         ENCRYPTION_KEY: test_encryption_key_for_ci_testing
       run: |
-        alembic upgrade head
+        alembic -c config/alembic.ini upgrade head
     
     - name: Run integration tests
       env:
