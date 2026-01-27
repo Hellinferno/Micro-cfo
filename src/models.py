@@ -13,6 +13,13 @@ from sqlalchemy.sql import func
 from src.database import Base
 from src.encryption import EncryptedString, EncryptedText, EncryptedNumeric
 import uuid
+import sys
+
+# Ensure a single module instance is used regardless of import path
+if __name__ == "models":
+    sys.modules.setdefault("src.models", sys.modules[__name__])
+elif __name__ == "src.models":
+    sys.modules.setdefault("models", sys.modules[__name__])
 
 class User(Base):
     """User model for authentication and profile"""
