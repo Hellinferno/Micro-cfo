@@ -32,13 +32,25 @@ TEST_DATABASE_URL = "sqlite:///:memory:"
 @pytest.fixture(scope="function")
 def test_db():
     """Create test database and session with proper cleanup"""
-    engine = create_engine(
-        TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=None
-    )
+    # Use environment DATABASE_URL if set (for CI), otherwise use in-memory SQLite
+    db_url = os.getenv('DATABASE_URL', TEST_DATABASE_URL)
+    
+    # Configure engine based on database type
+    if db_url.startswith('sqlite://'):
+        engine = create_engine(
+            db_url,
+            connect_args={"check_same_thread": False},
+            poolclass=None
+        )
+    else:
+        # PostgreSQL or other databases
+        engine = create_engine(db_url, poolclass=None)
+    
+    # Ensure clean state: drop all tables before creating
+    # This prevents "index already exists" errors by starting fresh
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
     db = TestingSessionLocal()
@@ -47,6 +59,7 @@ def test_db():
     finally:
         db.rollback()
         db.close()
+        # Clean up after test
         Base.metadata.drop_all(bind=engine)
         engine.dispose()
 

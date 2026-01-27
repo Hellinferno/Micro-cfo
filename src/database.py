@@ -92,6 +92,17 @@ def init_db():
         logger.error(f"Failed to create database tables: {e}")
         raise
 
+def reset_db():
+    """Drop and recreate all database tables - USE WITH CAUTION"""
+    try:
+        Base.metadata.drop_all(bind=engine)
+        logger.info("Database tables dropped successfully")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables recreated successfully")
+    except Exception as e:
+        logger.error(f"Failed to reset database tables: {e}")
+        raise
+
 def check_db_connection():
     """Check if database connection is working"""
     try:
