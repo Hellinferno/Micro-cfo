@@ -10,8 +10,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from database import Base
-from encryption import EncryptedString, EncryptedText, EncryptedNumeric
+from src.database import Base
+from src.encryption import EncryptedString, EncryptedText, EncryptedNumeric
 import uuid
 
 class User(Base):

@@ -10,8 +10,8 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
 from sqlalchemy.orm import Session
-from models import AuditLog
-from database import get_db_context
+from src.models import AuditLog
+from src.database import get_db_context
 
 logger = logging.getLogger(__name__)
 

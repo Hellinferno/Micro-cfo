@@ -9,7 +9,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 import uuid
 
-from models import (
+from src.models import (
     User, UserProfile, Invoice, LegalQuery,
     SubsidyApplication, Negotiation, AuditLog
 )
