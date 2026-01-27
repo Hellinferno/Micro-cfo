@@ -28,7 +28,8 @@ if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 
 sys.path.append(os.getcwd())
-from models import Base
+# Import from src directory to get models
+from src.models import Base
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

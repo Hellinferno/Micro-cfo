@@ -6,8 +6,6 @@ Tests models, CRUD operations, and database functionality
 import os
 import sys
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from datetime import date, datetime
 import uuid
 
@@ -26,29 +24,7 @@ from src.crud import (
     create_audit_log, get_audit_logs
 )
 
-# Test database URL (in-memory SQLite for testing)
-TEST_DATABASE_URL = "sqlite:///:memory:"
-
-@pytest.fixture(scope="function")
-def test_db():
-    """Create test database and session with proper cleanup"""
-    engine = create_engine(
-        TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=None
-    )
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.rollback()
-        db.close()
-        Base.metadata.drop_all(bind=engine)
-        engine.dispose()
+# Note: test_db fixture is now defined in tests/conftest.py for centralized setup
 
 @pytest.fixture(scope="function")
 def test_user(test_db):

@@ -62,6 +62,41 @@ jobs:
       run: |
         psql -U microcfo -h localhost -d microcfo_test -c "CREATE DATABASE microcfo;" || true
     
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until pg_isready -h localhost -p 5432 -U microcfo; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Setup test database
+      run: |
+        # Create database if it doesn't exist (it should from service config, but ensure it)
+        # Note: The postgres service already creates microcfo_test via POSTGRES_DB env var
+        echo "Database microcfo_test should already exist from service configuration"
+        # Verify database exists
+        psql -h localhost -U microcfo -d microcfo_test -c "SELECT 1;" || exit 1
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Run database migrations
+      run: |
+        # Run Alembic migrations to set up database schema
+        # Check if alembic config exists and run migrations
+        if [ -f "config/alembic.ini" ]; then
+          alembic -c config/alembic.ini upgrade head
+          echo "✅ Database migrations completed"
+        else
+          echo "⚠️  No alembic.ini found, skipping migrations"
+          echo "Tests will use SQLAlchemy's create_all() instead"
+        fi
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        ENCRYPTION_KEY: aKiF1eXQY3K_LiplKZKUw5GhjqiqAGKtqxTfRoajKsg=
+    
     - name: Lint with flake8
       run: |
         # Stop the build if there are Python syntax errors or undefined names
@@ -75,7 +110,7 @@ jobs:
         REDIS_URL: redis://localhost:6379/0
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
-        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
+        ENCRYPTION_KEY: aKiF1eXQY3K_LiplKZKUw5GhjqiqAGKtqxTfRoajKsg=
       run: |
         pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
     
@@ -144,13 +179,45 @@ jobs:
       run: |
         psql -U microcfo -h localhost -d microcfo_test -c "CREATE DATABASE microcfo;" || true
     
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until pg_isready -h localhost -p 5432 -U microcfo; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Setup test database
+      run: |
+        # Verify database exists
+        psql -h localhost -U microcfo -d microcfo_test -c "SELECT 1;" || exit 1
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Run database migrations
+      run: |
+        # Run Alembic migrations to set up database schema
+        # Check if alembic config exists and run migrations
+        if [ -f "config/alembic.ini" ]; then
+          alembic -c config/alembic.ini upgrade head
+          echo "✅ Database migrations completed"
+        else
+          echo "⚠️  No alembic.ini found, skipping migrations"
+          echo "Tests will use SQLAlchemy's create_all() instead"
+        fi
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        ENCRYPTION_KEY: aKiF1eXQY3K_LiplKZKUw5GhjqiqAGKtqxTfRoajKsg=
+    
     - name: Run integration tests
       env:
         DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
         REDIS_URL: redis://localhost:6379/0
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
-        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
+        ENCRYPTION_KEY: aKiF1eXQY3K_LiplKZKUw5GhjqiqAGKtqxTfRoajKsg=
       run: |
         pytest tests/test_integration_*.py -v
 
