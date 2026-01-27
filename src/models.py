@@ -7,7 +7,7 @@ from sqlalchemy import (
     Column, String, Boolean, DateTime, Date, Numeric, Text,
     ForeignKey, Index, DECIMAL, Integer, Float
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
