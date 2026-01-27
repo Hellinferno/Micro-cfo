@@ -36,7 +36,7 @@ def test_db():
     test_db_url = os.getenv('DATABASE_URL', TEST_DATABASE_URL)
     
     # Configure engine based on database type
-    if test_db_url.startswith('sqlite'):
+    if test_db_url.startswith('sqlite://'):
         engine = create_engine(
             test_db_url,
             connect_args={"check_same_thread": False},

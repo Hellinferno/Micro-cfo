@@ -13,12 +13,14 @@ def _create_cleanup_engine(test_db_url):
     Helper function to create an engine for database cleanup.
     
     Args:
-        test_db_url: Database URL string
+        test_db_url: Database URL string in SQLAlchemy format
+                     (e.g., 'sqlite:///:memory:', 'sqlite:///path/to/db.sqlite',
+                      'postgresql://user:pass@host:port/dbname')
         
     Returns:
-        SQLAlchemy engine instance
+        SQLAlchemy engine instance configured appropriately for the database type
     """
-    if test_db_url.startswith('sqlite'):
+    if test_db_url.startswith('sqlite://'):
         return create_engine(test_db_url, connect_args={"check_same_thread": False})
     else:
         return create_engine(test_db_url)
@@ -27,13 +29,14 @@ def _create_cleanup_engine(test_db_url):
 def _cleanup_database(test_db_url, phase="session"):
     """
     Helper function to clean up database by dropping all tables.
+    Only cleans persistent databases; skips in-memory SQLite databases.
     
     Args:
-        test_db_url: Database URL string
+        test_db_url: Database URL string in SQLAlchemy format
         phase: Description of when cleanup is happening (for logging)
     """
     # Only clean up if using a persistent database (not in-memory)
-    if ':memory:' not in test_db_url:
+    if not test_db_url.startswith('sqlite:///:memory:'):
         try:
             from src.database import Base
             
