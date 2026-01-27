@@ -33,6 +33,7 @@ TEST_DATABASE_URL = "sqlite:///:memory:"
 def test_db():
     """Create test database and session"""
     engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
