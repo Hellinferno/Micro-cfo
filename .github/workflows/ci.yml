@@ -79,7 +79,14 @@ jobs:
     - name: Run database migrations
       run: |
         # Run Alembic migrations to set up database schema
-        alembic upgrade head || echo "No migrations to run or alembic not configured for test DB"
+        # Check if alembic config exists and run migrations
+        if [ -f "config/alembic.ini" ]; then
+          alembic -c config/alembic.ini upgrade head
+          echo "✅ Database migrations completed"
+        else
+          echo "⚠️  No alembic.ini found, skipping migrations"
+          echo "Tests will use SQLAlchemy's create_all() instead"
+        fi
       env:
         DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
         ENCRYPTION_KEY: aKiF1eXQY3K_LiplKZKUw5GhjqiqAGKtqxTfRoajKsg=
@@ -180,7 +187,14 @@ jobs:
     - name: Run database migrations
       run: |
         # Run Alembic migrations to set up database schema
-        alembic upgrade head || echo "No migrations to run or alembic not configured for test DB"
+        # Check if alembic config exists and run migrations
+        if [ -f "config/alembic.ini" ]; then
+          alembic -c config/alembic.ini upgrade head
+          echo "✅ Database migrations completed"
+        else
+          echo "⚠️  No alembic.ini found, skipping migrations"
+          echo "Tests will use SQLAlchemy's create_all() instead"
+        fi
       env:
         DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
         ENCRYPTION_KEY: aKiF1eXQY3K_LiplKZKUw5GhjqiqAGKtqxTfRoajKsg=

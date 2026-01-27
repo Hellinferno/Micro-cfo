@@ -15,15 +15,6 @@ from src.database import Base
 from src.encryption import EncryptedString, EncryptedText, EncryptedNumeric
 import uuid
 
-# Use JSON type that works with both SQLite and PostgreSQL
-# For PostgreSQL, it will use JSONB automatically when available
-try:
-    # Try to use JSONB for PostgreSQL
-    from sqlalchemy.dialects.postgresql import JSONB as JSONType
-except ImportError:
-    # Fall back to generic JSON for SQLite
-    from sqlalchemy.types import JSON as JSONType
-
 class User(Base):
     """User model for authentication and profile"""
     __tablename__ = 'users'
