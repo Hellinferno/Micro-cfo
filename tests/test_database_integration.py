@@ -29,10 +29,14 @@ from src.crud import (
 # Test database URL (in-memory SQLite for testing)
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def test_db():
-    """Create test database and session"""
-    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    """Create test database and session with proper cleanup"""
+    engine = create_engine(
+        TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=None
+    )
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -41,10 +45,12 @@ def test_db():
     try:
         yield db
     finally:
+        db.rollback()
         db.close()
         Base.metadata.drop_all(bind=engine)
+        engine.dispose()
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def test_user(test_db):
     """Create a test user"""
     user = create_user(
