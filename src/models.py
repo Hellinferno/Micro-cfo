@@ -8,11 +8,21 @@ from sqlalchemy import (
     ForeignKey, Index, DECIMAL, Integer, Float
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
+from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.database import Base
 from src.encryption import EncryptedString, EncryptedText, EncryptedNumeric
 import uuid
+
+# Use JSON type that works with both SQLite and PostgreSQL
+# For PostgreSQL, it will use JSONB automatically when available
+try:
+    # Try to use JSONB for PostgreSQL
+    from sqlalchemy.dialects.postgresql import JSONB as JSONType
+except ImportError:
+    # Fall back to generic JSON for SQLite
+    from sqlalchemy.types import JSON as JSONType
 
 class User(Base):
     """User model for authentication and profile"""
@@ -53,7 +63,7 @@ class UserProfile(Base):
     gst_number = Column(EncryptedString(50))  # Encrypted - sensitive tax ID
     pan_number = Column(EncryptedString(20))  # Encrypted - sensitive tax ID
     registered_address = Column(EncryptedText)  # Encrypted - PII
-    preferences = Column(JSONB, default={})
+    preferences = Column(JSON, default={})
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -79,7 +89,7 @@ class Invoice(Base):
     currency = Column(String(10), default='INR')
     status = Column(String(50), default='pending', index=True)
     file_path = Column(EncryptedText)  # Encrypted S3 key
-    extracted_data = Column(JSONB)  # Consider encrypting if contains PII
+    extracted_data = Column(JSON)  # Consider encrypting if contains PII
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -99,7 +109,7 @@ class LegalQuery(Base):
     query_text = Column(Text, nullable=False)
     response_text = Column(Text)
     risk_level = Column(String(20))
-    relevant_sections = Column(JSONB)
+    relevant_sections = Column(JSON)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
@@ -120,7 +130,7 @@ class SubsidyApplication(Base):
     eligibility_status = Column(String(50))
     application_status = Column(String(50), default='draft')
     applied_date = Column(Date)
-    scheme_data = Column(JSONB)
+    scheme_data = Column(JSON)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -161,8 +171,8 @@ class AuditLog(Base):
     action = Column(String(100), nullable=False)
     resource_type = Column(String(100))
     resource_id = Column(UUID(as_uuid=True))
-    details = Column(JSONB)
-    ip_address = Column(INET)
+    details = Column(JSON)
+    ip_address = Column(String(45))  # Supports both IPv4 and IPv6
     user_agent = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
@@ -181,8 +191,8 @@ class WorkflowState(Base):
     invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE"), nullable=True)
     status = Column(String(50)) # e.g., "AUDIT_COMPLETE", "NEGOTIATION_SUGGESTED"
     current_step = Column(String(100)) # "waiting_for_user_approval"
-    context_data = Column(JSONB, default={}) # Stores data passed between agents
-    history = Column(JSONB, default=[]) # Audit trail of AI decisions
+    context_data = Column(JSON, default={}) # Stores data passed between agents
+    history = Column(JSON, default=[]) # Audit trail of AI decisions
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

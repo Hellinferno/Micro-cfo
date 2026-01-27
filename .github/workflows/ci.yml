@@ -56,6 +56,34 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov flake8
     
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until pg_isready -h localhost -p 5432 -U microcfo; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Setup test database
+      run: |
+        # Create database if it doesn't exist (it should from service config, but ensure it)
+        # Note: The postgres service already creates microcfo_test via POSTGRES_DB env var
+        echo "Database microcfo_test should already exist from service configuration"
+        # Verify database exists
+        psql -h localhost -U microcfo -d microcfo_test -c "SELECT 1;" || exit 1
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Run database migrations
+      run: |
+        # Run Alembic migrations to set up database schema
+        alembic upgrade head || echo "No migrations to run or alembic not configured for test DB"
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
+    
     - name: Lint with flake8
       run: |
         # Stop the build if there are Python syntax errors or undefined names
@@ -131,6 +159,31 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest
+    
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until pg_isready -h localhost -p 5432 -U microcfo; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Setup test database
+      run: |
+        # Verify database exists
+        psql -h localhost -U microcfo -d microcfo_test -c "SELECT 1;" || exit 1
+      env:
+        PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+    
+    - name: Run database migrations
+      run: |
+        # Run Alembic migrations to set up database schema
+        alembic upgrade head || echo "No migrations to run or alembic not configured for test DB"
+      env:
+        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        ENCRYPTION_KEY: test_encryption_key_for_ci_testing
     
     - name: Run integration tests
       env:
