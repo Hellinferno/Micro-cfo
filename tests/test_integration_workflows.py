@@ -46,7 +46,7 @@ class TestAuthenticationFlow:
     
     def _setup_auth_override(self, user_context: UserContext):
         """Helper to set up authentication dependency override"""
-        from middleware.auth import get_current_user
+        from src.middleware.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: user_context
     
     def test_login_and_profile_retrieval(self):
@@ -207,7 +207,7 @@ class TestFileUploadAndProcessing:
         self.headers = {"Authorization": f"Bearer {self.token}"}
         
         # Set up auth override
-        from middleware.auth import get_current_user
+        from src.middleware.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: user_context
         
         # Mock MCP bridge with proper return values
@@ -352,7 +352,7 @@ class TestEndToEndWorkflows:
         self.headers = {"Authorization": f"Bearer {self.token}"}
         
         # Set up auth override
-        from middleware.auth import get_current_user
+        from src.middleware.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: user_context
         
         # Mock MCP bridge with proper return values
@@ -548,7 +548,7 @@ class TestErrorScenariosAndRecovery:
         self.headers = {"Authorization": f"Bearer {self.token}"}
         
         # Set up auth override
-        from middleware.auth import get_current_user
+        from src.middleware.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: user_context
         
         # Mock MCP bridge with proper return values
@@ -612,7 +612,7 @@ class TestErrorScenariosAndRecovery:
         # Step 3: Set up auth override for new token
         user_context = token_handler.verify_token(new_token)
         assert user_context is not None
-        from middleware.auth import get_current_user
+        from src.middleware.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: user_context
         
         # Step 4: Retry with new token
@@ -772,7 +772,7 @@ class TestConcurrentUsers:
         def make_request(token):
             # Set up auth override for this token
             user_context = token_handler.verify_token(token)
-            from middleware.auth import get_current_user
+            from src.middleware.auth import get_current_user
             app.dependency_overrides[get_current_user] = lambda: user_context
             
             headers = {"Authorization": f"Bearer {token}"}

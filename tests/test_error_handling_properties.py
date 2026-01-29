@@ -17,9 +17,9 @@ from fastapi.testclient import TestClient
 from datetime import datetime
 
 from integration_server import app
-from middleware.error_handler import ErrorCategory, create_error_response
-from middleware.logging_middleware import log_audit_event, log_security_event
-from middleware.rate_limiter import rate_limiter, RateLimitConfig
+from src.middleware.error_handler import ErrorCategory, create_error_response
+from src.middleware.logging_middleware import log_audit_event, log_security_event
+from src.middleware.rate_limiter import rate_limiter, RateLimitConfig
 
 
 # Test client

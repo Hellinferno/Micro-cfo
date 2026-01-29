@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
-from routers.subsidy_hunter import router as subsidy_hunter_router
+from src.routers.subsidy_hunter import router as subsidy_hunter_router
 from mcp_bridge import MCPBridge, MCPBridgeError
 
 

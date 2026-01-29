@@ -15,7 +15,7 @@ import io
 from PIL import Image
 
 from integration_server import app
-from routers.visual_auditor import validate_file, save_uploaded_file, cleanup_temp_file, file_to_base64_url
+from src.routers.visual_auditor import validate_file, save_uploaded_file, cleanup_temp_file, file_to_base64_url
 
 # Test client with proper host header
 client = TestClient(app, base_url="http://testserver")

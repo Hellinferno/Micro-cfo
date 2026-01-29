@@ -11,7 +11,7 @@ from fastapi import Request, HTTPException, status
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from auth import UserContext, UserRole
+from src.auth import UserContext, UserRole
 
 logger = logging.getLogger(__name__)
 

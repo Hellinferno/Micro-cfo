@@ -10,8 +10,8 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Request, Depends
 from pydantic import BaseModel, Field, EmailStr
 
-from auth import UserContext, UserRole, token_handler, PasswordHandler
-from middleware.auth import get_current_user
+from src.auth import UserContext, UserRole, token_handler, PasswordHandler
+from src.middleware.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 

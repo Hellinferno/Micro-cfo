@@ -10,7 +10,7 @@ from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from auth import token_handler, UserContext
+from src.auth import token_handler, UserContext
 
 logger = logging.getLogger(__name__)
 

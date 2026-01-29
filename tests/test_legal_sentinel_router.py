@@ -10,7 +10,7 @@ from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
-from routers.legal_sentinel import router as legal_sentinel_router
+from src.routers.legal_sentinel import router as legal_sentinel_router
 from mcp_bridge import MCPBridge, MCPBridgeError
 
 

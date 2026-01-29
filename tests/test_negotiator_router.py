@@ -10,7 +10,7 @@ from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 
-from routers.negotiator import router as negotiator_router
+from src.routers.negotiator import router as negotiator_router
 from mcp_bridge import MCPBridge, MCPBridgeError
 
 
