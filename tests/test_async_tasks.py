@@ -7,7 +7,7 @@ import pytest
 import time
 from celery.result import AsyncResult
 from celery_app import celery_app
-from tasks import (
+from src.tasks import (
     scan_invoice_async,
     search_legal_compliance_async,
     search_subsidies_async,
@@ -59,7 +59,7 @@ class TestVisualAuditorTasks:
     
     def test_batch_scan_invoices(self, tmp_path):
         """Test batch invoice scanning"""
-        from tasks.visual_auditor_tasks import batch_scan_invoices
+        from src.tasks.visual_auditor_tasks import batch_scan_invoices
         
         # Create multiple test files
         files = []
@@ -103,7 +103,7 @@ class TestLegalSentinelTasks:
     
     def test_monitor_legal_updates(self):
         """Test periodic legal monitoring task"""
-        from tasks.legal_sentinel_tasks import monitor_legal_updates
+        from src.tasks.legal_sentinel_tasks import monitor_legal_updates
         
         result = monitor_legal_updates.apply_async()
         task_result = result.get(timeout=30)
@@ -116,7 +116,7 @@ class TestLegalSentinelTasks:
     
     def test_analyze_compliance_risk(self):
         """Test compliance risk analysis"""
-        from tasks.legal_sentinel_tasks import analyze_compliance_risk
+        from src.tasks.legal_sentinel_tasks import analyze_compliance_risk
         
         invoice_data = {
             'invoice_number': 'INV-2024-001',

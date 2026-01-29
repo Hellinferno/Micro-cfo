@@ -9,7 +9,7 @@ from fastapi import FastAPI
 
 def test_simple_import():
     """Test that we can import the router"""
-    from routers.subsidy_hunter import router as subsidy_hunter_router
+    from src.routers.subsidy_hunter import router as subsidy_hunter_router
     assert subsidy_hunter_router is not None
 
 def test_basic_app():

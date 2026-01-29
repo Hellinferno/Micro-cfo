@@ -16,7 +16,7 @@ import jwt
 
 from integration_server import app
 from auth import UserContext, UserRole, token_handler, PasswordHandler
-from middleware.authorization import RoleBasedAccessControl
+from src.middleware.authorization import RoleBasedAccessControl
 from config import config
 
 
@@ -287,7 +287,7 @@ def test_property_authenticated_profile_access(email):
     Property: For any authenticated user with a valid token, accessing the profile
     endpoint should return their user information.
     """
-    from middleware.auth import get_current_user
+    from src.middleware.auth import get_current_user
     
     # Login to get a valid token
     login_response = client.post("/api/v1/auth/login", json={
