@@ -7,15 +7,16 @@ This document describes the organized folder structure of the CFO project.
 ```
 CFO/
 ├── src/                      # Core application source code
+│   ├── routers/              # API routers
+│   ├── middleware/           # Middleware components
+│   ├── tasks/                # Background tasks
+│   └── *.py                  # Core Python modules
 ├── docs/                     # All documentation files
 ├── config/                   # Configuration files
 ├── demos/                    # Demo and example scripts
 ├── tests/                    # Test files
 ├── scripts/                  # Utility scripts
 ├── frontend/                 # Frontend application
-├── middleware/               # Middleware components
-├── routers/                  # API routers
-├── tasks/                    # Background tasks
 ├── alembic/                  # Database migrations
 ├── data/                     # Data files and samples
 ├── logs/                     # Application logs
@@ -35,11 +36,15 @@ CFO/
 ### `/src` - Source Code
 Contains all core Python application files:
 - `server.py` - Main server file
+- `integration_server.py` - FastAPI integration server
 - `models.py` - Database models
 - `database.py` - Database configuration
 - `auth.py` - Authentication
 - `encryption.py` - Encryption utilities
 - `storage_manager.py` - Storage management
+- `/routers/` - FastAPI routers for API endpoints
+- `/middleware/` - Middleware components (auth, rate limiting, logging, etc.)
+- `/tasks/` - Celery background tasks
 - And other core modules...
 
 ### `/docs` - Documentation
@@ -76,12 +81,6 @@ Utility and maintenance scripts
 
 ### `/frontend` - Frontend Application
 React/Vue frontend application with its own structure
-
-### `/middleware` - Middleware
-Authentication, logging, rate limiting, and other middleware components
-
-### `/routers` - API Routers
-FastAPI routers for different API endpoints
 
 ### `/data` - Data Files
 Data files including:
