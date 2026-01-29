@@ -62,6 +62,7 @@ jobs:
       run: |
         psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo_test;"
         psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo_test;"
+        psql -U microcfo -h localhost -d postgres -c "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'microcfo') THEN CREATE DATABASE microcfo; END IF; END $$;"
 
     - name: Initialize database schema
       env:
@@ -152,6 +153,7 @@ jobs:
       run: |
         psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo_test;"
         psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo_test;"
+        psql -U microcfo -h localhost -d postgres -c "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'microcfo') THEN CREATE DATABASE microcfo; END IF; END $$;"
 
     - name: Initialize database schema
       env:

@@ -6,6 +6,7 @@ Logs all user actions with Who, What, When, Where (IP), and How (details)
 
 import logging
 import json
+import ipaddress
 from typing import Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -128,6 +129,8 @@ class AuditLogger:
             Audit log ID if successful, None otherwise
         """
         try:
+            ip_address = AuditLogger._normalize_ip(ip_address)
+
             # Prepare details with user email
             audit_details = details or {}
             if user_email:
@@ -174,6 +177,25 @@ class AuditLogger:
         except Exception as e:
             logger.error(f"Failed to create audit log: {e}", exc_info=True)
             return None
+
+    @staticmethod
+    def _normalize_ip(ip_address: Optional[str]) -> Optional[str]:
+        """Return a valid IP address string for inet columns."""
+        if not ip_address:
+            return None
+
+        normalized = ip_address.strip()
+        if not normalized:
+            return None
+
+        if normalized.lower() in {"unknown", "testclient", "testserver"}:
+            return "127.0.0.1"
+
+        try:
+            ipaddress.ip_address(normalized)
+            return normalized
+        except ValueError:
+            return "127.0.0.1"
     
     @staticmethod
     def log_invoice_action(
