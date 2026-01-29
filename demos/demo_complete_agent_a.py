@@ -23,10 +23,10 @@ def demo_textile_machinery_scenario():
     print("\n🏭 SCENARIO: Textile Company Machinery Purchase")
     print("-" * 50)
     
-    from server import _get_mock_invoice, _apply_safety_validations
+    from src.server import _get_mock_invoice, _apply_safety_validations
     
     # Create a realistic textile machinery invoice
-    from server import Invoice, LineItem
+    from src.server import Invoice, LineItem
     
     invoice = Invoice(
         vendor_name="Gujarat Textile Machinery Ltd",
@@ -97,7 +97,7 @@ def demo_restaurant_bill_scenario():
     print("\n🍽️  SCENARIO: Restaurant Bill Compliance Check")
     print("-" * 50)
     
-    from server import Invoice, LineItem, _apply_safety_validations
+    from src.server import Invoice, LineItem, _apply_safety_validations
     
     invoice = Invoice(
         vendor_name="The Grand Restaurant",
@@ -151,7 +151,7 @@ def demo_fraud_detection():
     print("\n🕵️ SCENARIO: Fraud Detection Demo")
     print("-" * 50)
     
-    from server import Invoice, LineItem, _apply_safety_validations
+    from src.server import Invoice, LineItem, _apply_safety_validations
     
     # Suspicious invoice
     invoice = Invoice(
@@ -206,7 +206,7 @@ def demo_real_image_processing():
     
     print(f"\n💻 Code Example:")
     print(f"   ```python")
-    print(f"   from server import scan_invoice_document")
+    print(f"   from src.server import scan_invoice_document")
     print(f"   ")
     print(f"   # Process local image")
     print(f"   result = scan_invoice_document('invoice.jpg')")

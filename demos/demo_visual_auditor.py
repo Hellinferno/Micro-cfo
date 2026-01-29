@@ -6,7 +6,7 @@ Tests the Gemini 1.5 Flash integration with sample invoice processing
 
 import os
 import json
-from server import scan_invoice_document, get_user_profile
+from src.server import scan_invoice_document, get_user_profile
 
 def test_visual_auditor():
     """Test the visual auditor with mock data and real API if available"""

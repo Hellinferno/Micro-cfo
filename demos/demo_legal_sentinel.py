@@ -5,9 +5,9 @@ Shows the complete workflow of the structure-aware RAG system
 """
 
 import json
-from legal_ingestion import LegalDocumentProcessor
-from vector_database import LegalVectorDB
-from server import check_compliance_law, get_user_profile, LegalRisk, RiskLevel
+from src.legal_ingestion import LegalDocumentProcessor
+from src.vector_database import LegalVectorDB
+from src.server import check_compliance_law, get_user_profile, LegalRisk, RiskLevel
 
 def demo_legal_sentinel():
     """Demonstrate the Legal Sentinel system"""
@@ -24,7 +24,7 @@ def demo_legal_sentinel():
     # Show user profile
     print("\n👤 User Profile:")
     try:
-        from server import mcp
+        from src.server import mcp
         profile_resource = mcp.resources["microcfo://data/profile"]
         profile_data = profile_resource()
         profile = json.loads(profile_data)

@@ -23,7 +23,7 @@ def demo_negotiation_scenarios():
     
     # Check if server imports work
     try:
-        from server import generate_negotiation_draft, NegotiationIntent
+        from src.server import generate_negotiation_draft, NegotiationIntent
         print("✅ Agent D modules loaded successfully")
     except ImportError as e:
         print(f"❌ Import error: {e}")
