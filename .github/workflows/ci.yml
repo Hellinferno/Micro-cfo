@@ -66,7 +66,7 @@ jobs:
     - name: Initialize database schema
       env:
         DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
-        ENCRYPTION_KEY: QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGk=
+        ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
       run: |
         alembic -c config/alembic.ini upgrade head
     
@@ -83,7 +83,7 @@ jobs:
         REDIS_URL: redis://localhost:6379/0
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
-        ENCRYPTION_KEY: QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGk=
+        ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
       run: |
         pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
     
@@ -156,7 +156,7 @@ jobs:
     - name: Initialize database schema
       env:
         DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
-        ENCRYPTION_KEY: QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGk=
+        ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
       run: |
         alembic -c config/alembic.ini upgrade head
     
@@ -166,7 +166,7 @@ jobs:
         REDIS_URL: redis://localhost:6379/0
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
-        ENCRYPTION_KEY: QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGk=
+        ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
       run: |
         pytest tests/test_integration_*.py -v
 
