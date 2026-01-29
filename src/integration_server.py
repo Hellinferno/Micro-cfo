@@ -20,10 +20,10 @@ from pydantic import BaseModel
 import uvicorn
 
 from src.config import config
-from mcp_bridge import MCPBridge, MCPBridgeError
+from src.mcp_bridge import MCPBridge, MCPBridgeError
 
 # Configure comprehensive logging system
-from middleware.logging_middleware import setup_logging
+from src.middleware.logging_middleware import setup_logging
 setup_logging(debug=config.server.debug)
 logger = logging.getLogger(__name__)
 
@@ -58,9 +58,9 @@ async def lifespan(app: FastAPI):
     logger.info("MCP Bridge initialized successfully")
     
     # Initialize Legal Sentinel with WebSocket manager
-    from websocket_manager import websocket_manager
-    from sentinel_monitor import LegalSentinel
-    from operation_tracker import operation_tracker
+    from src.websocket_manager import websocket_manager
+    from src.sentinel_monitor import LegalSentinel
+    from src.operation_tracker import operation_tracker
     
     # Set WebSocket manager for operation tracker
     operation_tracker.websocket_manager = websocket_manager
@@ -71,7 +71,7 @@ async def lifespan(app: FastAPI):
     logger.info("Operation Tracker initialized with WebSocket support")
 
     # Start WebSocket heartbeat checker
-    from websocket_manager import websocket_manager
+    from src.websocket_manager import websocket_manager
     import asyncio
     
     async def heartbeat_checker():
@@ -129,34 +129,34 @@ app.add_middleware(
 )
 
 # Add authentication middleware
-from middleware.auth import AuthenticationMiddleware
+from src.middleware.auth import AuthenticationMiddleware
 app.add_middleware(AuthenticationMiddleware)
 
 # Add authorization middleware
-from middleware.authorization import AuthorizationMiddleware
+from src.middleware.authorization import AuthorizationMiddleware
 app.add_middleware(AuthorizationMiddleware)
 
 # Add Idempotency middleware (before RateLimit so validated requests are cached, but after Auth)
-from middleware.idempotency import IdempotencyMiddleware
+from src.middleware.idempotency import IdempotencyMiddleware
 app.add_middleware(IdempotencyMiddleware)
 
 # Add rate limiting middleware
-from middleware.rate_limiter import RateLimitMiddleware
+from src.middleware.rate_limiter import RateLimitMiddleware
 import os
 # Disable rate limiting in test environment
 rate_limit_enabled = os.getenv("TESTING") != "true"
 app.add_middleware(RateLimitMiddleware, enabled=rate_limit_enabled)
 
 # Add request logging middleware
-from middleware.logging_middleware import RequestLoggingMiddleware
+from src.middleware.logging_middleware import RequestLoggingMiddleware
 app.add_middleware(RequestLoggingMiddleware)
 
 # Add PII Redaction middleware (before Audit so logs are safe)
-from middleware.pii_redactor import PIIRedactionMiddleware
+from src.middleware.pii_redactor import PIIRedactionMiddleware
 app.add_middleware(PIIRedactionMiddleware)
 
 # Add audit middleware for comprehensive audit trails
-from middleware.audit_middleware import AuditMiddleware
+from src.middleware.audit_middleware import AuditMiddleware
 audit_enabled = os.getenv("AUDIT_ENABLED", "true").lower() == "true"
 app.add_middleware(AuditMiddleware, enabled=audit_enabled)
 if audit_enabled:
@@ -165,7 +165,7 @@ else:
     logger.warning("[WARN] Audit middleware disabled")
 
 # Add disclaimer middleware for legal disclaimers
-from middleware.disclaimer_middleware import DisclaimerMiddleware
+from src.middleware.disclaimer_middleware import DisclaimerMiddleware
 disclaimer_enabled = os.getenv("DISCLAIMER_ENABLED", "true").lower() == "true"
 app.add_middleware(DisclaimerMiddleware, enabled=disclaimer_enabled)
 if disclaimer_enabled:
@@ -180,7 +180,7 @@ app.add_middleware(
 )
 
 # Register centralized error handlers
-from middleware.error_handler import register_error_handlers
+from src.middleware.error_handler import register_error_handlers
 register_error_handlers(app)
 
 # Health check endpoint
@@ -213,18 +213,18 @@ async def root():
 
 # API v1 router and agent routers
 from fastapi import APIRouter
-from routers.visual_auditor import router as visual_auditor_router
-from routers.legal_sentinel import router as legal_sentinel_router
-from routers.subsidy_hunter import router as subsidy_hunter_router
-from routers.negotiator import router as negotiator_router
-from routers.auth import router as auth_router
-from routers.websocket import router as websocket_router
-from routers.tasks import router as tasks_router
-from routers.audit import router as audit_router
-from routers.erp_export import router as erp_export_router
-from routers.onboarding import router as onboarding_router
-from routers.admin import router as admin_router
-from routers.orchestrator import router as orchestrator_router
+from src.routers.visual_auditor import router as visual_auditor_router
+from src.routers.legal_sentinel import router as legal_sentinel_router
+from src.routers.subsidy_hunter import router as subsidy_hunter_router
+from src.routers.negotiator import router as negotiator_router
+from src.routers.auth import router as auth_router
+from src.routers.websocket import router as websocket_router
+from src.routers.tasks import router as tasks_router
+from src.routers.audit import router as audit_router
+from src.routers.erp_export import router as erp_export_router
+from src.routers.onboarding import router as onboarding_router
+from src.routers.admin import router as admin_router
+from src.routers.orchestrator import router as orchestrator_router
 
 api_v1_router = APIRouter(prefix=config.api.v1_prefix)
 
@@ -247,9 +247,9 @@ app.include_router(websocket_router)
 @api_v1_router.get("/status")
 async def api_status():
     """API v1 status endpoint"""
-    from middleware.rate_limiter import get_rate_limiter_stats
-    from cache_manager import cache_manager
-    from connection_pool import connection_pool, resource_queue
+    from src.middleware.rate_limiter import get_rate_limiter_stats
+    from src.cache_manager import cache_manager
+    from src.connection_pool import connection_pool, resource_queue
     
     return {
         "api_version": "v1",

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
-from database import get_db
-from models import WorkflowState, Invoice, VendorProfile
-from mcp_bridge import MCPBridge
+from src.database import get_db
+from src.models import WorkflowState, Invoice, VendorProfile
+from src.mcp_bridge import MCPBridge
 from pydantic import BaseModel
 import logging
 from datetime import datetime

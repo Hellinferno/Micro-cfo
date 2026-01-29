@@ -3,9 +3,9 @@ Celery tasks for Legal Sentinel (Agent B)
 Handles async legal compliance searches and monitoring
 """
 
-from celery_app import celery_app
-from mcp_bridge import MCPBridge
-from sentinel_monitor import LegalSentinel
+from src.celery_app import celery_app
+from src.mcp_bridge import MCPBridge
+from src.sentinel_monitor import LegalSentinel
 import logging
 from datetime import datetime
 

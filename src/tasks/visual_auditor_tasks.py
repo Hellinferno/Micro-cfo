@@ -3,8 +3,8 @@ Celery tasks for Visual Auditor (Agent A)
 Handles async invoice scanning and document processing
 """
 
-from celery_app import celery_app
-from mcp_bridge import MCPBridge
+from src.celery_app import celery_app
+from src.mcp_bridge import MCPBridge
 import logging
 import os
 from datetime import datetime

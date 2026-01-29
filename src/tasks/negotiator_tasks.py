@@ -3,8 +3,8 @@ Celery tasks for Negotiator (Agent D)
 Handles async email generation for vendor negotiations
 """
 
-from celery_app import celery_app
-from mcp_bridge import MCPBridge
+from src.celery_app import celery_app
+from src.mcp_bridge import MCPBridge
 import logging
 from datetime import datetime
 

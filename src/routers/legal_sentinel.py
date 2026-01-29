@@ -10,8 +10,8 @@ from fastapi import APIRouter, HTTPException, status, Request
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-from mcp_bridge import MCPBridge, MCPBridgeError
-from cache_manager import cache_manager
+from src.mcp_bridge import MCPBridge, MCPBridgeError
+from src.cache_manager import cache_manager
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, status, Request
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-from user_onboarding import (
+from src.user_onboarding import (
     CompanyProfile,
     OnboardingProgress,
     OnboardingStep,

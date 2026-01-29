@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ValidationError
 
-from mcp_bridge import MCPBridgeError
+from src.mcp_bridge import MCPBridgeError
 
 logger = logging.getLogger(__name__)
 

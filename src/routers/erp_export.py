@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from io import BytesIO
 
-from erp_adapters import (
+from src.erp_adapters import (
     InvoiceExportData,
     ERPExportManager,
     export_to_tally_xml,

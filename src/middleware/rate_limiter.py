@@ -245,7 +245,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
             
             # Log security event
-            from middleware.logging_middleware import log_security_event
+            from src.middleware.logging_middleware import log_security_event
             log_security_event(
                 event_type="rate_limit_exceeded",
                 user_id=client_id,

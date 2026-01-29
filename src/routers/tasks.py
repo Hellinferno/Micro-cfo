@@ -7,14 +7,14 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from celery.result import AsyncResult
-from celery_app import celery_app
-from tasks import (
+from src.celery_app import celery_app
+from src.tasks import (
     scan_invoice_async,
     search_legal_compliance_async,
     search_subsidies_async,
     generate_negotiation_email_async
 )
-from middleware.auth import get_current_user, UserContext
+from src.middleware.auth import get_current_user, UserContext
 import os
 import uuid
 from datetime import datetime

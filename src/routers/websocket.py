@@ -10,8 +10,8 @@ from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends
 from pydantic import BaseModel
 
-from websocket_manager import websocket_manager, WebSocketMessage
-from middleware.auth import get_current_user_ws
+from src.websocket_manager import websocket_manager, WebSocketMessage
+from src.middleware.auth import get_current_user_ws
 
 logger = logging.getLogger(__name__)
 
