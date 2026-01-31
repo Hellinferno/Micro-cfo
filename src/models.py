@@ -271,5 +271,7 @@ class VendorProfile(Base):
 
 # Create indexes
 Index('idx_invoices_user_status', Invoice.user_id, Invoice.status)
+Index('idx_invoices_business_status', Invoice.business_id, Invoice.status)
+Index('idx_business_owner', BusinessProfile.owner_id)
 Index('idx_legal_queries_user_created', LegalQuery.user_id, LegalQuery.created_at)
 Index('idx_subsidy_apps_user_status', SubsidyApplication.user_id, SubsidyApplication.application_status)
