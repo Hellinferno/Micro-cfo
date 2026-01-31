@@ -10,7 +10,7 @@ import uuid
 from pathlib import Path
 from hypothesis import given, strategies as st, settings, HealthCheck
 from fastapi.testclient import TestClient
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 import io
 from PIL import Image
 
@@ -173,7 +173,7 @@ def test_file_validation_rejects_invalid_files(invalid_ext: str, file_size: int)
     )
     
     # Should raise HTTPException for invalid file types
-    with pytest.raises(Exception):  # HTTPException or similar
+    with pytest.raises(HTTPException):
         validate_file(mock_file)
 
 @given(
@@ -197,7 +197,7 @@ def test_file_validation_rejects_oversized_files(file_size: int):
     mock_file.size = file_size  # Override size for testing
     
     # Should raise HTTPException for oversized files
-    with pytest.raises(Exception):  # HTTPException or similar
+    with pytest.raises(HTTPException):
         validate_file(mock_file)
 
 @given(

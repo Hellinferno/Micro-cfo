@@ -28,3 +28,4 @@ boto3
 azure-ai-formrecognizer
 cryptography
 hypothesis
+pytest-asyncio

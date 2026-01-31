@@ -55,7 +55,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-cov flake8
+        pip install pytest pytest-cov pytest-asyncio flake8
 
     - name: Ensure microcfo_test database exists
       env:
@@ -63,7 +63,8 @@ jobs:
       run: |
         psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo_test;"
         psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo_test;"
-        psql -U microcfo -h localhost -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'microcfo'" | grep -q 1 || createdb -U microcfo -h localhost microcfo
+        psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo;"
+        psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo;"
 
     - name: Initialize database schema
       env:
@@ -147,7 +148,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest
+        pip install pytest pytest-asyncio
 
     - name: Ensure microcfo_test database exists
       env:
@@ -155,7 +156,8 @@ jobs:
       run: |
         psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo_test;"
         psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo_test;"
-        psql -U microcfo -h localhost -d postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'microcfo'" | grep -q 1 || createdb -U microcfo -h localhost microcfo
+        psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo;"
+        psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo;"
 
     - name: Initialize database schema
       env:
