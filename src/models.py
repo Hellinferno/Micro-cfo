@@ -315,6 +315,81 @@ class VendorProfile(Base):
         return f"<VendorProfile(name='{self.name}', hardness='{self.negotiation_hardness_score}')>"
 
 
+class ProactiveNotification(Base):
+    """
+    Proactive intelligence notifications for users
+    Stores subsidy matches, law change alerts, and compliance reminders
+    """
+    __tablename__ = "proactive_notifications"
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    alert_type = Column(String(50), nullable=False, index=True)  # 'subsidy_match', 'law_change', 'compliance_reminder'
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    priority = Column(String(20), default='medium')  # 'high', 'medium', 'low'
+    action_url = Column(String(500))
+    related_data = Column(JSON)  # Stores schemes, sections, metadata
+    is_read = Column(Boolean, default=False, index=True)
+    is_dismissed = Column(Boolean, default=False)
+    triggered_by_invoice_id = Column(UUID(as_uuid=True), ForeignKey('invoices.id', ondelete='SET NULL'), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    read_at = Column(DateTime(timezone=True))
+    
+    # Relationships
+    user = relationship("User")
+    triggered_invoice = relationship("Invoice")
+    
+    def __repr__(self):
+        return f"<ProactiveNotification(type='{self.alert_type}', user='{self.user_id}')>"
+
+
+class LawChangeMonitor(Base):
+    """
+    Tracks law changes and which users have been notified
+    Enables incremental monitoring without re-alerting for same changes
+    """
+    __tablename__ = "law_change_monitors"
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    law_type = Column(String(50), nullable=False, index=True)  # 'GST', 'Income Tax', 'Companies Act'
+    section_number = Column(String(100))
+    change_summary = Column(Text)
+    source_url = Column(String(500))
+    effective_date = Column(Date)
+    discovered_at = Column(DateTime(timezone=True), server_default=func.now())
+    hash_signature = Column(String(64), unique=True)  # SHA256 hash to detect duplicates
+    
+    def __repr__(self):
+        return f"<LawChangeMonitor(law='{self.law_type}', section='{self.section_number}')>"
+
+
+class UserLawSubscription(Base):
+    """
+    Tracks which law types/sections a user wants to monitor
+    Enables personalized law change notifications
+    """
+    __tablename__ = "user_law_subscriptions"
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    law_type = Column(String(50), nullable=False)  # 'GST', 'Income Tax', 'Companies Act', 'All'
+    specific_sections = Column(JSON)  # Optional: specific sections to monitor
+    turnover_threshold_alert = Column(Boolean, default=True)  # Alert when turnover thresholds change
+    sector_specific_alert = Column(Boolean, default=True)  # Alert for sector-specific changes
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User")
+    
+    def __repr__(self):
+        return f"<UserLawSubscription(user='{self.user_id}', law='{self.law_type}')>"
+
+
 # Create indexes
 Index('idx_invoices_user_status', Invoice.user_id, Invoice.status)
 Index('idx_invoices_business_status', Invoice.business_id, Invoice.status)
@@ -323,3 +398,7 @@ Index('idx_legal_queries_user_created', LegalQuery.user_id, LegalQuery.created_a
 Index('idx_subsidy_apps_user_status', SubsidyApplication.user_id, SubsidyApplication.application_status)
 Index('idx_usage_logs_user_created', UsageLog.user_id, UsageLog.created_at)
 Index('idx_golden_dataset_user_created', GoldenDataset.user_id, GoldenDataset.created_at)
+Index('idx_proactive_notifications_user_unread', ProactiveNotification.user_id, ProactiveNotification.is_read)
+Index('idx_proactive_notifications_user_type', ProactiveNotification.user_id, ProactiveNotification.alert_type)
+Index('idx_law_change_hash', LawChangeMonitor.hash_signature)
+Index('idx_user_law_sub_user_law', UserLawSubscription.user_id, UserLawSubscription.law_type)
