@@ -45,10 +45,17 @@ def require_super_admin(user: UserContext = Depends(get_current_user)):
     In production, use a proper Role enum like UserRole.SYSTEM_ADMIN.
     For now, we protect it by email or a specific DB flag.
     """
-    # REPLACE WITH YOUR ADMIN EMAIL for immediate safety
-    ALLOWED_ADMINS = ["admin@microcfo.com", "your_email@example.com", "owner@example.com"] # Added owner@example.com for easier testing if needed
+    # Allowed admin accounts
+    ALLOWED_ADMINS = [
+        "admin@microcfo.com", 
+        "hellinferno@microcfo.com",
+        "superadmin@microcfo.com"
+    ]
     
-    if user.email not in ALLOWED_ADMINS:
+    # Also allow by username
+    ALLOWED_USERNAMES = ["hellinferno", "admin", "superadmin"]
+    
+    if user.email not in ALLOWED_ADMINS and getattr(user, 'username', None) not in ALLOWED_USERNAMES:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Super Admin privileges required"

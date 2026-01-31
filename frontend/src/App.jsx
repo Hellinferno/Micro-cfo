@@ -7,13 +7,27 @@ import History from './pages/History';
 import Subsidies from './pages/Subsidies';
 import Settings from './pages/Settings';
 
-// New Imports
+// Admin Imports
+import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 
+// Auth check helper
+const isAdminAuthenticated = () => {
+  const adminAuth = localStorage.getItem('adminAuth');
+  if (!adminAuth) return false;
+  try {
+    const auth = JSON.parse(adminAuth);
+    return auth.role === 'admin' || auth.role === 'superadmin';
+  } catch {
+    return false;
+  }
+};
+
 function App() {
-  // Mock authentication state
+  // Mock authentication state for regular users
   const isAuthenticated = true; // Set to true for demo, toggle to check login page
 
   return (
@@ -32,8 +46,10 @@ function App() {
           <Route path="/settings" element={<Settings />} />
         </Route>
 
-        {/* Protected Admin Route - In production, check role here */}
-        <Route path="/admin" element={isAuthenticated ? <AdminDashboard /> : <Navigate to="/login" replace />} />
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<SuperAdminDashboard />} />
+        <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
