@@ -231,6 +231,31 @@ class AuditLog(Base):
     def __repr__(self):
         return f"<AuditLog(action='{self.action}', resource='{self.resource_type}')>"
 
+class UsageLog(Base):
+    """LLM usage and cost tracking per request"""
+    __tablename__ = "usage_logs"
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    route = Column(String(255), nullable=False)
+    method = Column(String(10), nullable=False)
+    status_code = Column(Integer, nullable=True)
+    model_used = Column(String(100))
+    input_tokens = Column(Integer, default=0)
+    output_tokens = Column(Integer, default=0)
+    total_cost_usd = Column(Numeric(12, 6), default=0)
+    duration_ms = Column(Float, default=0.0)
+    request_id = Column(String(100))
+    metadata = Column(JSON)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    user = relationship("User")
+
+    def __repr__(self):
+        return f"<UsageLog(route='{self.route}', cost='{self.total_cost_usd}')>"
+
 class WorkflowState(Base):
     """Tracks the state of complex, multi-step agent workflows (The Brain's Memory)"""
     __tablename__ = "workflow_states"
@@ -250,6 +275,27 @@ class WorkflowState(Base):
 
     def __repr__(self):
         return f"<WorkflowState(status='{self.status}', step='{self.current_step}')>"
+
+class GoldenDataset(Base):
+    """Human-corrected AI outputs for model improvement"""
+    __tablename__ = "golden_dataset"
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    invoice_id = Column(UUID(as_uuid=True), ForeignKey('invoices.id', ondelete='SET NULL'), nullable=True, index=True)
+    model_used = Column(String(100))
+    original_data = Column(JSON, nullable=False)
+    corrected_data = Column(JSON, nullable=False)
+    notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    user = relationship("User")
+    invoice = relationship("Invoice")
+
+    def __repr__(self):
+        return f"<GoldenDataset(id='{self.id}', model='{self.model_used}')>"
 
 class VendorProfile(Base):
     """Vendor CRM profile for AI negotiation strategy (The Memory)"""
@@ -275,3 +321,5 @@ Index('idx_invoices_business_status', Invoice.business_id, Invoice.status)
 Index('idx_business_owner', BusinessProfile.owner_id)
 Index('idx_legal_queries_user_created', LegalQuery.user_id, LegalQuery.created_at)
 Index('idx_subsidy_apps_user_status', SubsidyApplication.user_id, SubsidyApplication.application_status)
+Index('idx_usage_logs_user_created', UsageLog.user_id, UsageLog.created_at)
+Index('idx_golden_dataset_user_created', GoldenDataset.user_id, GoldenDataset.created_at)

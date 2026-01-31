@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Invoice as InvoiceModel, WorkflowState
+from models import Invoice as InvoiceModel, WorkflowState, GoldenDataset
 
 from mcp_bridge import MCPBridge, MCPBridgeError
 from file_validator import (
@@ -94,6 +94,20 @@ class UploadDocumentResponse(BaseModel):
     file_size: int
     file_type: str
     invoice_data: Optional[ScanInvoiceResponse] = None
+
+class FeedbackRequest(BaseModel):
+    """Request model for human corrections"""
+    invoice_id: Optional[str] = Field(None, description="Invoice ID to link correction")
+    model_used: Optional[str] = Field(None, description="Model identifier")
+    original_data: dict = Field(..., description="Original AI output")
+    corrected_data: dict = Field(..., description="User-corrected output")
+    notes: Optional[str] = Field(None, description="Optional user notes")
+
+class FeedbackResponse(BaseModel):
+    """Response model for feedback submissions"""
+    success: bool
+    message: str
+    feedback_id: str
 
 def validate_file(file: UploadFile) -> None:
     """
@@ -599,12 +613,62 @@ async def upload_document(
         if file_path and process_immediately:
             cleanup_temp_file(file_path)
 
+
+@router.post("/feedback", response_model=FeedbackResponse)
+async def submit_feedback(
+    request: Request,
+    feedback: FeedbackRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Submit human correction for AI output (Human-in-the-Loop)
+
+    This endpoint stores user corrections to AI outputs. The data can be used
+    to fine-tune or retrain models over time.
+
+    Args:
+        feedback: The correction payload with original and corrected data
+
+    Requirements: 1.4, 2.5
+    """
+    try:
+        user_context = getattr(request.state, "user", None)
+        user_id = user_context.user_id if user_context else None
+
+        golden_entry = GoldenDataset(
+            user_id=user_id,
+            invoice_id=feedback.invoice_id if feedback.invoice_id else None,
+            model_used=feedback.model_used,
+            original_data=feedback.original_data,
+            corrected_data=feedback.corrected_data,
+            notes=feedback.notes
+        )
+        db.add(golden_entry)
+        db.commit()
+        db.refresh(golden_entry)
+
+        logger.info(f"Stored golden dataset entry {golden_entry.id}")
+
+        return FeedbackResponse(
+            success=True,
+            message="Feedback recorded successfully",
+            feedback_id=str(golden_entry.id)
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to store feedback: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to store feedback"
+        )
+
+
 @router.get("/health")
 async def visual_auditor_health():
     """Health check endpoint for Visual Auditor router"""
     return {
         "status": "healthy",
         "agent": "Visual Auditor (Agent A)",
-        "endpoints": ["/scan-invoice", "/upload-document"],
+        "endpoints": ["/scan-invoice", "/upload-document", "/feedback"],
         "timestamp": datetime.now().isoformat()
     }

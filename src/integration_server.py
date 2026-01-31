@@ -136,6 +136,10 @@ app.add_middleware(AuthenticationMiddleware)
 from middleware.authorization import AuthorizationMiddleware
 app.add_middleware(AuthorizationMiddleware)
 
+# Add LLM cost tracking middleware (after auth so user context is available)
+from middleware.cost_tracker import CostTrackerMiddleware
+app.add_middleware(CostTrackerMiddleware)
+
 # Add Idempotency middleware (before RateLimit so validated requests are cached, but after Auth)
 from middleware.idempotency import IdempotencyMiddleware
 app.add_middleware(IdempotencyMiddleware)
