@@ -7,7 +7,7 @@ from sqlalchemy import (
     Column, String, Boolean, DateTime, Date, Numeric, Text,
     ForeignKey, Index, DECIMAL, Integer, Float, JSON
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
+from sqlalchemy.dialects.postgresql import UUID, INET
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.database import Base
@@ -28,11 +28,13 @@ class User(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    phone_number = Column(String(20), unique=True, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255))
     company_name = Column(String(255))
     business_sector = Column(String(100))
     turnover_tier = Column(String(50))
+    role = Column(String(50), default="owner")
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -41,6 +43,7 @@ class User(Base):
     # Relationships
     profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     invoices = relationship("Invoice", back_populates="user", cascade="all, delete-orphan")
+    businesses = relationship("BusinessProfile", back_populates="owner", cascade="all, delete-orphan")
     legal_queries = relationship("LegalQuery", back_populates="user", cascade="all, delete-orphan")
     subsidy_applications = relationship("SubsidyApplication", back_populates="user", cascade="all, delete-orphan")
     negotiations = relationship("Negotiation", back_populates="user", cascade="all, delete-orphan")
@@ -70,6 +73,29 @@ class UserProfile(Base):
     def __repr__(self):
         return f"<UserProfile(user_id='{self.user_id}')>"
 
+class BusinessProfile(Base):
+    """Business profile used by Legislative Sentinel and Subsidy Hunter"""
+    __tablename__ = "business_profiles"
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    business_name = Column(String(255))
+    industry_type = Column(String(100))
+    turnover_range = Column(String(50))
+    gstin = Column(EncryptedString(50))  # Encrypted GSTIN
+    location_state = Column(String(100))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    owner = relationship("User", back_populates="businesses")
+    invoices = relationship("Invoice", back_populates="business", cascade="all, delete-orphan")
+    subsidy_matches = relationship("SubsidyMatch", back_populates="business", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<BusinessProfile(business_name='{self.business_name}', owner_id='{self.owner_id}')>"
+
 class Invoice(Base):
     """Invoice records from Agent A (Visual Auditor) with encrypted sensitive data"""
     __tablename__ = 'invoices'
@@ -77,6 +103,7 @@ class Invoice(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    business_id = Column(UUID(as_uuid=True), ForeignKey('business_profiles.id', ondelete='SET NULL'), nullable=True, index=True)
     invoice_number = Column(EncryptedString(100))  # Encrypted
     vendor_name = Column(EncryptedString(255))  # Encrypted
     invoice_date = Column(Date)
@@ -86,12 +113,18 @@ class Invoice(Base):
     currency = Column(String(10), default='INR')
     status = Column(String(50), default='pending', index=True)
     file_path = Column(EncryptedText)  # Encrypted S3 key
+    image_url = Column(EncryptedText)  # Encrypted cloud URL
+    category = Column(String(50))  # Business, Personal, Capital Goods
+    compliance_status = Column(String(50))  # Clean, Flagged, Review Needed
+    audit_notes = Column(Text)
+    is_verified = Column(Boolean, default=False)
     extracted_data = Column(JSON)  # Consider encrypting if contains PII
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
     user = relationship("User", back_populates="invoices")
+    business = relationship("BusinessProfile", back_populates="invoices")
     
     def __repr__(self):
         return f"<Invoice(id='{self.id}', status='{self.status}')>"
@@ -136,6 +169,25 @@ class SubsidyApplication(Base):
     
     def __repr__(self):
         return f"<SubsidyApplication(scheme='{self.scheme_name}', status='{self.application_status}')>"
+
+class SubsidyMatch(Base):
+    """Subsidy opportunities matched to a business profile"""
+    __tablename__ = "subsidy_matches"
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(Integer, primary_key=True)
+    business_id = Column(UUID(as_uuid=True), ForeignKey('business_profiles.id', ondelete='CASCADE'), nullable=False, index=True)
+    scheme_name = Column(String(255))
+    match_score = Column(Float)
+    status = Column(String(50), default="New")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    business = relationship("BusinessProfile", back_populates="subsidy_matches")
+
+    def __repr__(self):
+        return f"<SubsidyMatch(scheme='{self.scheme_name}', status='{self.status}')>"
 
 class Negotiation(Base):
     """Negotiation emails from Agent D (Negotiator) with encrypted content"""
