@@ -1,0 +1,40 @@
+# Recommended Git Configuration for Windows Development
+# Apply these settings to avoid common Windows Git warnings and improve performance
+
+[core]
+    # Disable hardlinks to prevent "Failed to hardlink files" warning on Windows
+    hardlinks = false
+    
+    # Enable file system cache for better performance
+    fscache = true
+    
+    # Enable index preloading for faster operations
+    preloadindex = true
+    
+    # Handle line endings properly (Windows uses CRLF, Unix uses LF)
+    autocrlf = true
+    
+    # Handle symlinks properly on Windows
+    symlinks = false
+
+[gc]
+    # Auto garbage collection threshold
+    auto = 256
+
+[pack]
+    # Use multiple threads for packing
+    threads = 0
+
+[feature]
+    # Enable experimental features for better performance
+    manyFiles = true
+
+# To apply these settings locally:
+# git config --local core.hardlinks false
+# git config --local core.fscache true
+# git config --local core.preloadindex true
+
+# To apply globally (all repositories):
+# git config --global core.hardlinks false
+# git config --global core.fscache true
+# git config --global core.preloadindex true
