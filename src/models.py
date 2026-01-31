@@ -247,7 +247,7 @@ class UsageLog(Base):
     total_cost_usd = Column(Numeric(12, 6), default=0)
     duration_ms = Column(Float, default=0.0)
     request_id = Column(String(100))
-    metadata = Column(JSON)
+    meta_info = Column(JSON)  # Renamed from 'metadata' (reserved in SQLAlchemy)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     # Relationships

@@ -115,7 +115,7 @@ class CostTrackerMiddleware(BaseHTTPMiddleware):
                 total_cost_usd=total_cost,
                 duration_ms=duration_ms,
                 request_id=request_id,
-                metadata=metadata,
+                meta_info=metadata,  # Column renamed from 'metadata'
             )
             db.add(usage_log)
             db.commit()
