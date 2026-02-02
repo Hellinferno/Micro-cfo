@@ -129,7 +129,7 @@ def upgrade() -> None:
         sa.Column("resource_type", sa.String(100)),
         sa.Column("resource_id", postgresql.UUID(as_uuid=True)),
         sa.Column("details", postgresql.JSONB),
-        sa.Column("ip_address", postgresql.INET),
+        sa.Column("ip_address", sa.String(45)),  # Use String for cross-DB compatibility
         sa.Column("user_agent", sa.Text()),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
     )

@@ -20,7 +20,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from src.config import config
-from mcp_bridge import MCPBridge, MCPBridgeError
+from src.mcp_bridge import MCPBridge, MCPBridgeError
 
 # Configure comprehensive logging system
 from middleware.logging_middleware import setup_logging

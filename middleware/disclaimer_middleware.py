@@ -11,7 +11,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 import json
 
-from legal_disclaimers import LegalDisclaimers, DisclaimerType
+from src.legal_disclaimers import LegalDisclaimers, DisclaimerType
 
 logger = logging.getLogger(__name__)
 

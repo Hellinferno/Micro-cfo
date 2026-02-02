@@ -46,11 +46,12 @@ function App() {
           <Route path="/settings" element={<Settings />} />
         </Route>
 
-        {/* Admin Routes */}
+        {/* Admin Routes - MUST be before catch-all */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<SuperAdminDashboard />} />
         <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
 
+        {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

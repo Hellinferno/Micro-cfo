@@ -12,8 +12,8 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from database import SessionLocal
-from models import UsageLog
+from src.database import SessionLocal
+from src.models import UsageLog
 
 logger = logging.getLogger(__name__)
 

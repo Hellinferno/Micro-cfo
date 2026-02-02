@@ -12,7 +12,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 # Import the existing MCP server and its models
-from server import (
+from src.server import (
     mcp,
     Invoice,
     LegalRisk,
@@ -21,7 +21,7 @@ from server import (
 )
 
 # Import connection pool for resource management
-from connection_pool import connection_pool, resource_queue
+from src.connection_pool import connection_pool, resource_queue
 
 logger = logging.getLogger(__name__)
 

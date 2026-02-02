@@ -7,7 +7,7 @@ from sqlalchemy import (
     Column, String, Boolean, DateTime, Date, Numeric, Text,
     ForeignKey, Index, DECIMAL, Integer, Float, JSON
 )
-from sqlalchemy.dialects.postgresql import UUID, INET
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.database import Base
@@ -221,7 +221,7 @@ class AuditLog(Base):
     resource_type = Column(String(100))
     resource_id = Column(UUID(as_uuid=True))
     details = Column(JSON)
-    ip_address = Column(INET)
+    ip_address = Column(String(45))  # Use String for cross-DB compatibility (45 chars for IPv6)
     user_agent = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
