@@ -77,7 +77,7 @@ class Config:
             keepalive_timeout=int(os.getenv("KEEPALIVE_TIMEOUT", "65"))
         )
         
-        # CORS configuration
+        # CORS configuration - Production ready
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
         allowed_origins = [frontend_url]
         
@@ -88,6 +88,16 @@ class Config:
             "http://127.0.0.1:5173",
             "http://127.0.0.1:3000"
         ]
+        
+        # Add production Vercel URL from environment
+        vercel_url = os.getenv("VERCEL_URL")
+        if vercel_url:
+            allowed_origins.append(f"https://{vercel_url}")
+        
+        # Add custom production frontend URL
+        production_frontend = os.getenv("PRODUCTION_FRONTEND_URL")
+        if production_frontend:
+            allowed_origins.append(production_frontend)
         
         for origin in default_origins:
             if origin not in allowed_origins:
@@ -104,6 +114,11 @@ class Config:
             jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
             jwt_expiration_hours=int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
         )
+        
+        # Add Render host to trusted hosts
+        render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+        if render_host:
+            self.security.trusted_hosts.append(render_host)
         
         # API configuration
         self.api = APIConfig(
