@@ -1,2 +1,2 @@
-web: uvicorn src.integration_server:app --host 0.0.0.0 --port ${PORT:-8000}
+web: gunicorn src.integration_server:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
 worker: celery -A src.celery_app worker --loglevel=info

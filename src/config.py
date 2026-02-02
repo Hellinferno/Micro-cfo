@@ -120,6 +120,11 @@ class Config:
         if render_host:
             self.security.trusted_hosts.append(render_host)
         
+        # Add Heroku host to trusted hosts
+        heroku_app_name = os.getenv("HEROKU_APP_NAME")
+        if heroku_app_name:
+            self.security.trusted_hosts.append(f"{heroku_app_name}.herokuapp.com")
+        
         # API configuration
         self.api = APIConfig(
             v1_prefix=os.getenv("API_V1_PREFIX", "/api/v1")
