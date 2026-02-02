@@ -65,6 +65,7 @@ services:
     name: microcfo-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []  # Allow connections only from Render services in this blueprint
 
 databases:
   # PostgreSQL Database
