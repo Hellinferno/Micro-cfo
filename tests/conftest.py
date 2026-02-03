@@ -140,3 +140,59 @@ def mock_mcp_bridge():
     }
     
     return mock_bridge
+
+
+@pytest.fixture
+def client():
+    """
+    Test client fixture for API integration tests.
+    Provides a FastAPI TestClient with proper MCP bridge initialization.
+    """
+    from fastapi.testclient import TestClient
+    from integration_server import app
+    from mcp_bridge import MCPBridge
+    
+    # Ensure MCP bridge is initialized
+    if not hasattr(app.state, 'mcp_bridge') or app.state.mcp_bridge is None:
+        mock_bridge = AsyncMock(spec=MCPBridge)
+        mock_bridge.call_agent_a.return_value = {"success": True, "result": {}}
+        mock_bridge.call_agent_b.return_value = {"success": True, "result": {}}
+        mock_bridge.call_agent_c.return_value = {"success": True, "result": ""}
+        mock_bridge.call_agent_d.return_value = {"success": True, "result": {}}
+        app.state.mcp_bridge = mock_bridge
+    
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+@pytest.fixture
+def chunks():
+    """
+    Test chunks fixture for vector database tests.
+    Provides sample legal chunks for testing.
+    """
+    from legal_ingestion import LegalChunk
+    
+    return [
+        LegalChunk(
+            text="Test chunk 1 for GST compliance",
+            law_type="GST",
+            section_number="1",
+            source_file="test_doc.pdf",
+            file_hash="abc123"
+        ),
+        LegalChunk(
+            text="Test chunk 2 for Income Tax",
+            law_type="Income Tax",
+            section_number="2",
+            source_file="test_doc.pdf",
+            file_hash="abc123"
+        ),
+        LegalChunk(
+            text="Test chunk 3 for Corporate Law",
+            law_type="Corporate Law",
+            section_number="3",
+            source_file="test_doc.pdf",
+            file_hash="abc123"
+        )
+    ]

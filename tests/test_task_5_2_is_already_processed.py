@@ -56,8 +56,11 @@ def test_is_already_processed_existing_file():
     
     Validates Requirement: 8.2, 8.5
     """
+    from datetime import datetime
+    import gc
+    
     # Create temporary directories
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temp_dir:
         data_dir = os.path.join(temp_dir, "data")
         db_dir = os.path.join(temp_dir, "db")
         os.makedirs(data_dir)
@@ -85,11 +88,29 @@ def test_is_already_processed_existing_file():
         
         processor.vector_db.add_chunks([test_chunk])
         
+        # IMPORTANT: Also save processing metadata - this is what _is_already_processed checks
+        processing_metadata = {
+            'file_path': test_pdf,
+            'file_hash': file_hash,
+            'processing_timestamp': datetime.now().isoformat(),
+            'chunks_created': 1,
+            'law_type': 'GST'
+        }
+        processor.vector_db.save_processing_metadata(processing_metadata)
+        
         # Now check if file is already processed (should be True)
         result = processor._is_already_processed(test_pdf)
         
         assert result is True, "Existing file with matching hash should be marked as already processed"
         print("✓ Test passed: Existing file with matching hash correctly identified")
+        
+        # Clean up ChromaDB connections before temp directory cleanup (Windows fix)
+        try:
+            del processor.vector_db
+            del processor
+            gc.collect()
+        except Exception:
+            pass
 
 
 def test_is_already_processed_modified_file():
