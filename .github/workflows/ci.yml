@@ -10,22 +10,23 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     env:
-      POSTGRES_DB: microcfo_test
-      POSTGRES_USER: microcfo
-      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: microcfo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/microcfo
       UV_LINK_MODE: copy
     
     services:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: microcfo_test
-          POSTGRES_USER: microcfo
-          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: microcfo
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         options: >-
-          --health-cmd "pg_isready -U microcfo"
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -57,18 +58,19 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov pytest-asyncio flake8
 
-    - name: Ensure microcfo_test database exists
+    - name: Verify database connection and create test database
       env:
-        PGPASSWORD: test_password
+        PGPASSWORD: postgres
       run: |
-        psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo_test;"
-        psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo_test;"
-        psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo;"
-        psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo;"
+        # Wait for postgres to be ready
+        for i in {1..30}; do pg_isready -U postgres -h localhost && break || sleep 1; done
+        # Create additional test database if needed
+        psql -U postgres -h localhost -d postgres -c "SELECT 1 FROM pg_database WHERE datname='microcfo'" | grep -q 1 || psql -U postgres -h localhost -d postgres -c "CREATE DATABASE microcfo;"
+        psql -U postgres -h localhost -d postgres -c "SELECT 1 FROM pg_database WHERE datname='microcfo_test'" | grep -q 1 || psql -U postgres -h localhost -d postgres -c "CREATE DATABASE microcfo_test;"
 
     - name: Initialize database schema
       env:
-        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/microcfo
         ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
       run: |
         alembic -c config/alembic.ini upgrade head
@@ -82,7 +84,7 @@ jobs:
     
     - name: Run tests with pytest
       env:
-        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/microcfo
         REDIS_URL: redis://localhost:6379/0
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
@@ -103,22 +105,23 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-and-test
     env:
-      POSTGRES_DB: microcfo_test
-      POSTGRES_USER: microcfo
-      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: microcfo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/microcfo
       UV_LINK_MODE: copy
     
     services:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: microcfo_test
-          POSTGRES_USER: microcfo
-          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: microcfo
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         options: >-
-          --health-cmd "pg_isready -U microcfo"
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -150,25 +153,25 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-asyncio
 
-    - name: Ensure microcfo_test database exists
+    - name: Verify database connection
       env:
-        PGPASSWORD: test_password
+        PGPASSWORD: postgres
       run: |
-        psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo_test;"
-        psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo_test;"
-        psql -U microcfo -h localhost -d postgres -c "DROP DATABASE IF EXISTS microcfo;"
-        psql -U microcfo -h localhost -d postgres -c "CREATE DATABASE microcfo;"
+        # Wait for postgres to be ready
+        for i in {1..30}; do pg_isready -U postgres -h localhost && break || sleep 1; done
+        # Verify database exists
+        psql -U postgres -h localhost -d postgres -c "SELECT 1 FROM pg_database WHERE datname='microcfo'" | grep -q 1 || psql -U postgres -h localhost -d postgres -c "CREATE DATABASE microcfo;"
 
     - name: Initialize database schema
       env:
-        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/microcfo
         ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
       run: |
         alembic -c config/alembic.ini upgrade head
     
     - name: Run integration tests
       env:
-        DATABASE_URL: postgresql://microcfo:test_password@localhost:5432/microcfo_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/microcfo
         REDIS_URL: redis://localhost:6379/0
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
