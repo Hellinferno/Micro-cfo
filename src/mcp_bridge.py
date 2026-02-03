@@ -71,11 +71,25 @@ class MCPBridge:
             tool = tools_dict[tool_name]
             
             # Execute the tool function in a thread pool to avoid blocking
+            # Handle both FunctionTool objects with .fn attribute and callable objects
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                self.executor, 
-                lambda: tool.fn(**kwargs)
-            )
+            if hasattr(tool, 'fn') and callable(tool.fn):
+                result = await loop.run_in_executor(
+                    self.executor, 
+                    lambda: tool.fn(**kwargs)
+                )
+            elif callable(tool):
+                result = await loop.run_in_executor(
+                    self.executor, 
+                    lambda: tool(**kwargs)
+                )
+            elif hasattr(tool, 'run') and callable(tool.run):
+                result = await loop.run_in_executor(
+                    self.executor, 
+                    lambda: tool.run(**kwargs)
+                )
+            else:
+                raise MCPBridgeError(f"Tool {tool_name} is not callable")
             
             # Serialize the result to JSON-compatible format
             serialized_result = self.serialize_pydantic(result)

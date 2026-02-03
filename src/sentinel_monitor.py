@@ -48,6 +48,28 @@ class LegalSentinel:
         with open(seen_file, 'w') as f:
             json.dump(list(self.seen_notifications), f)
     
+    def check_for_updates(self) -> List[Dict[str, str]]:
+        """
+        Check all monitored sources for new legal updates.
+        
+        Returns:
+            List of new notifications found across all sources.
+        """
+        all_notifications = []
+        
+        # Scrape CBIC for GST notifications
+        cbic_notifications = self.scrape_cbic_notifications()
+        all_notifications.extend(cbic_notifications)
+        
+        # Mark notifications as seen and save
+        for notification in all_notifications:
+            self.seen_notifications.add(notification['id'])
+        
+        if all_notifications:
+            self._save_seen_notifications()
+        
+        return all_notifications
+    
     def scrape_cbic_notifications(self) -> List[Dict[str, str]]:
         """Scrape CBIC website for new GST notifications"""
         try:

@@ -42,14 +42,13 @@ def search_legal_compliance_async(self, query: str, user_profile: dict = None):
         # Initialize MCP Bridge
         bridge = MCPBridge()
         
-        # Call MCP tool for legal search
-        result = bridge.call_tool(
+        # Call MCP tool for legal search (async method with kwargs)
+        import asyncio
+        result = asyncio.run(bridge.call_tool(
             'search_legal_compliance',
-            {
-                'query': query,
-                'user_profile': user_profile or {}
-            }
-        )
+            query=query,
+            user_profile=user_profile or {}
+        ))
         
         self.update_state(
             state='PROCESSING',

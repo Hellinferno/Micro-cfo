@@ -217,10 +217,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         Returns:
             Response or rate limit error
         """
-        # Skip rate limiting if disabled (for testing)
-        if not self.enabled:
-            return await call_next(request)
-        
         # Get client identifier
         client_id = self._get_client_id(request)
         
@@ -231,6 +227,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         is_allowed, remaining, reset_time = rate_limiter.is_allowed(
             client_id, request.url.path, limit
         )
+        
+        # Skip enforcement if disabled (for testing), but still add headers
+        if not self.enabled:
+            response = await call_next(request)
+            # Always add rate limit headers for client awareness
+            response.headers["X-RateLimit-Limit"] = str(limit)
+            response.headers["X-RateLimit-Remaining"] = str(remaining)
+            response.headers["X-RateLimit-Reset"] = str(reset_time)
+            return response
         
         if not is_allowed:
             # Log rate limit violation

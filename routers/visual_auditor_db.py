@@ -73,15 +73,14 @@ async def scan_and_save_invoice(
         with open(file_path, "wb") as f:
             f.write(file_content)
         
-        # Process with MCP Bridge
+        # Process with MCP Bridge (async method with kwargs)
+        import asyncio
         bridge = MCPBridge()
-        result = bridge.call_tool(
+        result = asyncio.run(bridge.call_tool(
             'scan_invoice_document',
-            {
-                'image_data': file_content.hex(),
-                'extract_line_items': True
-            }
-        )
+            image_data=file_content.hex(),
+            extract_line_items=True
+        ))
         
         invoice_data = result.get('invoice', {})
         

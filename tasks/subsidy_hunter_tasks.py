@@ -40,13 +40,13 @@ def search_subsidies_async(self, query: str, user_profile: dict = None):
         
         bridge = MCPBridge()
         
-        result = bridge.call_tool(
+        # Call MCP tool for subsidy search (async method with kwargs)
+        import asyncio
+        result = asyncio.run(bridge.call_tool(
             'search_subsidies',
-            {
-                'query': query,
-                'user_profile': user_profile or {}
-            }
-        )
+            query=query,
+            user_profile=user_profile or {}
+        ))
         
         self.update_state(
             state='PROCESSING',

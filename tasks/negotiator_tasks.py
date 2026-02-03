@@ -48,13 +48,13 @@ def generate_negotiation_email_async(self, invoice_data: dict, negotiation_conte
             }
         )
         
-        result = bridge.call_tool(
+        # Call MCP tool for email generation (async method with kwargs)
+        import asyncio
+        result = asyncio.run(bridge.call_tool(
             'generate_negotiation_email',
-            {
-                'invoice': invoice_data,
-                'context': negotiation_context
-            }
-        )
+            invoice=invoice_data,
+            context=negotiation_context
+        ))
         
         self.update_state(
             state='PROCESSING',

@@ -57,14 +57,13 @@ def scan_invoice_async(self, file_path: str, user_id: str = None):
             }
         )
         
-        # Call MCP tool for invoice scanning
-        result = bridge.call_tool(
+        # Call MCP tool for invoice scanning (async method with kwargs)
+        import asyncio
+        result = asyncio.run(bridge.call_tool(
             'scan_invoice_document',
-            {
-                'image_data': file_content.hex(),
-                'extract_line_items': True
-            }
-        )
+            image_data=file_content.hex(),
+            extract_line_items=True
+        ))
         
         # Update progress
         self.update_state(
