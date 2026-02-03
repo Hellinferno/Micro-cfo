@@ -101,7 +101,8 @@ class TestNegotiatorRouter:
             due_date="2024-01-31",
             current_cash_position=30000.0,
             upcoming_outflows=25000.0,
-            invoice_id="INV-001"
+            invoice_id="INV-001",
+            vendor_context={}
         )
     
     def test_generate_draft_payment_chase(self, client, app):

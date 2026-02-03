@@ -267,7 +267,8 @@ class MCPBridge:
         due_date: str,
         current_cash_position: float,
         upcoming_outflows: float = 0,
-        invoice_id: Optional[str] = None
+        invoice_id: Optional[str] = None,
+        vendor_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Convenience method for calling Agent D (Negotiator)
@@ -280,6 +281,7 @@ class MCPBridge:
             current_cash_position: Current cash balance
             upcoming_outflows: Predicted outflows
             invoice_id: Optional invoice ID
+            vendor_context: Optional vendor profile context for personalization
             
         Returns:
             Negotiation draft in JSON format

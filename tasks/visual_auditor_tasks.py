@@ -100,6 +100,17 @@ def scan_invoice_async(self, file_path: str, user_id: str = None):
             'completed_at': datetime.utcnow().isoformat()
         }
         
+    except FileNotFoundError as exc:
+        logger.error(f"File not found: {file_path}")
+        # Don't retry for missing files
+        return {
+            'status': 'error',
+            'error': f'File not found: {file_path}',
+            'file_path': file_path,
+            'user_id': user_id,
+            'failed_at': datetime.utcnow().isoformat()
+        }
+        
     except Exception as exc:
         logger.error(f"Invoice scan failed: {exc}")
         

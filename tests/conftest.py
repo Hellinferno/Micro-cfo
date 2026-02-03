@@ -9,7 +9,11 @@ import os
 from unittest.mock import AsyncMock, MagicMock
 
 # Ensure the project root is in the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+# Also add src directory for server imports
+src_dir = os.path.join(project_root, 'src')
+sys.path.insert(0, src_dir)
 
 
 @pytest.fixture(autouse=True)

@@ -89,8 +89,9 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
         ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
+        PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
       run: |
-        pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+        pytest tests/ -v -c config/pytest.ini --cov=. --cov-report=xml --cov-report=html
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -176,7 +177,8 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         JWT_SECRET_KEY: test_jwt_secret_key_for_ci_testing_only
         ENCRYPTION_KEY: _-8xLJH6cfMDh-K8dkR7z-vDiFpnWCYpqGAKW2EIOFg=
+        PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
       run: |
-        pytest tests/test_integration_*.py -v
+        pytest tests/test_integration_*.py -v -c config/pytest.ini
 
 
