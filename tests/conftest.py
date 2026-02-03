@@ -166,7 +166,7 @@ def client():
 
 
 @pytest.fixture
-def chunks():
+def legal_chunks():
     """
     Test chunks fixture for vector database tests.
     Provides sample legal chunks for testing.
@@ -194,5 +194,51 @@ def chunks():
             section_number="3",
             source_file="test_doc.pdf",
             file_hash="abc123"
+        )
+    ]
+
+
+@pytest.fixture
+def chunks():
+    """
+    Test chunks fixture for scheme database tests.
+    Provides sample scheme chunks for testing.
+    This fixture is used by test_scheme_database in test_subsidy_hunter.py
+    """
+    from scheme_ingestion import SchemeChunk
+    
+    return [
+        SchemeChunk(
+            text="PMFME provides capital subsidy @ 35% of eligible project cost for food processing units",
+            scheme_name="PMFME",
+            target_sector="food_processing",
+            min_investment=200000,
+            max_investment=1000000,
+            benefit_type="capital_subsidy",
+            benefit_percentage=35.0,
+            max_benefit_amount=1000000,
+            chunk_type="quantum"
+        ),
+        SchemeChunk(
+            text="TUFS provides interest subvention for textile manufacturing units",
+            scheme_name="TUFS",
+            target_sector="textile",
+            min_investment=1000000,
+            max_investment=100000000,
+            benefit_type="interest_subvention",
+            benefit_percentage=5.0,
+            max_benefit_amount=5000000,
+            chunk_type="eligibility"
+        ),
+        SchemeChunk(
+            text="MSME Credit Guarantee scheme provides collateral-free loans for manufacturing sector",
+            scheme_name="CGTMSE",
+            target_sector="manufacturing",
+            min_investment=100000,
+            max_investment=20000000,
+            benefit_type="credit_guarantee",
+            benefit_percentage=85.0,
+            max_benefit_amount=20000000,
+            chunk_type="eligibility"
         )
     ]
