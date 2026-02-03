@@ -43,11 +43,12 @@ def search_legal_compliance_async(self, query: str, user_profile: dict = None):
         bridge = MCPBridge()
         
         # Call MCP tool for legal search (async method with kwargs)
+        # Tool name is 'check_compliance_law', args are 'query' and 'user_context'
         import asyncio
         result = asyncio.run(bridge.call_tool(
-            'search_legal_compliance',
+            'check_compliance_law',
             query=query,
-            user_profile=user_profile or {}
+            user_context=str(user_profile) if user_profile else ""
         ))
         
         self.update_state(

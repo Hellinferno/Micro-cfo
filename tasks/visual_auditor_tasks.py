@@ -59,10 +59,14 @@ def scan_invoice_async(self, file_path: str, user_id: str = None):
         
         # Call MCP tool for invoice scanning (async method with kwargs)
         import asyncio
+        # Convert file content to base64 data URL for image_url parameter
+        import base64
+        base64_content = base64.b64encode(file_content).decode('utf-8')
+        image_url = f"data:application/octet-stream;base64,{base64_content}"
         result = asyncio.run(bridge.call_tool(
             'scan_invoice_document',
-            image_data=file_content.hex(),
-            extract_line_items=True
+            image_url=image_url,
+            use_mock=False
         ))
         
         # Update progress

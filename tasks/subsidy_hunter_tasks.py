@@ -41,11 +41,14 @@ def search_subsidies_async(self, query: str, user_profile: dict = None):
         bridge = MCPBridge()
         
         # Call MCP tool for subsidy search (async method with kwargs)
+        # Tool name is 'find_applicable_subsidies', args are 'sector', 'capex_amount', 'state'
         import asyncio
+        sector = user_profile.get('sector', 'manufacturing') if user_profile else 'manufacturing'
+        capex_amount = user_profile.get('capex_amount', 1000000) if user_profile else 1000000
         result = asyncio.run(bridge.call_tool(
-            'search_subsidies',
-            query=query,
-            user_profile=user_profile or {}
+            'find_applicable_subsidies',
+            sector=sector,
+            capex_amount=capex_amount
         ))
         
         self.update_state(

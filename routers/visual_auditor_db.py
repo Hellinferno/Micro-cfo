@@ -75,11 +75,15 @@ async def scan_and_save_invoice(
         
         # Process with MCP Bridge (async method with kwargs)
         import asyncio
+        import base64
         bridge = MCPBridge()
+        # Convert file content to base64 data URL for image_url parameter
+        base64_content = base64.b64encode(file_content).decode('utf-8')
+        image_url = f"data:application/octet-stream;base64,{base64_content}"
         result = asyncio.run(bridge.call_tool(
             'scan_invoice_document',
-            image_data=file_content.hex(),
-            extract_line_items=True
+            image_url=image_url,
+            use_mock=False
         ))
         
         invoice_data = result.get('invoice', {})
