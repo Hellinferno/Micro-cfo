@@ -88,7 +88,11 @@ class ErrorResponse(BaseModel):
     timestamp: str
 
 @router.post("/generate-draft", response_model=GenerateDraftResponse)
-async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
+async def generate_draft(
+    request: Request,
+    draft_request: GenerateDraftRequest,
+    db: Session = Depends(get_db)
+):
     """
     Generate negotiation email draft using Agent D (Negotiator)
     
@@ -132,10 +136,7 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
                 detail="MCP bridge not initialized. Service temporarily unavailable."
             )
         
-        # Get database session
-        db: Session = request.state.db
-        
-        # Look up vendor profile
+        # Look up vendor profile (db session from Depends(get_db))
         vendor_profile = db.query(VendorProfile).filter(
             VendorProfile.name.ilike(draft_request.counterparty_name)
         ).first()

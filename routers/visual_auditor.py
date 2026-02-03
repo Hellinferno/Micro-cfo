@@ -281,7 +281,11 @@ class ErrorResponse(BaseModel):
     timestamp: str
 
 @router.post("/scan-invoice", response_model=ScanInvoiceResponse)
-async def scan_invoice(request: Request, scan_request: ScanInvoiceRequest):
+async def scan_invoice(
+    request: Request,
+    scan_request: ScanInvoiceRequest,
+    db: Session = Depends(get_db)
+):
     """
     Scan invoice document using Agent A (Visual Auditor)
     
@@ -330,8 +334,7 @@ async def scan_invoice(request: Request, scan_request: ScanInvoiceRequest):
         
         # --- Persistence Layer (The Memory) ---
         try:
-            # Get DB session
-            db: Session = request.state.db
+            # DB session is injected via Depends(get_db)
             
             # 1. Create Invoice Record
             new_invoice = InvoiceModel(
