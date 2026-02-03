@@ -23,7 +23,7 @@ import logging
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
-from encryption import get_encryption_manager
+from src.encryption import get_encryption_manager
 
 logger = logging.getLogger(__name__)
 
