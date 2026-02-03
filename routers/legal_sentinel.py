@@ -77,8 +77,13 @@ async def check_compliance(request: Request, compliance_request: ComplianceCheck
             cached_result["processing_time"] = (datetime.now() - start_time).total_seconds()
             return ComplianceCheckResponse(**cached_result)
         
-        # Get MCP bridge from app state
-        mcp_bridge: MCPBridge = request.app.state.mcp_bridge
+        # Get MCP bridge from app state (with safe access)
+        mcp_bridge = getattr(request.app.state, 'mcp_bridge', None)
+        if not mcp_bridge:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="MCP bridge not initialized. Service temporarily unavailable."
+            )
         
         # Call Agent B via MCP bridge
         result = await mcp_bridge.call_agent_b(

@@ -124,8 +124,13 @@ async def generate_draft(request: Request, draft_request: GenerateDraftRequest):
             f"type: {draft_request.transaction_type}"
         )
         
-        # Get MCP bridge from app state
-        mcp_bridge: MCPBridge = request.app.state.mcp_bridge
+        # Get MCP bridge from app state (with safe access)
+        mcp_bridge = getattr(request.app.state, 'mcp_bridge', None)
+        if not mcp_bridge:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="MCP bridge not initialized. Service temporarily unavailable."
+            )
         
         # Get database session
         db: Session = request.state.db

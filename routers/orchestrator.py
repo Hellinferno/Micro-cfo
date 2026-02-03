@@ -31,7 +31,14 @@ async def process_document_lifecycle(
     5. Negotiation Draft (Agent D) if necessary
     """
     logger.info(f"Starting document lifecycle for user {lifecycle_request.user_id}")
-    mcp_bridge: MCPBridge = request.app.state.mcp_bridge
+    
+    # Get MCP bridge from app state (with safe access)
+    mcp_bridge = getattr(request.app.state, 'mcp_bridge', None)
+    if not mcp_bridge:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="MCP bridge not initialized. Service temporarily unavailable."
+        )
     
     # 1. Visual Audit
     audit_result = await mcp_bridge.call_agent_a(image_url=lifecycle_request.image_url)

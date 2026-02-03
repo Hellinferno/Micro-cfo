@@ -296,8 +296,13 @@ async def scan_invoice(request: Request, scan_request: ScanInvoiceRequest):
     try:
         logger.info(f"Processing invoice scan request - use_mock: {scan_request.use_mock}")
         
-        # Get MCP bridge from app state
-        mcp_bridge: MCPBridge = request.app.state.mcp_bridge
+        # Get MCP bridge from app state (with safe access)
+        mcp_bridge = getattr(request.app.state, 'mcp_bridge', None)
+        if not mcp_bridge:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="MCP bridge not initialized. Service temporarily unavailable."
+            )
         
         # Call Agent A via MCP bridge
         result = await mcp_bridge.call_agent_a(
@@ -497,8 +502,13 @@ async def upload_document(
                     )
                 image_url = file_to_base64_url(file_path)
                 
-                # Get MCP bridge from app state
-                mcp_bridge: MCPBridge = request.app.state.mcp_bridge
+                # Get MCP bridge from app state (with safe access)
+                mcp_bridge = getattr(request.app.state, 'mcp_bridge', None)
+                if not mcp_bridge:
+                    raise HTTPException(
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        detail="MCP bridge not initialized. Service temporarily unavailable."
+                    )
                 
                 # Call Agent A via MCP bridge
                 if operation_id:

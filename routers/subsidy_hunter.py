@@ -78,8 +78,13 @@ async def find_subsidies(request: Request, subsidy_request: SubsidySearchRequest
     try:
         logger.info(f"Processing subsidy search request - sector: {subsidy_request.sector}, capex: ₹{subsidy_request.capex_amount:,.0f}")
         
-        # Get MCP bridge from app state
-        mcp_bridge: MCPBridge = request.app.state.mcp_bridge
+        # Get MCP bridge from app state (with safe access)
+        mcp_bridge = getattr(request.app.state, 'mcp_bridge', None)
+        if not mcp_bridge:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="MCP bridge not initialized. Service temporarily unavailable."
+            )
         
         # Call Agent C via MCP bridge
         result = await mcp_bridge.call_agent_c(
