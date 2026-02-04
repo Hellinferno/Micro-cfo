@@ -90,9 +90,14 @@ def check_admin_permission(request: Request):
             detail="Authentication required"
         )
     
-    # TODO: Implement proper role-based access control
-    # For now, allow all authenticated users to view their own logs
-    return user
+    # Role-based access control for audit logs
+    # Admins can view all logs, regular users can only view their own
+    # User roles: 'admin', 'owner', 'accountant', 'viewer'
+    admin_roles = {'admin', 'owner'}
+    user_role = getattr(user, 'role', 'viewer')
+    is_admin = user_role in admin_roles
+    
+    return user, is_admin
 
 
 # Endpoints

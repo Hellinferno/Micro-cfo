@@ -1,8 +1,11 @@
-# MicroCFO MCP Server
+# MicroCFO
 
-A lightweight Model Context Protocol (MCP) server for AI-powered financial operations with advanced Legal Sentinel capabilities.
+AI-powered financial compliance platform for Indian MSMEs, featuring automated GST reconciliation, legal compliance monitoring, subsidy discovery, and intelligent vendor negotiations.
 
-## 🚀 Complete Implementation Status
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+
+## 🚀 Key Features
 
 ✅ **Agent A - Visual Auditor**
 - **Gemini 2.5 Flash Integration**: Real invoice image processing

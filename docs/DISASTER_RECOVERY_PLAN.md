@@ -339,12 +339,14 @@ Backup Storage: Multi-region S3 with versioning
 
 ### Stakeholder Contact List
 
+> **Note**: Update this table with actual contact information before production deployment.
+
 | Role | Name | Contact | Escalation Time |
 |------|------|---------|-----------------|
-| CTO | [Name] | +91-XXX, cto@microcfo.com | Immediate |
-| DevOps Lead | [Name] | +91-XXX, devops@microcfo.com | Immediate |
-| Security Lead | [Name] | +91-XXX, security@microcfo.com | < 5 min |
-| CEO | [Name] | +91-XXX, ceo@microcfo.com | < 15 min |
+| CTO | *To be assigned* | cto@microcfo.com | Immediate |
+| DevOps Lead | *To be assigned* | devops@microcfo.com | Immediate |
+| Security Lead | *To be assigned* | security@microcfo.com | < 5 min |
+| CEO | *To be assigned* | ceo@microcfo.com | < 15 min |
 | Customer Support | Team | support@microcfo.com | < 10 min |
 
 ### Communication Templates

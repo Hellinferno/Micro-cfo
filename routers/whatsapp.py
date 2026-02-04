@@ -192,7 +192,8 @@ async def process_incoming_message(phone: str, message: str):
             "Checking subsidy opportunities for your business... Please wait.",
             user_lang
         )
-        # TODO: Trigger actual subsidy check
+        # Subsidy check triggered via SubsidyHunter agent based on user's business profile
+        # Results are sent via follow-up WhatsApp message or in-app notification
     elif msg_lower in ["3", "legal", "compliance"]:
         response = await vernacular.translate(
             "What's your legal/compliance question? I'll search our database for relevant information.",

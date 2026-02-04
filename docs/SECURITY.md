@@ -70,7 +70,7 @@ export OPENROUTER_API_KEY="your_openrouter_api_key_here"
 ### ❌ NEVER do this:
 ```python
 # BAD - Hardcoded API key in source code
-os.environ['GEMINI_API_KEY'] = 'AIzaSyBYF5rjxv8YzTZ5UJciZ_c3PHzOaKNUm7g'
+os.environ['GEMINI_API_KEY'] = 'YOUR_API_KEY_HERE'  # NEVER hardcode keys!
 ```
 
 ### ✅ ALWAYS do this:
