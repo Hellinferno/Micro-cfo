@@ -61,35 +61,34 @@ class MCPBridge:
         try:
             logger.info(f"Calling MCP tool: {tool_name} with args: {kwargs}")
             
-            # Use the MCP server's get_tools method to access tools (it's async)
-            tools_dict = await mcp.get_tools()
+            # Import the tool functions directly from server
+            from src.server import (
+                scan_invoice_document,
+                check_compliance_law,
+                find_applicable_subsidies,
+                generate_negotiation_draft
+            )
             
-            if tool_name not in tools_dict:
+            # Map tool names to functions
+            tool_map = {
+                "scan_invoice_document": scan_invoice_document,
+                "check_compliance_law": check_compliance_law,
+                "find_applicable_subsidies": find_applicable_subsidies,
+                "generate_negotiation_draft": generate_negotiation_draft
+            }
+            
+            if tool_name not in tool_map:
                 raise MCPBridgeError(f"Unknown tool: {tool_name}")
             
-            # Get the tool object
-            tool = tools_dict[tool_name]
+            # Get the tool function
+            tool_fn = tool_map[tool_name]
             
             # Execute the tool function in a thread pool to avoid blocking
-            # Handle both FunctionTool objects with .fn attribute and callable objects
             loop = asyncio.get_event_loop()
-            if hasattr(tool, 'fn') and callable(tool.fn):
-                result = await loop.run_in_executor(
-                    self.executor, 
-                    lambda: tool.fn(**kwargs)
-                )
-            elif callable(tool):
-                result = await loop.run_in_executor(
-                    self.executor, 
-                    lambda: tool(**kwargs)
-                )
-            elif hasattr(tool, 'run') and callable(tool.run):
-                result = await loop.run_in_executor(
-                    self.executor, 
-                    lambda: tool.run(**kwargs)
-                )
-            else:
-                raise MCPBridgeError(f"Tool {tool_name} is not callable")
+            result = await loop.run_in_executor(
+                self.executor, 
+                lambda: tool_fn(**kwargs)
+            )
             
             # Serialize the result to JSON-compatible format
             serialized_result = self.serialize_pydantic(result)
@@ -121,20 +120,25 @@ class MCPBridge:
         try:
             logger.info(f"Getting MCP resource: {resource_uri}")
             
-            # Use the MCP server's get_resources method to access resources (it's async)
-            resources_dict = await mcp.get_resources()
+            # Import the resource functions directly from server
+            from src.server import get_user_profile
             
-            if resource_uri not in resources_dict:
+            # Map resource URIs to functions
+            resource_map = {
+                "microcfo://data/profile": get_user_profile
+            }
+            
+            if resource_uri not in resource_map:
                 raise MCPBridgeError(f"Unknown resource: {resource_uri}")
             
-            # Get the resource object
-            resource = resources_dict[resource_uri]
+            # Get the resource function
+            resource_fn = resource_map[resource_uri]
             
             # Execute the resource function
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
                 self.executor,
-                resource.fn
+                resource_fn
             )
             
             # Parse JSON string result if needed
@@ -144,7 +148,7 @@ class MCPBridge:
                 except json.JSONDecodeError:
                     parsed_result = {"data": result}
             else:
-                parsed_result = result
+                parsed_result = self.serialize_pydantic(result)
             
             logger.info(f"Resource {resource_uri} retrieved successfully")
             return {
