@@ -1,5 +1,6 @@
 fastmcp==2.0.0
-pydantic
+pydantic[email]
+email-validator
 httpx
 chromadb
 sentence-transformers
