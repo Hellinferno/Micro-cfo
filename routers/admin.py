@@ -151,3 +151,154 @@ def toggle_user_status(
     
     action = "activated" if user.is_active else "deactivated"
     return {"message": f"User {user.email} has been {action}"}
+
+
+# --- ETL & System Management Endpoints ---
+
+@router.get("/etl/status")
+async def get_etl_status(admin: UserContext = Depends(require_super_admin)):
+    """Get ETL scheduler status and job history"""
+    try:
+        from src.etl_jobs import etl_scheduler
+        
+        return {
+            "running": etl_scheduler._running,
+            "job_history": etl_scheduler.get_job_history(limit=20),
+            "last_check": etl_scheduler._last_check_time.isoformat() if hasattr(etl_scheduler, '_last_check_time') and etl_scheduler._last_check_time else None
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/etl/start")
+async def start_etl_scheduler(admin: UserContext = Depends(require_super_admin)):
+    """Start the ETL scheduler"""
+    try:
+        from src.etl_jobs import etl_scheduler
+        etl_scheduler.start()
+        return {"message": "ETL scheduler started", "status": "running"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/etl/stop")
+async def stop_etl_scheduler(admin: UserContext = Depends(require_super_admin)):
+    """Stop the ETL scheduler"""
+    try:
+        from src.etl_jobs import etl_scheduler
+        etl_scheduler.stop()
+        return {"message": "ETL scheduler stopped", "status": "stopped"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/etl/run-job/{job_name}")
+async def run_etl_job(
+    job_name: str,
+    admin: UserContext = Depends(require_super_admin)
+):
+    """Manually run a specific ETL job"""
+    valid_jobs = ["scrape_subsidies", "scrape_legislative", "update_compliance", "cash_flow_predictions"]
+    
+    if job_name not in valid_jobs:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid job name. Valid jobs: {valid_jobs}"
+        )
+    
+    try:
+        from src.etl_jobs import etl_scheduler
+        result = await etl_scheduler.run_job_manually(job_name)
+        
+        return {
+            "job_name": result.job_name,
+            "status": result.status.value,
+            "records_processed": result.records_processed,
+            "errors": result.errors,
+            "started_at": result.started_at.isoformat(),
+            "completed_at": result.completed_at.isoformat() if result.completed_at else None
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/llm/status")
+async def get_llm_status(admin: UserContext = Depends(require_super_admin)):
+    """Get LLM service status and statistics"""
+    try:
+        from src.llm_service import llm_service
+        
+        return {
+            "available_providers": [p.value for p in llm_service.get_available_providers()],
+            "statistics": llm_service.get_statistics()
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/llm/health")
+async def check_llm_health(admin: UserContext = Depends(require_super_admin)):
+    """Check health of all LLM providers"""
+    try:
+        from src.llm_service import llm_service
+        health = await llm_service.health_check()
+        return health
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/cache/stats")
+async def get_cache_stats(admin: UserContext = Depends(require_super_admin)):
+    """Get cache statistics"""
+    try:
+        from src.redis_cache import cache_service
+        return cache_service.stats()
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/cache/clear")
+async def clear_cache(
+    namespace: Optional[str] = None,
+    admin: UserContext = Depends(require_super_admin)
+):
+    """Clear cache (optionally by namespace)"""
+    try:
+        from src.redis_cache import cache_service
+        
+        if namespace:
+            count = cache_service.invalidate_namespace(namespace)
+            return {"message": f"Cleared {count} entries from namespace {namespace}"}
+        else:
+            result = cache_service.clear_all()
+            return {"message": "Cache cleared", "details": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/config/status")
+async def get_config_status(admin: UserContext = Depends(require_super_admin)):
+    """Get configuration and service status"""
+    try:
+        from src.config import config
+        
+        return {
+            "llm_providers": config.get_llm_providers_status(),
+            "services": config.get_services_status(),
+            "features": {
+                "agent_a": config.features.enable_agent_a,
+                "agent_b": config.features.enable_agent_b,
+                "agent_c": config.features.enable_agent_c,
+                "agent_d": config.features.enable_agent_d,
+                "whatsapp": config.features.enable_whatsapp,
+                "account_aggregator": config.features.enable_account_aggregator,
+                "etl_scheduler": config.features.enable_etl_scheduler
+            },
+            "server": {
+                "debug": config.server.debug,
+                "port": config.server.port
+            }
+        }
+    except Exception as e:
+        return {"error": str(e)}
+

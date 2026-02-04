@@ -203,6 +203,68 @@ async def health_check():
         environment="development" if config.server.debug else "production"
     )
 
+
+@app.get("/health/full")
+async def full_health_check():
+    """
+    Comprehensive health check for all dependencies
+    
+    Checks database, Redis, S3, and AI APIs
+    """
+    try:
+        from src.health_monitoring import health_service
+        result = await health_service.run_all_checks()
+        return result
+    except Exception as e:
+        logger.error(f"Full health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }
+
+
+@app.get("/metrics")
+async def get_metrics():
+    """
+    Prometheus-style metrics endpoint
+    """
+    try:
+        from src.health_monitoring import metrics
+        return metrics.to_dict()
+    except Exception as e:
+        logger.error(f"Metrics endpoint failed: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/metrics/prometheus")
+async def get_prometheus_metrics():
+    """
+    Export metrics in Prometheus text format
+    """
+    from fastapi.responses import PlainTextResponse
+    try:
+        from src.health_monitoring import metrics
+        return PlainTextResponse(content=metrics.export_prometheus(), media_type="text/plain")
+    except Exception as e:
+        return PlainTextResponse(content=f"# Error: {e}", media_type="text/plain")
+
+
+@app.get("/metrics/business")
+async def get_business_metrics():
+    """
+    Business metrics for dashboard
+    """
+    try:
+        from src.health_monitoring import business_metrics
+        return business_metrics.get_daily_summary()
+    except Exception as e:
+        logger.error(f"Business metrics endpoint failed: {e}")
+        return {"error": str(e)}
+        message="MicroCFO Integration Server is running",
+        version=config.api.version,
+        environment="development" if config.server.debug else "production"
+    )
+
 # Root endpoint
 @app.get("/")
 async def root():

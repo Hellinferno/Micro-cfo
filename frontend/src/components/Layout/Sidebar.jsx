@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { MessageSquare, History, IndianRupee, Settings, Shield, Menu, X } from 'lucide-react';
+import { 
+    LayoutDashboard,
+    ScanLine, 
+    Scale, 
+    Search, 
+    Banknote, 
+    MessageSquare, 
+    History, 
+    Settings, 
+    Shield, 
+    Menu, 
+    X,
+    Upload
+} from 'lucide-react';
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const navItems = [
-        { icon: MessageSquare, label: 'Chat', path: '/' },
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: ScanLine, label: 'Document Scanner', path: '/scanner' },
+        { icon: Scale, label: 'Compliance', path: '/compliance' },
+        { icon: Search, label: 'Subsidies', path: '/subsidies' },
+        { icon: Banknote, label: 'Cash Flow', path: '/negotiation' },
+        { icon: MessageSquare, label: 'AI Chat', path: '/chat' },
         { icon: History, label: 'History', path: '/history' },
-        { icon: IndianRupee, label: 'Subsidies', path: '/subsidies' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 

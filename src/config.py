@@ -1,9 +1,10 @@
 """
 Configuration module for MicroCFO Integration Server
+Complete configuration for all services and API providers
 """
 
 import os
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -38,6 +39,106 @@ class SecurityConfig(BaseModel):
     jwt_secret_key: str = "your-secret-key-change-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
+    encryption_key: Optional[str] = None  # For encrypting sensitive data
+
+
+class DatabaseConfig(BaseModel):
+    """Database configuration"""
+    url: str = "postgresql://microcfo:changeme@localhost:5432/microcfo"
+    pool_size: int = 10
+    max_overflow: int = 20
+    pool_pre_ping: bool = True
+    pool_recycle: int = 3600  # 1 hour
+
+
+class RedisConfig(BaseModel):
+    """Redis configuration"""
+    url: str = "redis://localhost:6379/0"
+    max_connections: int = 10
+    socket_timeout: int = 5
+
+
+class LLMConfig(BaseModel):
+    """LLM Provider configuration"""
+    # Google Gemini (Primary)
+    gemini_api_key: Optional[str] = None
+    gemini_model: str = "gemini-2.0-flash"
+    
+    # Groq (Fast inference)
+    groq_api_key: Optional[str] = None
+    groq_model: str = "llama-3.3-70b-versatile"
+    
+    # OpenAI (Fallback)
+    openai_api_key: Optional[str] = None
+    openai_model: str = "gpt-4o-mini"
+    
+    # OpenRouter (Alternative)
+    openrouter_api_key: Optional[str] = None
+    
+    # Rate limits
+    max_tokens_per_request: int = 2000
+    requests_per_minute: int = 60
+
+
+class StorageConfig(BaseModel):
+    """Storage configuration (S3/Local)"""
+    # AWS S3
+    aws_access_key: Optional[str] = None
+    aws_secret_key: Optional[str] = None
+    aws_region: str = "ap-south-1"  # Mumbai
+    s3_bucket_name: Optional[str] = None
+    
+    # Local storage fallback
+    local_storage_path: str = "./file_storage"
+
+
+class EmailConfig(BaseModel):
+    """Email service configuration"""
+    sendgrid_api_key: Optional[str] = None
+    from_email: str = "noreply@microcfo.com"
+    from_name: str = "MicroCFO"
+
+
+class SMSConfig(BaseModel):
+    """SMS/OTP service configuration"""
+    twilio_account_sid: Optional[str] = None
+    twilio_auth_token: Optional[str] = None
+    twilio_phone_number: Optional[str] = None
+
+
+class WhatsAppConfig(BaseModel):
+    """WhatsApp Business API configuration"""
+    api_key: Optional[str] = None
+    phone_number_id: Optional[str] = None
+    verify_token: Optional[str] = None
+
+
+class AccountAggregatorConfig(BaseModel):
+    """Account Aggregator framework configuration"""
+    provider: str = "sahamati_sandbox"
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    api_url: str = "https://api.sandbox.sahamati.org.in"
+    callback_url: Optional[str] = None
+
+
+class MonitoringConfig(BaseModel):
+    """Monitoring and observability configuration"""
+    sentry_dsn: Optional[str] = None
+    datadog_api_key: Optional[str] = None
+    enable_metrics: bool = True
+    enable_tracing: bool = True
+
+
+class FeatureFlagsConfig(BaseModel):
+    """Feature flags for gradual rollouts"""
+    enable_agent_a: bool = True  # Visual Auditor
+    enable_agent_b: bool = True  # Legal Sentinel
+    enable_agent_c: bool = True  # Subsidy Hunter
+    enable_agent_d: bool = True  # Negotiator
+    enable_whatsapp: bool = True
+    enable_account_aggregator: bool = False
+    enable_etl_scheduler: bool = True
 
 
 class APIConfig(BaseModel):
@@ -64,7 +165,7 @@ The API is organized into the following functional areas:
 
 
 class Config:
-    """Main configuration class"""
+    """Main configuration class - loads all settings from environment"""
     
     def __init__(self):
         # Load from environment variables
@@ -112,7 +213,92 @@ class Config:
         self.security = SecurityConfig(
             jwt_secret_key=os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production"),
             jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
-            jwt_expiration_hours=int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
+            jwt_expiration_hours=int(os.getenv("JWT_EXPIRATION_HOURS", "24")),
+            encryption_key=os.getenv("ENCRYPTION_KEY")
+        )
+        
+        # Database configuration
+        self.database = DatabaseConfig(
+            url=os.getenv("DATABASE_URL", "postgresql://microcfo:changeme@localhost:5432/microcfo"),
+            pool_size=int(os.getenv("DB_POOL_SIZE", "10")),
+            max_overflow=int(os.getenv("DB_MAX_OVERFLOW", "20"))
+        )
+        
+        # Redis configuration
+        self.redis = RedisConfig(
+            url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+            max_connections=int(os.getenv("REDIS_MAX_CONNECTIONS", "10"))
+        )
+        
+        # LLM Provider configuration
+        self.llm = LLMConfig(
+            gemini_api_key=os.getenv("GEMINI_API_KEY"),
+            gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+            groq_api_key=os.getenv("GROQ_API_KEY"),
+            groq_model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+            openai_api_key=os.getenv("OPENAI_API_KEY"),
+            openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            openrouter_api_key=os.getenv("OPENROUTER_API_KEY"),
+            max_tokens_per_request=int(os.getenv("LLM_MAX_TOKENS", "2000")),
+            requests_per_minute=int(os.getenv("LLM_RATE_LIMIT", "60"))
+        )
+        
+        # Storage configuration
+        self.storage = StorageConfig(
+            aws_access_key=os.getenv("AWS_ACCESS_KEY"),
+            aws_secret_key=os.getenv("AWS_SECRET_KEY"),
+            aws_region=os.getenv("AWS_REGION", "ap-south-1"),
+            s3_bucket_name=os.getenv("S3_BUCKET_NAME"),
+            local_storage_path=os.getenv("LOCAL_STORAGE_PATH", "./file_storage")
+        )
+        
+        # Email configuration
+        self.email = EmailConfig(
+            sendgrid_api_key=os.getenv("SENDGRID_API_KEY"),
+            from_email=os.getenv("EMAIL_FROM", "noreply@microcfo.com"),
+            from_name=os.getenv("EMAIL_FROM_NAME", "MicroCFO")
+        )
+        
+        # SMS configuration
+        self.sms = SMSConfig(
+            twilio_account_sid=os.getenv("TWILIO_ACCOUNT_SID"),
+            twilio_auth_token=os.getenv("TWILIO_AUTH_TOKEN"),
+            twilio_phone_number=os.getenv("TWILIO_PHONE_NUMBER")
+        )
+        
+        # WhatsApp configuration
+        self.whatsapp = WhatsAppConfig(
+            api_key=os.getenv("WHATSAPP_API_KEY"),
+            phone_number_id=os.getenv("WHATSAPP_PHONE_NUMBER_ID"),
+            verify_token=os.getenv("WHATSAPP_VERIFY_TOKEN")
+        )
+        
+        # Account Aggregator configuration
+        self.account_aggregator = AccountAggregatorConfig(
+            provider=os.getenv("AA_PROVIDER", "sahamati_sandbox"),
+            client_id=os.getenv("AA_CLIENT_ID"),
+            client_secret=os.getenv("AA_CLIENT_SECRET"),
+            api_url=os.getenv("AA_API_URL", "https://api.sandbox.sahamati.org.in"),
+            callback_url=os.getenv("AA_CALLBACK_URL")
+        )
+        
+        # Monitoring configuration
+        self.monitoring = MonitoringConfig(
+            sentry_dsn=os.getenv("SENTRY_DSN"),
+            datadog_api_key=os.getenv("DATADOG_API_KEY"),
+            enable_metrics=os.getenv("ENABLE_METRICS", "true").lower() == "true",
+            enable_tracing=os.getenv("ENABLE_TRACING", "true").lower() == "true"
+        )
+        
+        # Feature flags
+        self.features = FeatureFlagsConfig(
+            enable_agent_a=os.getenv("ENABLE_AGENT_A", "true").lower() == "true",
+            enable_agent_b=os.getenv("ENABLE_AGENT_B", "true").lower() == "true",
+            enable_agent_c=os.getenv("ENABLE_AGENT_C", "true").lower() == "true",
+            enable_agent_d=os.getenv("ENABLE_AGENT_D", "true").lower() == "true",
+            enable_whatsapp=os.getenv("ENABLE_WHATSAPP", "true").lower() == "true",
+            enable_account_aggregator=os.getenv("ENABLE_AA", "false").lower() == "true",
+            enable_etl_scheduler=os.getenv("ENABLE_ETL", "true").lower() == "true"
         )
         
         # Add Render host to trusted hosts
@@ -133,6 +319,27 @@ class Config:
         # Add debug hosts in development
         if self.server.debug:
             self.security.trusted_hosts.append("*")
+    
+    def get_llm_providers_status(self) -> dict:
+        """Get status of configured LLM providers"""
+        return {
+            "gemini": bool(self.llm.gemini_api_key),
+            "groq": bool(self.llm.groq_api_key),
+            "openai": bool(self.llm.openai_api_key),
+            "openrouter": bool(self.llm.openrouter_api_key)
+        }
+    
+    def get_services_status(self) -> dict:
+        """Get status of configured external services"""
+        return {
+            "database": bool(self.database.url),
+            "redis": bool(self.redis.url),
+            "s3": bool(self.storage.s3_bucket_name),
+            "sendgrid": bool(self.email.sendgrid_api_key),
+            "twilio": bool(self.sms.twilio_account_sid),
+            "whatsapp": bool(self.whatsapp.api_key),
+            "account_aggregator": bool(self.account_aggregator.client_id)
+        }
 
 
 # Global configuration instance
