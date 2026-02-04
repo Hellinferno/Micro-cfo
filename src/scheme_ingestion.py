@@ -14,6 +14,8 @@ class SchemeChunk:
     """Smart chunk for government schemes with eligibility metadata"""
     text: str
     scheme_name: str
+    law_type: str = "Subsidy Scheme"  # Type of law (GST, Income Tax, Corporate Law, Subsidy Scheme, General)
+    section_number: Optional[str] = None  # Section or rule identifier for compatibility with LegalVectorDB
     target_sector: Optional[str] = None
     min_investment: Optional[float] = None
     max_investment: Optional[float] = None
@@ -23,6 +25,10 @@ class SchemeChunk:
     location_restriction: Optional[str] = None
     chunk_type: str = "main"  # eligibility, objective, quantum, application
     effective_date: Optional[str] = None
+    turnover_threshold: Optional[float] = None  # Business turnover threshold for compatibility
+    sector_tag: Optional[str] = None  # Industry sector classification for compatibility
+    source_file: Optional[str] = None  # Original source filename
+    file_hash: Optional[str] = None  # SHA256 hash of source file
 
 class SchemeSplitter:
     """Scheme-Aware Text Splitter for Government Subsidy Documents"""
