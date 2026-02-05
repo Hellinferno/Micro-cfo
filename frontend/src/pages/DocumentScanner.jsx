@@ -359,10 +359,10 @@ const DocumentScanner = () => {
                         </CardContent>
                     </Card>
 
-                    {/* WhatsApp Integration */}
+                    {/* Telegram Integration */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>WhatsApp Integration</CardTitle>
+                            <CardTitle>Telegram Integration</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="text-center">
@@ -370,10 +370,10 @@ const DocumentScanner = () => {
                                     <MessageSquare className="w-12 h-12 text-slate-400" />
                                 </div>
                                 <p className="text-sm text-slate-500 mb-4">
-                                    Connect WhatsApp to receive audit alerts and upload documents on the go
+                                    Connect Telegram to receive audit alerts and upload documents on the go
                                 </p>
                                 <Button variant="outline" className="w-full">
-                                    Connect WhatsApp
+                                    Connect Telegram
                                 </Button>
                             </div>
                         </CardContent>

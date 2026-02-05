@@ -71,7 +71,7 @@ class GenerateDraftResponse(BaseModel):
     """Response model for negotiation email generation"""
     intent: str = Field(..., description="Negotiation strategy intent")
     strategy_explanation: str = Field(..., description="Explanation of the chosen strategy")
-    whatsapp_message: str = Field(..., description="Brief WhatsApp message")
+    telegram_message: str = Field(..., description="Brief Telegram message")
     formal_email: str = Field(..., description="Formal email content")
     option_a: str = Field(..., description="Relationship-focused option")
     option_b: str = Field(..., description="Transactional-focused option")
@@ -100,7 +100,7 @@ async def generate_draft(
     - Router logic to determine negotiation strategy based on financial context
     - AI-powered content generation using Gemini Flash
     - A/B testing options (relationship-focused vs transactional)
-    - Context-aware messaging for WhatsApp and formal email
+    - Context-aware messaging for Telegram and formal email
     
     IMPORTANT: This endpoint ONLY generates drafts. It will NEVER automatically send emails.
     All generated content must be reviewed and approved by the user before sending.
@@ -185,7 +185,7 @@ async def generate_draft(
         response = GenerateDraftResponse(
             intent=negotiation_data["intent"],
             strategy_explanation=negotiation_data["strategy_explanation"],
-            whatsapp_message=negotiation_data["whatsapp_message"],
+            telegram_message=negotiation_data.get("telegram_message", negotiation_data.get("whatsapp_message", "")),
             formal_email=negotiation_data["formal_email"],
             option_a=negotiation_data["option_a"],
             option_b=negotiation_data["option_b"],

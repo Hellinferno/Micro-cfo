@@ -106,11 +106,10 @@ class SMSConfig(BaseModel):
     twilio_phone_number: Optional[str] = None
 
 
-class WhatsAppConfig(BaseModel):
-    """WhatsApp Business API configuration"""
-    api_key: Optional[str] = None
-    phone_number_id: Optional[str] = None
-    verify_token: Optional[str] = None
+class TelegramConfig(BaseModel):
+    """Telegram Bot API configuration"""
+    bot_token: Optional[str] = None
+    webhook_url: Optional[str] = None
 
 
 class AccountAggregatorConfig(BaseModel):
@@ -136,7 +135,7 @@ class FeatureFlagsConfig(BaseModel):
     enable_agent_b: bool = True  # Legal Sentinel
     enable_agent_c: bool = True  # Subsidy Hunter
     enable_agent_d: bool = True  # Negotiator
-    enable_whatsapp: bool = True
+    enable_telegram: bool = True
     enable_account_aggregator: bool = False
     enable_etl_scheduler: bool = True
 
@@ -155,7 +154,7 @@ The API is organized into the following functional areas:
 - **Visual Auditor (Agent A)**: Process invoices from URLs or direct file uploads to extract data, detect fraud, and check for compliance issues.
 - **Legal Sentinel (Agent B)**: Query the legislative RAG for compliance information and risk assessment.
 - **Subsidy Hunter (Agent C)**: Discover applicable government subsidies based on a business sector and capital expenditure.
-- **Negotiator (Agent D)**: Generate professional negotiation drafts (emails, WhatsApp messages) for managing payables and receivables.
+- **Negotiator (Agent D)**: Generate professional negotiation drafts (emails, Telegram messages) for managing payables and receivables.
 - **ERP Export**: Export processed invoice data into formats compatible with Tally, Zoho Books, and standard CSV/JSON.
 - **Async Tasks**: Submit long-running jobs like document processing and retrieve their status and results asynchronously.
 - **Audit Trail**: Query and export comprehensive audit logs for all system activities.
@@ -266,11 +265,10 @@ class Config:
             twilio_phone_number=os.getenv("TWILIO_PHONE_NUMBER")
         )
         
-        # WhatsApp configuration
-        self.whatsapp = WhatsAppConfig(
-            api_key=os.getenv("WHATSAPP_API_KEY"),
-            phone_number_id=os.getenv("WHATSAPP_PHONE_NUMBER_ID"),
-            verify_token=os.getenv("WHATSAPP_VERIFY_TOKEN")
+        # Telegram configuration
+        self.telegram = TelegramConfig(
+            bot_token=os.getenv("TELEGRAM_BOT_TOKEN"),
+            webhook_url=os.getenv("TELEGRAM_WEBHOOK_URL")
         )
         
         # Account Aggregator configuration
@@ -296,7 +294,7 @@ class Config:
             enable_agent_b=os.getenv("ENABLE_AGENT_B", "true").lower() == "true",
             enable_agent_c=os.getenv("ENABLE_AGENT_C", "true").lower() == "true",
             enable_agent_d=os.getenv("ENABLE_AGENT_D", "true").lower() == "true",
-            enable_whatsapp=os.getenv("ENABLE_WHATSAPP", "true").lower() == "true",
+            enable_telegram=os.getenv("ENABLE_TELEGRAM", "true").lower() == "true",
             enable_account_aggregator=os.getenv("ENABLE_AA", "false").lower() == "true",
             enable_etl_scheduler=os.getenv("ENABLE_ETL", "true").lower() == "true"
         )
@@ -337,7 +335,7 @@ class Config:
             "s3": bool(self.storage.s3_bucket_name),
             "sendgrid": bool(self.email.sendgrid_api_key),
             "twilio": bool(self.sms.twilio_account_sid),
-            "whatsapp": bool(self.whatsapp.api_key),
+            "telegram": bool(self.telegram.bot_token),
             "account_aggregator": bool(self.account_aggregator.client_id)
         }
 

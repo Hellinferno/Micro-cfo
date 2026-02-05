@@ -516,8 +516,8 @@ const SuperAdminDashboard = () => {
                                     <span className="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-medium rounded-full">Not Set</span>
                                 </div>
                                 <div className="flex justify-between items-center p-4 bg-slate-900/30 rounded-lg">
-                                    <span className="text-slate-400">WhatsApp API</span>
-                                    <span className="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-medium rounded-full">Not Set</span>
+                                    <span className="text-slate-400">Telegram API</span>
+                                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-medium rounded-full">Configured</span>
                                 </div>
                             </div>
                         </div>

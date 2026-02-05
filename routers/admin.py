@@ -290,7 +290,7 @@ async def get_config_status(admin: UserContext = Depends(require_super_admin)):
                 "agent_b": config.features.enable_agent_b,
                 "agent_c": config.features.enable_agent_c,
                 "agent_d": config.features.enable_agent_d,
-                "whatsapp": config.features.enable_whatsapp,
+                "telegram": config.features.enable_telegram,
                 "account_aggregator": config.features.enable_account_aggregator,
                 "etl_scheduler": config.features.enable_etl_scheduler
             },

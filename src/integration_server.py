@@ -292,7 +292,7 @@ from routers.onboarding import router as onboarding_router
 from routers.admin import router as admin_router
 from routers.orchestrator import router as orchestrator_router
 from routers.proactive_intelligence import router as proactive_router
-from routers.whatsapp import router as whatsapp_router
+from routers.telegram import router as telegram_router
 
 api_v1_router = APIRouter(prefix=config.api.v1_prefix)
 
@@ -309,7 +309,7 @@ api_v1_router.include_router(onboarding_router)
 api_v1_router.include_router(admin_router)
 api_v1_router.include_router(orchestrator_router)
 api_v1_router.include_router(proactive_router)
-api_v1_router.include_router(whatsapp_router)
+api_v1_router.include_router(telegram_router)
 
 # Include WebSocket router (not under api_v1 prefix for cleaner URLs)
 app.include_router(websocket_router)

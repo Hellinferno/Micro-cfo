@@ -62,14 +62,14 @@ const Settings = () => {
     ];
 
     const notificationChannels = [
-        { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, connected: true },
+        { id: 'telegram', label: 'Telegram', icon: MessageSquare, connected: true },
         { id: 'email', label: 'Email', icon: Mail, connected: true },
         { id: 'sms', label: 'SMS', icon: Smartphone, connected: false },
         { id: 'inapp', label: 'In-App', icon: Bell, connected: true },
     ];
 
     const integrations = [
-        { name: 'WhatsApp Business', status: 'connected', icon: MessageSquare },
+        { name: 'Telegram Bot', status: 'connected', icon: MessageSquare },
         { name: 'Account Aggregator', status: 'pending', icon: CreditCard },
         { name: 'Tally', status: 'disconnected', icon: Building2 },
         { name: 'Zoho Books', status: 'disconnected', icon: Building2 },

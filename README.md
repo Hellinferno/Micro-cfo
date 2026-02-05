@@ -29,7 +29,7 @@ AI-powered financial compliance platform for Indian MSMEs, featuring automated G
 - **Router Logic**: AI-powered strategy determination
 - **Gemini 3 Flash Integration**: Context-aware content generation
 - **A/B Testing**: Relationship-focused vs Transactional approaches
-- **Multi-format Output**: WhatsApp messages + Formal emails
+- **Multi-format Output**: Telegram messages + Formal emails
 - **Cash Flow Intelligence**: Decisions based on financial position
 
 ✅ **Phase 4: Business Logic & Integration** (NEW!)
@@ -117,7 +117,7 @@ Scenario: {intent} for {vendor_name}
 Amount: ₹{amount:,.0f}
 Style: {tone} (Relationship vs Transactional)
 
-Generate authentic WhatsApp + Email content referencing Invoice #{invoice_id}"
+Generate authentic Telegram + Email content referencing Invoice #{invoice_id}"
 ```
 
 #### Phase 3: A/B Testing (The "Novelty" Feature)
@@ -169,7 +169,7 @@ def generate_negotiation_draft(
 ### Key Features
 - **Conservative Financial Logic**: Protects cash flow while maintaining relationships
 - **Indian Business Context**: Appropriate tone and communication style
-- **Multi-format Output**: WhatsApp (160 chars) + Formal email versions
+- **Multi-format Output**: Telegram (160 chars) + Formal email versions
 - **Invoice-specific References**: Uses actual invoice numbers for authenticity
 - **Fallback Mode**: Works without API keys using template-based generation
 
@@ -200,7 +200,7 @@ Legal Sentinel System
 └── sentinel_monitor.py (Phase 4: Real-time Alerts)
     ├── Government website monitoring
     ├── User relevance checking
-    └── WhatsApp alert system
+    └── Telegram alert system
 ```
 
 ## Quick Start
@@ -789,7 +789,7 @@ The Legal Data Seeding System ensures your MicroCFO instance has a comprehensive
 
 ### Alert System
 - Automatic relevance checking against user profiles
-- WhatsApp Business API integration (configurable)
+- Telegram Bot API integration (configurable)
 - Daily monitoring schedule
 
 ## File Structure
