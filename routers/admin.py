@@ -11,8 +11,8 @@ from sqlalchemy import func
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 
-from database import get_db
-from models import User, UserProfile, Invoice, AuditLog
+from src.database import get_db
+from src.models import User, UserProfile, Invoice, AuditLog
 # Corrected import for get_current_user
 from middleware.auth import get_current_user
 from auth import UserContext 

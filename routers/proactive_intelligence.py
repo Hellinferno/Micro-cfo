@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import (
+from src.database import get_db
+from src.models import (
     ProactiveNotification, UserLawSubscription, LawChangeMonitor,
     BusinessProfile, Invoice, User
 )

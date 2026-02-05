@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, status, Request
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 
-from mcp_bridge import MCPBridge, MCPBridgeError
+from src.mcp_bridge import MCPBridge, MCPBridgeError
 
 logger = logging.getLogger(__name__)
 

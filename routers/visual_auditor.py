@@ -14,17 +14,17 @@ from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File,
 from pydantic import BaseModel, Field
 from datetime import datetime
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Invoice as InvoiceModel, WorkflowState, GoldenDataset
+from src.database import get_db
+from src.models import Invoice as InvoiceModel, WorkflowState, GoldenDataset
 
-from mcp_bridge import MCPBridge, MCPBridgeError
-from file_validator import (
+from src.mcp_bridge import MCPBridge, MCPBridgeError
+from src.file_validator import (
     ComprehensiveFileValidator,
     FileValidationError,
     FileFormat
 )
-from s3_storage import get_s3_manager, is_s3_enabled
-from legal_disclaimers import LegalDisclaimers, DisclaimerType, get_invoice_disclaimer
+from src.s3_storage import get_s3_manager, is_s3_enabled
+from src.legal_disclaimers import LegalDisclaimers, DisclaimerType, get_invoice_disclaimer
 
 logger = logging.getLogger(__name__)
 

@@ -8,13 +8,13 @@ import logging
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Request, Depends
 from sqlalchemy.orm import Session
-from database import get_db
-from models import VendorProfile
+from src.database import get_db
+from src.models import VendorProfile
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 
-from mcp_bridge import MCPBridge, MCPBridgeError
-from legal_disclaimers import (
+from src.mcp_bridge import MCPBridge, MCPBridgeError
+from src.legal_disclaimers import (
     LegalDisclaimers, DisclaimerType, Guardrails,
     get_negotiator_disclaimer, check_can_send_email
 )

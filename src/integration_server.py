@@ -260,10 +260,6 @@ async def get_business_metrics():
     except Exception as e:
         logger.error(f"Business metrics endpoint failed: {e}")
         return {"error": str(e)}
-        message="MicroCFO Integration Server is running",
-        version=config.api.version,
-        environment="development" if config.server.debug else "production"
-    )
 
 # Root endpoint
 @app.get("/")

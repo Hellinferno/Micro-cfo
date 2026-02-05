@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func
 
-from database import get_db
-from models import AuditLog, User
+from src.database import get_db
+from src.models import AuditLog, User
 from audit_logger import AuditAction, AuditSeverity
 
 logger = logging.getLogger(__name__)
