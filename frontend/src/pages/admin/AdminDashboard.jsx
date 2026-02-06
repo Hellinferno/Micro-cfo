@@ -28,23 +28,13 @@ const AdminDashboard = () => {
             ]);
             setStats(statsRes);
             setUsers(usersRes);
-        } catch (error) {
-            console.error("Admin Access Denied or API Error", error);
+        } catch {
+            console.error("Admin Access Denied or API Error");
             // No mock fallback - UI will handle empty state
             setStats(null);
             setUsers([]);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const toggleUserStatus = async (userId) => {
-        try {
-            const { apiFetch } = await import('../../services/api');
-            await apiFetch(`/api/v1/admin/users/${userId}/toggle-status`, { method: 'PATCH' });
-            fetchData();
-        } catch (error) {
-            alert("Failed to update user status");
         }
     };
 
