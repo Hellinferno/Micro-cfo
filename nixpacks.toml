@@ -1,9 +1,16 @@
 # Railway Nixpacks configuration
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip"]
+nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = [
+    "python -m venv /opt/venv",
+    ". /opt/venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"
+]
+
+[variables]
+VIRTUAL_ENV = "/opt/venv"
+PATH = "/opt/venv/bin:${PATH}"
 
 [start]
-cmd = "gunicorn src.integration_server:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
+cmd = ". /opt/venv/bin/activate && gunicorn src.integration_server:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
