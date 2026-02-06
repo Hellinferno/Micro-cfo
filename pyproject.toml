@@ -1,0 +1,11 @@
+[project]
+name = "microcfo"
+version = "0.1.0"
+description = "AI-powered financial operations for MSMEs"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
