@@ -1,7 +1,7 @@
 # MicroCFO - Technical Design Document
 
-**Version**: 2.1.0  
-**Last Updated**: February 3, 2026  
+**Version**: 2.2.0  
+**Last Updated**: February 7, 2026  
 **Status**: ✅ Production Ready
 
 ---
@@ -124,19 +124,47 @@ class LineItem(BaseModel):
 Query → Context Fetcher → Hybrid Search → Filter → Risk Assessment
 ```
 
-**Vector Database**: ChromaDB with all-MiniLM-L6-v2 embeddings
+**Vector Database**: ChromaDB with all-MiniLM-L6-v2 embeddings (757 document chunks)
+
+**Legal Document Library** (14 PDFs ingested):
+| Category | Documents |
+|----------|----------|
+| Income Tax | Income Tax Act 2025, 4 IT Notifications/Circulars |
+| GST | GST Acts & Rules 2025, CGST/IGST 2017, 2 GST Notifications |
+| Corporate Law | Companies Act 2013/2021, LLP Act, Partnership Act 1932, Competition Act |
+| Professional Law | Cost & Works Accountants Act 1959 |
 
 **Metadata Fields**:
-- `law_type`: GST, Income Tax, Companies Act
+- `law_type`: GST, Income Tax, Corporate Law, Professional Law
 - `section_number`: For keyword search
 - `turnover_threshold`: For filtering
 - `sector_tag`: Industry-specific
 
+**Ingestion**: `python scripts/ingest_legal_documents.py`
+
 ### 2.3 Agent C - Subsidy Hunter
 
-**Purpose**: Discover applicable government subsidies based on user profile.
+**Purpose**: Discover applicable government subsidies based on user profile with real-time web scraping.
 
-**Scheme Database**: SQLite with government schemes (PLI, TUFS, MSME, etc.)
+```
+Sector/Capex Input → Web Scraper → Cache Check → Parse HTML → Merge with Static DB → Response
+```
+
+**Data Sources**:
+| Source | Type | Update Frequency |
+|--------|------|------------------|
+| Static SCHEME_DATABASE | Hardcoded | Manual |
+| SchemeVectorDB | Semantic Search | On ingestion |
+| Web Scraper (`subsidy_scraper.py`) | **Live** | 24-hour cache |
+
+**Web Scraper Features**:
+- Async HTTP with httpx + BeautifulSoup/lxml
+- Rate limiting: 1 request/2 seconds per domain
+- 24-hour caching to minimize requests
+- Targets: msme.gov.in, mofpi.gov.in, texmin.nic.in, invest.gov.in
+- Graceful fallback to static data on failure
+
+**Response includes**: `📡 Data Source: LIVE | Last Updated: <timestamp>`
 
 ### 2.4 Agent D - Negotiator
 
