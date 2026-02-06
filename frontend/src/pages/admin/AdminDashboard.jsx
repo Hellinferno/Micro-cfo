@@ -38,6 +38,15 @@ const AdminDashboard = () => {
         }
     };
 
+    const filteredUsers = users.filter(user => {
+        const matchesStatus = filterStatus === 'all' ||
+            (filterStatus === 'active' ? user.is_active : !user.is_active);
+        const matchesSearch = user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesStatus && matchesSearch;
+    });
+
     const toggleSelectAll = () => {
         if (selectedUsers.length === filteredUsers.length) {
             setSelectedUsers([]);
@@ -53,15 +62,6 @@ const AdminDashboard = () => {
             setSelectedUsers([...selectedUsers, id]);
         }
     };
-
-    const filteredUsers = users.filter(user => {
-        const matchesStatus = filterStatus === 'all' ||
-            (filterStatus === 'active' ? user.is_active : !user.is_active);
-        const matchesSearch = user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesStatus && matchesSearch;
-    });
 
     if (loading && !stats) return (
         <div className="flex items-center justify-center min-h-screen bg-slate-50">
