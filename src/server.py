@@ -918,6 +918,35 @@ def find_applicable_subsidies(sector: str, capex_amount: float, state: str = Non
         except Exception as e:
             print(f"DEBUG: Vector search failed: {e}")
             schemes = None
+    
+    # Try web scraping for live data if no schemes found yet
+    data_source = "static"
+    if not schemes:
+        try:
+            import asyncio
+            from subsidy_scraper import get_subsidy_scraper
+            
+            print(f"DEBUG: Attempting web scraping for '{sector}'")
+            scraper = get_subsidy_scraper()
+            
+            # Run async scraper in sync context
+            loop = asyncio.new_event_loop()
+            try:
+                asyncio.set_event_loop(loop)
+                live_schemes = loop.run_until_complete(
+                    scraper.search_schemes(sector, capex_amount)
+                )
+            finally:
+                loop.close()
+            
+            if live_schemes:
+                schemes = live_schemes
+                sector_display = f"{sector.title()} (Live Web Data)"
+                data_source = "live"
+                print(f"DEBUG: Found {len(schemes)} schemes from web scraping")
+        except Exception as e:
+            print(f"DEBUG: Web scraping failed: {e}")
+            data_source = "static_fallback"
 
     if not schemes:
         # Default to manufacturing if sector not found
@@ -1000,7 +1029,8 @@ def find_applicable_subsidies(sector: str, capex_amount: float, state: str = Non
     response += "3. Prepare: Registration certificate, Bank details, Project report\n"
     response += "4. Consult a CA for compliance and application assistance\n"
     response += "5. Apply before scheme deadline (check respective portals)\n\n"
-    response += "Note: Amounts are estimates. Actual benefits depend on eligibility verification."
+    response += "Note: Amounts are estimates. Actual benefits depend on eligibility verification.\n\n"
+    response += f"📡 Data Source: {data_source.upper()} | Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
     
     return response
 

@@ -240,15 +240,17 @@ class MCPBridge:
         
         return await resource_queue.execute_resource_intensive(_execute_legal_query)
     
-    async def call_agent_c(self, sector: str, capex_amount: float) -> Dict[str, Any]:
+    async def call_agent_c(self, sector: str, capex_amount: float, fetch_live: bool = True) -> Dict[str, Any]:
         """
         Convenience method for calling Agent C (Subsidy Hunter)
         
         Uses resource queue for vector database operations to prevent overload.
+        Includes web scraping for real-time subsidy information when fetch_live=True.
         
         Args:
             sector: Business sector
             capex_amount: Capital expenditure amount
+            fetch_live: Whether to attempt live web scraping (default True)
             
         Returns:
             Subsidy information in JSON format
