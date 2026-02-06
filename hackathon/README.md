@@ -29,7 +29,8 @@ MicroCFO is an AI-powered autonomous CFO assistant that automates financial oper
 ### Key Features
 
 - ✅ **Gemini 2.5 Flash** for invoice image processing
-- ✅ **Structure-aware RAG** for legal queries
+- ✅ **Structure-aware RAG** with 14+ Legal Acts (Income Tax 2025, GST, Companies Act)
+- ✅ **Real-time Web Scraping** for government subsidy schemes
 - ✅ **A/B Testing** for negotiation strategies
 - ✅ **ERP Integration** (Tally, Zoho Books)
 - ✅ **AES-256 Encryption** for sensitive data
@@ -70,5 +71,5 @@ MicroCFO is an AI-powered autonomous CFO assistant that automates financial oper
 
 ---
 
-**Last Updated**: February 3, 2026  
+**Last Updated**: February 7, 2026  
 **Status**: ✅ Production Ready

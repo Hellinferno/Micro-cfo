@@ -1,7 +1,7 @@
 # MicroCFO - Requirements Document
 
-**Version**: 2.1.0  
-**Last Updated**: February 3, 2026  
+**Version**: 2.2.0  
+**Last Updated**: February 7, 2026  
 **Status**: ✅ Production Ready
 
 ---
@@ -51,7 +51,7 @@ MicroCFO is an AI-powered autonomous CFO assistant designed for small to medium 
 
 | Req ID | Requirement | Status |
 |--------|-------------|--------|
-| FR-B1 | Ingest legal documents with structure awareness | ✅ |
+| FR-B1 | Ingest legal documents (14+ Acts/Rules including 2025 updates) | ✅ |
 | FR-B2 | Extract metadata (turnover thresholds, sectors, dates) | ✅ |
 | FR-B3 | CA-logic based text chunking | ✅ |
 | FR-B4 | Semantic + keyword hybrid search | ✅ |
@@ -65,7 +65,7 @@ MicroCFO is an AI-powered autonomous CFO assistant designed for small to medium 
 
 | Req ID | Requirement | Status |
 |--------|-------------|--------|
-| FR-C1 | Maintain government subsidy scheme database | ✅ |
+| FR-C1 | Maintain government subsidy scheme database with Real-time Web Scraping | ✅ |
 | FR-C2 | Match schemes to user profile (industry, turnover) | ✅ |
 | FR-C3 | Calculate estimated benefits | ✅ |
 | FR-C4 | Provide application guidance and deadlines | ✅ |
