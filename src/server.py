@@ -14,6 +14,7 @@ from fastmcp import FastMCP
 import requests
 from PIL import Image
 import io
+from datetime import datetime
 
 # Try to import the newer google.genai package, fallback to older one
 try:
