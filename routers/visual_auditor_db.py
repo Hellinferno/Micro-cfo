@@ -17,7 +17,7 @@ from src.database import get_db
 from src.models import Invoice
 from crud import create_invoice, get_invoice, get_user_invoices, update_invoice
 from middleware.authorization import get_current_user
-from src.mcp_bridge import MCPBridge, MCPBridgeError
+from mcp_bridge import MCPBridge, MCPBridgeError
 from src.file_validator import ComprehensiveFileValidator, FileValidationError
 
 logger = logging.getLogger(__name__)

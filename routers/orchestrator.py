@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request, BackgroundTasks,
 from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models import WorkflowState, Invoice, VendorProfile, BusinessProfile, ProactiveNotification
-from src.mcp_bridge import MCPBridge
+from mcp_bridge import MCPBridge
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import logging

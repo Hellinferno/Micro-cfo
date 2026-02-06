@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from src.database import get_db
 from src.models import Invoice as InvoiceModel, WorkflowState, GoldenDataset
 
-from src.mcp_bridge import MCPBridge, MCPBridgeError
+from mcp_bridge import MCPBridge, MCPBridgeError
 from src.file_validator import (
     ComprehensiveFileValidator,
     FileValidationError,

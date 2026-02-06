@@ -13,7 +13,7 @@ from src.models import VendorProfile
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 
-from src.mcp_bridge import MCPBridge, MCPBridgeError
+from mcp_bridge import MCPBridge, MCPBridgeError
 from src.legal_disclaimers import (
     LegalDisclaimers, DisclaimerType, Guardrails,
     get_negotiator_disclaimer, check_can_send_email
