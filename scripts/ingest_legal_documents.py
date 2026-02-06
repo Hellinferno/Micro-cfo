@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 # Document configurations with their law types
 DOCUMENT_CONFIGS = {
+    # Tax Laws
     "Income-tax-Act-2025.pdf": {
         "law_type": "Income Tax",
         "description": "Income Tax Act 2025 - Updated tax legislation"
@@ -36,10 +37,6 @@ DOCUMENT_CONFIGS = {
         "law_type": "GST",
         "description": "GST Acts and Rules Bare Law - April 2025 Edition"
     },
-    "Companies_Act_2013.pdf": {
-        "law_type": "Corporate Law",
-        "description": "Companies Act 2013"
-    },
     "CGST_Act_2017.pdf": {
         "law_type": "GST",
         "description": "Central Goods and Services Tax Act 2017"
@@ -47,6 +44,60 @@ DOCUMENT_CONFIGS = {
     "IGST_Act_2017.pdf": {
         "law_type": "GST", 
         "description": "Integrated Goods and Services Tax Act 2017"
+    },
+    
+    # Corporate Laws
+    "Companies_Act_2013.pdf": {
+        "law_type": "Corporate Law",
+        "description": "Companies Act 2013"
+    },
+    "Companies Act 2013 as amended upto 01.04.2021_.pdf": {
+        "law_type": "Corporate Law",
+        "description": "Companies Act 2013 (Amended up to April 2021)"
+    },
+    "LLP_Act_PDF_Version_2_.pdf": {
+        "law_type": "Corporate Law",
+        "description": "Limited Liability Partnership Act"
+    },
+    "Partnership Act 1932_.pdf": {
+        "law_type": "Corporate Law",
+        "description": "Indian Partnership Act 1932"
+    },
+    "The competion Act_.pdf": {
+        "law_type": "Corporate Law",
+        "description": "The Competition Act - Antitrust legislation"
+    },
+    
+    # Professional Acts
+    "Cost_and_works_Accountants_Act_1959_.pdf": {
+        "law_type": "Professional Law",
+        "description": "Cost and Works Accountants Act 1959"
+    },
+    
+    # Notifications (GST/Tax related)
+    "NOT38578CF3B232A694DBEAB2A9CE71848DCA1.pdf": {
+        "law_type": "GST",
+        "description": "GST/Tax Notification"
+    },
+    "NOT3821EAEF90E037B4061A91775A5525510C3.pdf": {
+        "law_type": "GST",
+        "description": "GST/Tax Notification"
+    },
+    "380MD14012026DAD56B73DC944F02AEA4530EC779AD7F.pdf": {
+        "law_type": "Income Tax",
+        "description": "Income Tax Notification/Circular"
+    },
+    "381MD140120267212A1D4EF8349448E9416EF8F2D19B5.pdf": {
+        "law_type": "Income Tax",
+        "description": "Income Tax Notification/Circular"
+    },
+    "383MD14012026559E41DD96224880B75EDB2B96E4BD8B.pdf": {
+        "law_type": "Income Tax",
+        "description": "Income Tax Notification/Circular"
+    },
+    "384MD14012026E275757688DE4E68AF9813B3B9491E4B.pdf": {
+        "law_type": "Income Tax",
+        "description": "Income Tax Notification/Circular"
     }
 }
 
