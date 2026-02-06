@@ -8,13 +8,17 @@ The Legal Data Seeding System downloads foundational Indian legal documents to t
 
 ## Expected Documents
 
-The following documents will be downloaded by the `seed_downloader.py` script:
+The following documents will be downloaded by the `seed_downloader.py` script or added manually:
 
-1. **CGST_Act_2017.pdf** - Central Goods and Services Tax Act 2017
-2. **IGST_Act_2017.pdf** - Integrated Goods and Services Tax Act 2017
-3. **Income_Tax_Act_1961.pdf** - Income Tax Act 1961
-4. **Companies_Act_2013.pdf** - Companies Act 2013
-5. **PLI_Textiles_Guidelines.pdf** - Production Linked Incentive Scheme for Textiles
+### Tax Laws (Latest 2025 Edition)
+1. **Income-tax-Act-2025.pdf** - Income Tax Act 2025 (Updated)
+2. **GST-Acts-and-Rules-Bare-Law-11-04-2025.pdf** - GST Acts and Rules Bare Law - April 2025 Edition
+
+### Corporate & Other Laws
+3. **Companies_Act_2013.pdf** - Companies Act 2013
+4. **CGST_Act_2017.pdf** - Central Goods and Services Tax Act 2017
+5. **IGST_Act_2017.pdf** - Integrated Goods and Services Tax Act 2017
+6. **PLI_Textiles_Guidelines.pdf** - Production Linked Incentive Scheme for Textiles
 
 ## Usage
 
