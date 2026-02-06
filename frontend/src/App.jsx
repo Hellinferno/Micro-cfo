@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import MainLayout from './components/Layout/MainLayout';
 import Login from './pages/Login';
 
@@ -39,6 +40,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <SpeedInsights />
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
