@@ -1,11 +1,11 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { 
-    Upload, 
-    Camera, 
-    FileText, 
-    X, 
-    CheckCircle, 
-    AlertTriangle, 
+import {
+    Upload,
+    Camera,
+    FileText,
+    X,
+    CheckCircle,
+    AlertTriangle,
     XCircle,
     Loader2,
     FileCheck,
@@ -22,37 +22,7 @@ const DocumentScanner = () => {
     const [processingProgress, setProcessingProgress] = useState(0);
     const [currentResult, setCurrentResult] = useState(null);
     const [showResultModal, setShowResultModal] = useState(false);
-    const [recentAudits, setRecentAudits] = useState([
-        {
-            id: 1,
-            fileName: 'Invoice_ABC_Corp_001.pdf',
-            vendor: 'ABC Corp',
-            amount: 45000,
-            date: '2024-01-15',
-            status: 'compliant',
-            gstNumber: '29AABCU9603R1ZM',
-        },
-        {
-            id: 2,
-            fileName: 'Bill_XYZ_Ltd_055.jpg',
-            vendor: 'XYZ Ltd',
-            amount: 78500,
-            date: '2024-01-14',
-            status: 'warning',
-            gstNumber: '27AAACX0417E1Z3',
-            flags: ['Amount mismatch detected'],
-        },
-        {
-            id: 3,
-            fileName: 'Receipt_DEF_Inc_012.png',
-            vendor: 'DEF Inc',
-            amount: 12300,
-            date: '2024-01-13',
-            status: 'non-compliant',
-            gstNumber: 'Invalid',
-            flags: ['Invalid GST number', 'Missing date'],
-        },
-    ]);
+    const [recentAudits, setRecentAudits] = useState([]);
 
     const fileInputRef = useRef(null);
     const cameraInputRef = useRef(null);
@@ -97,51 +67,60 @@ const DocumentScanner = () => {
     };
 
     const processDocuments = async () => {
+        if (files.length === 0) return;
+
         setProcessing(true);
-        setProcessingProgress(0);
+        setProcessingProgress(10); // Start progress
 
-        // Simulate processing
-        for (let i = 0; i <= 100; i += 10) {
-            await new Promise(resolve => setTimeout(resolve, 300));
-            setProcessingProgress(i);
+        try {
+            // Currently processing one file at a time for the demo
+            const fileToUpload = files[0].file;
+            const response = await import('../services/api').then(m => m.default.visualAuditor.uploadDocument(fileToUpload, true));
+            setProcessingProgress(80);
+
+            if (response.success && response.invoice_data) {
+                const invoice = response.invoice_data;
+
+                const result = {
+                    fileName: fileToUpload.name,
+                    vendor: invoice.vendor_name,
+                    amount: invoice.total_amount,
+                    taxAmount: invoice.tax_amount,
+                    invoiceDate: invoice.invoice_date,
+                    invoiceNumber: invoice.invoice_number || 'N/A',
+                    gstNumber: invoice.gstin || 'N/A',
+                    lineItems: invoice.line_items || [],
+                    status: (invoice.compliance_flags && invoice.compliance_flags.length > 0) ? 'warning' : 'compliant',
+                    complianceFlags: invoice.compliance_flags || [],
+                    aiSummary: invoice.summary || 'Processed successfully.',
+                };
+
+                setCurrentResult(result);
+                setShowResultModal(true);
+
+                // Add to recent audits
+                setRecentAudits(prev => [{
+                    id: Date.now(),
+                    fileName: result.fileName,
+                    vendor: result.vendor,
+                    amount: result.amount,
+                    date: result.invoiceDate,
+                    status: result.status,
+                    gstNumber: result.gstNumber,
+                }, ...prev.slice(0, 4)]);
+
+                setProcessingProgress(100);
+            } else {
+                throw new Error("Failed to process document");
+            }
+        } catch (error) {
+            console.error("Processing failed", error);
+            alert("Failed to process document: " + error.message);
+        } finally {
+            setProcessing(false);
+            setProcessingProgress(0);
+            setFiles([]);
         }
-
-        // Mock result
-        const mockResult = {
-            fileName: files[0]?.file?.name || 'Document.pdf',
-            vendor: 'Tech Solutions Pvt Ltd',
-            amount: 87500,
-            taxAmount: 15750,
-            invoiceDate: '2024-01-20',
-            invoiceNumber: 'INV-2024-0125',
-            gstNumber: '29AABCU9603R1ZM',
-            lineItems: [
-                { description: 'Software License', quantity: 5, rate: 15000, amount: 75000 },
-                { description: 'Support Services', quantity: 1, rate: 12500, amount: 12500 },
-            ],
-            status: 'compliant',
-            complianceFlags: [],
-            aiSummary: 'This invoice appears to be compliant with GST regulations. All required fields are present and the calculations are correct.',
-        };
-
-        setCurrentResult(mockResult);
-        setShowResultModal(true);
-        setProcessing(false);
-        setProcessingProgress(0);
-
-        // Add to recent audits
-        setRecentAudits(prev => [{
-            id: Date.now(),
-            fileName: mockResult.fileName,
-            vendor: mockResult.vendor,
-            amount: mockResult.amount,
-            date: mockResult.invoiceDate,
-            status: mockResult.status,
-            gstNumber: mockResult.gstNumber,
-        }, ...prev.slice(0, 4)]);
-
-        // Clear files
-        setFiles([]);
     };
 
     const getStatusIcon = (status) => {
@@ -185,11 +164,10 @@ const DocumentScanner = () => {
                     <Card>
                         <CardContent className="p-0">
                             <div
-                                className={`relative p-8 border-2 border-dashed rounded-xl transition-all ${
-                                    dragActive 
-                                        ? 'border-primary bg-primary/5' 
+                                className={`relative p-8 border-2 border-dashed rounded-xl transition-all ${dragActive
+                                        ? 'border-primary bg-primary/5'
                                         : 'border-slate-300 hover:border-primary/50'
-                                }`}
+                                    }`}
                                 onDragEnter={handleDrag}
                                 onDragLeave={handleDrag}
                                 onDragOver={handleDrag}
@@ -224,13 +202,13 @@ const DocumentScanner = () => {
                                     </p>
 
                                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                        <Button 
+                                        <Button
                                             onClick={() => fileInputRef.current?.click()}
                                             icon={FileText}
                                         >
                                             Browse Files
                                         </Button>
-                                        <Button 
+                                        <Button
                                             variant="outline"
                                             onClick={() => cameraInputRef.current?.click()}
                                             icon={Camera}
@@ -256,13 +234,13 @@ const DocumentScanner = () => {
                             <CardContent>
                                 <div className="space-y-3">
                                     {files.map((item) => (
-                                        <div 
+                                        <div
                                             key={item.id}
                                             className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg"
                                         >
                                             {item.preview ? (
-                                                <img 
-                                                    src={item.preview} 
+                                                <img
+                                                    src={item.preview}
                                                     alt="Preview"
                                                     className="w-16 h-16 object-cover rounded-lg"
                                                 />
@@ -290,7 +268,7 @@ const DocumentScanner = () => {
                                 </div>
 
                                 <div className="mt-4 pt-4 border-t border-slate-100">
-                                    <Button 
+                                    <Button
                                         className="w-full"
                                         onClick={processDocuments}
                                         disabled={processing}
@@ -332,7 +310,7 @@ const DocumentScanner = () => {
                         <CardContent className="p-0">
                             <div className="divide-y divide-slate-100">
                                 {recentAudits.map((audit) => (
-                                    <div 
+                                    <div
                                         key={audit.id}
                                         className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
                                     >
@@ -392,28 +370,26 @@ const DocumentScanner = () => {
                 {currentResult && (
                     <div className="space-y-6">
                         {/* Status Banner */}
-                        <div className={`p-4 rounded-xl ${
-                            currentResult.status === 'compliant' 
-                                ? 'bg-emerald-50 border border-emerald-200' 
+                        <div className={`p-4 rounded-xl ${currentResult.status === 'compliant'
+                                ? 'bg-emerald-50 border border-emerald-200'
                                 : currentResult.status === 'warning'
-                                ? 'bg-amber-50 border border-amber-200'
-                                : 'bg-red-50 border border-red-200'
-                        }`}>
+                                    ? 'bg-amber-50 border border-amber-200'
+                                    : 'bg-red-50 border border-red-200'
+                            }`}>
                             <div className="flex items-center gap-3">
                                 {getStatusIcon(currentResult.status)}
                                 <div>
-                                    <p className={`font-semibold ${
-                                        currentResult.status === 'compliant' 
-                                            ? 'text-emerald-800' 
+                                    <p className={`font-semibold ${currentResult.status === 'compliant'
+                                            ? 'text-emerald-800'
                                             : currentResult.status === 'warning'
-                                            ? 'text-amber-800'
-                                            : 'text-red-800'
-                                    }`}>
-                                        {currentResult.status === 'compliant' 
-                                            ? '✅ Document is Compliant' 
+                                                ? 'text-amber-800'
+                                                : 'text-red-800'
+                                        }`}>
+                                        {currentResult.status === 'compliant'
+                                            ? '✅ Document is Compliant'
                                             : currentResult.status === 'warning'
-                                            ? '⚠️ Review Required'
-                                            : '❌ Non-Compliant'}
+                                                ? '⚠️ Review Required'
+                                                : '❌ Non-Compliant'}
                                     </p>
                                     <p className="text-sm text-slate-600 mt-1">
                                         {currentResult.aiSummary}

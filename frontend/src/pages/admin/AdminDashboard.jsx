@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    AreaChart, Area
-} from 'recharts';
-import {
     Users, FileText, CheckCircle, AlertTriangle, Download, Filter,
     Search, MoreHorizontal, ArrowUpRight, ArrowDownRight, RefreshCw
 } from 'lucide-react';
@@ -16,16 +12,6 @@ const AdminDashboard = () => {
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-
-    // Mock Chart Data (replace with API data later)
-    const chartData = [
-        { name: 'Jan', invoices: 65, amount: 24000 },
-        { name: 'Feb', invoices: 59, amount: 18000 },
-        { name: 'Mar', invoices: 80, amount: 45000 },
-        { name: 'Apr', invoices: 81, amount: 32000 },
-        { name: 'May', invoices: 96, amount: 56000 },
-        { name: 'Jun', invoices: 120, amount: 75000 },
-    ];
 
     // Fetch data on mount
     useEffect(() => {
@@ -43,20 +29,10 @@ const AdminDashboard = () => {
             setStats(statsRes);
             setUsers(usersRes);
         } catch (error) {
-            console.error("Admin Access Denied", error);
-            // Fallback mock data if API fails (for demo)
-            setStats({
-                total_users: 124,
-                active_users_24h: 18,
-                total_invoices_processed: 892,
-                system_health: '98%'
-            });
-            setUsers([
-                { id: 1, full_name: 'Rahul Sharma', email: 'rahul@techstart.in', company_name: 'TechStart', business_sector: 'IT Services', invoice_count: 45, is_active: true },
-                { id: 2, full_name: 'Priya Patel', email: 'priya@freshfoods.com', company_name: 'Fresh Foods', business_sector: 'Retail', invoice_count: 12, is_active: true },
-                { id: 3, full_name: 'Amit Kumar', email: 'amit@logistics.co', company_name: 'Fast Logistics', business_sector: 'Transport', invoice_count: 78, is_active: false },
-                { id: 4, full_name: 'Sneha Gupta', email: 'sneha@creative.io', company_name: 'Creative Studio', business_sector: 'Design', invoice_count: 23, is_active: true },
-            ]);
+            console.error("Admin Access Denied or API Error", error);
+            // No mock fallback - UI will handle empty state
+            setStats(null);
+            setUsers([]);
         } finally {
             setLoading(false);
         }
@@ -170,34 +146,11 @@ const AdminDashboard = () => {
                         <h3 className="font-semibold text-slate-800">Transaction Volume</h3>
                         <select className="text-sm border-none bg-slate-50 rounded-md p-1 focus:ring-0 text-slate-500 cursor-pointer">
                             <option>Last 6 Months</option>
-                            <option>Last Year</option>
                         </select>
                     </div>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData}>
-                                <defs>
-                                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="amount"
-                                    stroke="#10B981"
-                                    strokeWidth={3}
-                                    fillOpacity={1}
-                                    fill="url(#colorAmount)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="h-64 flex items-center justify-center text-slate-400">
+                        {/* Real chart data integration required */}
+                        No transaction data available
                     </div>
                 </div>
 
