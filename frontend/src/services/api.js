@@ -283,7 +283,7 @@ export const negotiatorAPI = {
      * @returns {Promise<Object>} Generated email
      */
     async generateEmail(invoiceData, negotiationContext) {
-        return apiFetch(`${API_V1_PREFIX}/agents/negotiator/generate-email`, {
+        return apiFetch(`${API_V1_PREFIX}/negotiation/generate-email`, {
             method: 'POST',
             body: JSON.stringify({
                 invoice_data: invoiceData,

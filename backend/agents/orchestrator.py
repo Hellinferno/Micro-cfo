@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from backend.agents.visual_auditor import VisualAuditor
 from backend.agents.legal_sentinel import LegalSentinel
 from backend.agents.subsidy_hunter import SubsidyHunter
+from backend.agents.negotiator import Negotiator, NegotiationRequest
 
 
 class ChatMessage(BaseModel):
@@ -26,6 +27,7 @@ class Orchestrator:
         self.visual_auditor = VisualAuditor()
         self.legal_sentinel = LegalSentinel()
         self.subsidy_hunter = SubsidyHunter()
+        self.negotiator = Negotiator()
     
     async def process_message(
         self,
@@ -44,6 +46,8 @@ class Orchestrator:
             result = await self._handle_subsidies(message)
         elif agent == "visual_auditor":
             result = await self._handle_invoice_question(message)
+        elif agent == "negotiator":
+            result = await self._handle_negotiation(message)
         else:
             result = await self._handle_general(message)
         
@@ -71,27 +75,67 @@ class Orchestrator:
             "eligibility", "apply", "application"
         ]
         
-        # Invoice/document keywords
+        # Invoice keywords
         invoice_keywords = [
             "scan", "upload", "invoice", "bill", "receipt", "document",
-            "vendor", "payment", "amount", "analyze"
+            "amount", "analyze"
+        ]
+
+        # Negotiation keywords
+        negotiation_keywords = [
+            "negotiate", "email", "draft", "write", "vendor", "discount",
+            "payment terms", "delay", "reply", "compose", "letter"
         ]
         
         # Score each category
         compliance_score = sum(1 for kw in compliance_keywords if kw in msg_lower)
         subsidy_score = sum(1 for kw in subsidy_keywords if kw in msg_lower)
         invoice_score = sum(1 for kw in invoice_keywords if kw in msg_lower)
+        negotiation_score = sum(1 for kw in negotiation_keywords if kw in msg_lower)
         
         # Return agent with highest score
-        if compliance_score > subsidy_score and compliance_score > invoice_score:
-            return "legal_sentinel"
-        elif subsidy_score > compliance_score and subsidy_score > invoice_score:
-            return "subsidy_hunter"
-        elif invoice_score > 0:
-            return "visual_auditor"
+        scores = {
+            "legal_sentinel": compliance_score,
+            "subsidy_hunter": subsidy_score,
+            "visual_auditor": invoice_score,
+            "negotiator": negotiation_score
+        }
+        
+        best_agent = max(scores, key=scores.get)
+        
+        if scores[best_agent] > 0:
+            return best_agent
         
         # Default to legal sentinel for general questions
         return "legal_sentinel"
+
+    # ... existing handlers ...
+
+    async def _handle_negotiation(self, message: str) -> Dict[str, Any]:
+        """Handle negotiation requests"""
+        # Create a generic request context from the chat message
+        request = NegotiationRequest(
+            invoice_data={"vendor_name": "Vendor"}, # Generic placeholder
+            negotiation_context=message,
+            vendor_relationship="neutral",
+            tone="professional"
+        )
+        
+        email = await self.negotiator.generate_email(request)
+        
+        return {
+            "message": f"Here is a draft email for you:\n\n"
+                      f"**Subject:** {email.subject}\n\n"
+                      f"{email.body}\n\n"
+                      f"*Strategy: {email.strategy_explanation}*",
+            "agent_used": "negotiator",
+            "suggested_actions": [
+                "Copy to clipboard",
+                "Regenerate with firmer tone",
+                "Modify details"
+            ]
+        }
+
     
     async def _handle_compliance(self, message: str) -> Dict[str, Any]:
         """Handle compliance questions"""
