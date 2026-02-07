@@ -1,6 +1,6 @@
 """
 Subsidy Hunter - Agent C
-AI-powered government scheme discovery
+AI-powered government scheme discovery with web scraping
 """
 
 import os
@@ -8,12 +8,8 @@ import json
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 
-# Try importing google.generativeai
-try:
-    import google.generativeai as genai
-    GENAI_AVAILABLE = True
-except ImportError:
-    GENAI_AVAILABLE = False
+# Import web scraper
+from backend.services.subsidy_scraper import scraper, SubsidyScraper
 
 
 class Subsidy(BaseModel):
@@ -29,20 +25,11 @@ class Subsidy(BaseModel):
 class SubsidyHunter:
     """
     Agent C: Subsidy Hunter
-    Finds applicable government subsidies based on business profile
+    Finds applicable government subsidies using web scraping
     """
     
     def __init__(self):
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        self.model = None
-        
-        if GENAI_AVAILABLE and self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel("gemini-1.5-flash")
-    
-    @property
-    def is_available(self) -> bool:
-        return self.model is not None
+        self.scraper = scraper  # Use global scraper instance
     
     async def find_subsidies(
         self, 
@@ -50,126 +37,97 @@ class SubsidyHunter:
         capex: float, 
         state: Optional[str] = None
     ) -> List[Subsidy]:
-        """Find applicable subsidies for given criteria"""
-        if not self.is_available:
-            return self._mock_subsidies(sector, capex)
+        """Find applicable subsidies using web scraping"""
         
-        prompt = self._get_prompt(sector, capex, state)
+        # Get all schemes from scraper (with fallback)
+        all_schemes = await self.scraper.get_all_schemes(use_cache=True)
         
-        try:
-            response = self.model.generate_content(prompt)
-            return self._parse_response(response.text)
-        except Exception as e:
-            print(f"LLM error: {e}")
-            return self._mock_subsidies(sector, capex)
-    
-    def _get_prompt(self, sector: str, capex: float, state: Optional[str]) -> str:
-        state_str = state if state and state != "All India" else "pan-India"
+        # Filter by sector
+        if sector:
+            filtered = self.scraper.filter_by_sector(all_schemes, sector)
+        else:
+            filtered = all_schemes
         
-        return f"""You are an expert in Indian Government schemes and subsidies for MSMEs.
-
-Find applicable subsidies for:
-- Sector: {sector}
-- Capital Expenditure: ₹{capex:,.0f}
-- State: {state_str}
-
-Provide 3-5 REAL government schemes with accurate details:
-1. Official scheme name
-2. Actual benefits offered
-3. Eligibility criteria
-4. Implementing ministry/department
-5. Official application URL (if available)
-
-**OUTPUT FORMAT (JSON ARRAY ONLY):**
-[
-  {{
-    "name": "Official Scheme Name",
-    "benefit": "Subsidy percentage or amount",
-    "eligibility": "Who can apply",
-    "ministry": "Ministry/Department name",
-    "link": "Official URL or null",
-    "max_subsidy": "Maximum subsidy amount or null"
-  }}
-]"""
-    
-    def _parse_response(self, response_text: str) -> List[Subsidy]:
-        """Parse LLM response to list of subsidies"""
-        try:
-            text = response_text.strip()
-            
-            if "```json" in text:
-                text = text.split("```json")[1].split("```")[0].strip()
-            elif "```" in text:
-                text = text.split("```")[1].split("```")[0].strip()
-            
-            data = json.loads(text)
-            
-            if not isinstance(data, list):
-                data = [data]
-            
-            return [
-                Subsidy(
-                    name=item.get("name", "Unknown Scheme"),
-                    benefit=item.get("benefit", "Contact ministry for details"),
-                    eligibility=item.get("eligibility", "Check official website"),
-                    ministry=item.get("ministry", "Various ministries"),
-                    link=item.get("link"),
-                    max_subsidy=item.get("max_subsidy")
-                )
-                for item in data
-            ]
-            
-        except Exception as e:
-            print(f"Parse error: {e}")
-            return []
-    
-    def _mock_subsidies(self, sector: str, capex: float) -> List[Subsidy]:
-        """Return mock subsidies when API unavailable"""
-        # Common schemes applicable to most MSMEs
-        schemes = [
-            Subsidy(
-                name="PM Vishwakarma Scheme",
-                benefit="Skill training + Rs 15,000 toolkit + Credit up to ₹3 lakh at 5% interest",
-                eligibility="Traditional artisans and craftspeople in 18 specified trades",
-                ministry="Ministry of MSME",
-                link="https://pmvishwakarma.gov.in",
-                max_subsidy="₹3,00,000 collateral-free credit"
-            ),
-            Subsidy(
-                name="PMEGP (Prime Minister's Employment Generation Programme)",
-                benefit="15-35% capital subsidy on project cost",
-                eligibility="New manufacturing units with project cost up to ₹50 lakh",
-                ministry="Ministry of MSME via KVIC",
-                link="https://www.kviconline.gov.in/pmegpeportal/",
-                max_subsidy="35% for special category in rural areas"
-            ),
-            Subsidy(
-                name="Credit Guarantee Fund Trust for Micro and Small Enterprises (CGTMSE)",
-                benefit="Collateral-free credit up to ₹5 crore",
-                eligibility="New and existing micro/small enterprises",
-                ministry="Ministry of MSME",
-                link="https://www.cgtmse.in",
-                max_subsidy="Coverage up to 85% of credit facility"
-            ),
-            Subsidy(
-                name="MUDRA Yojana",
-                benefit="Loans up to ₹10 lakh without collateral",
-                eligibility="Non-corporate, non-farm small/micro enterprises",
-                ministry="Ministry of Finance",
-                link="https://www.mudra.org.in",
-                max_subsidy="₹10,00,000 (Tarun category)"
-            )
-        ]
+        # Filter by capex
+        filtered = self.scraper.filter_by_capex(filtered, capex)
         
-        # Add sector-specific scheme
-        if "manufacturing" in sector.lower():
-            schemes.insert(0, Subsidy(
-                name="Production Linked Incentive (PLI) Scheme",
-                benefit="4-6% incentive on incremental sales for 5 years",
-                eligibility="Manufacturing companies meeting investment thresholds",
-                ministry="Various ministries (sector-specific)",
-                link="https://www.makeinindia.com/pli",
-                max_subsidy="Varies by sector"
+        # Calculate match scores and convert to Subsidy models
+        subsidies = []
+        for scheme in filtered[:10]:  # Limit to top 10
+            match_score = self.scraper.calculate_match_score(scheme, sector, capex)
+            subsidies.append(Subsidy(
+                name=scheme.get("name", "Unknown Scheme"),
+                benefit=scheme.get("benefit", "Contact ministry for details"),
+                eligibility=scheme.get("eligibility", "Check official website"),
+                ministry=scheme.get("ministry", "Various ministries"),
+                link=scheme.get("link"),
+                max_subsidy=scheme.get("max_subsidy"),
+                match_score=match_score
             ))
         
-        return schemes[:5]
+        # Sort by match score
+        subsidies.sort(key=lambda x: x.match_score or 0, reverse=True)
+        
+        return subsidies[:5]  # Return top 5
+    
+    async def search_by_query(self, query: str) -> List[Subsidy]:
+        """Search subsidies by natural language query"""
+        
+        # Extract sector from query
+        sector = self._extract_sector_from_query(query)
+        
+        # Extract amount from query
+        capex = self._extract_amount_from_query(query)
+        
+        return await self.find_subsidies(sector, capex)
+    
+    def _extract_sector_from_query(self, query: str) -> str:
+        """Extract sector from natural language query"""
+        query_lower = query.lower()
+        
+        sector_keywords = {
+            "manufacturing": ["manufacturing", "factory", "plant", "production", "industrial"],
+            "textile": ["textile", "garment", "apparel", "fabric", "yarn", "clothing"],
+            "food_processing": ["food", "dairy", "beverage", "bakery", "processing"],
+            "agriculture": ["farm", "agri", "rural", "village", "crop"],
+            "it": ["it", "software", "tech", "digital", "app", "saas"],
+            "pharma": ["pharma", "drug", "medicine", "medical", "healthcare"],
+            "women_entrepreneur": ["women", "woman", "female", "lady"],
+            "services": ["service", "consulting", "hotel", "tourism"],
+        }
+        
+        for sector, keywords in sector_keywords.items():
+            if any(kw in query_lower for kw in keywords):
+                return sector
+        
+        return "manufacturing"  # Default
+    
+    def _extract_amount_from_query(self, query: str) -> float:
+        """Extract CAPEX amount from query"""
+        import re
+        
+        query_lower = query.lower()
+        
+        # Try to parse crore
+        crore_match = re.search(r'(\d+(?:\.\d+)?)\s*cr(?:ore)?', query_lower)
+        if crore_match:
+            return float(crore_match.group(1)) * 10000000
+        
+        # Try to parse lakh
+        lakh_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:lakh?|lac)', query_lower)
+        if lakh_match:
+            return float(lakh_match.group(1)) * 100000
+        
+        # Try to parse raw number
+        num_match = re.search(r'(\d+(?:,\d{3})*(?:\.\d+)?)', query)
+        if num_match:
+            return float(num_match.group(1).replace(',', ''))
+        
+        return 1000000  # Default 10 lakh
+    
+    async def refresh_schemes(self) -> int:
+        """Force refresh schemes from web sources"""
+        # Clear cache and re-scrape
+        self.scraper.cache.clear()
+        schemes = await self.scraper.get_all_schemes(use_cache=False)
+        return len(schemes)
