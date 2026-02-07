@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 MicroCFO Streamlit App - AI Financial Assistant for Hugging Face Spaces
-Uses Gemini 1.5 Flash with Google File API for superior document vision
+UI Design matched to Vercel React Frontend
 """
 
 import streamlit as st
@@ -18,46 +18,279 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for premium look
+# Custom CSS matching Vercel/React frontend design
 st.markdown("""
 <style>
-    /* Main container */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    /* Global font */
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    /* Main container - Light slate background */
     .main {
-        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        background-color: #F8FAFC;
     }
     
-    /* Headers */
-    h1, h2, h3 {
-        background: linear-gradient(90deg, #818CF8, #A78BFA);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 700;
+    .stApp {
+        background-color: #F8FAFC;
     }
     
-    /* Buttons */
+    /* Headers - Slate 800 */
+    h1 {
+        color: #1E293B !important;
+        font-weight: 700 !important;
+        font-size: 1.875rem !important;
+    }
+    
+    h2, h3 {
+        color: #334155 !important;
+        font-weight: 600 !important;
+    }
+    
+    p, span, label {
+        color: #64748B;
+    }
+    
+    /* Primary Button - Trust Blue */
     .stButton > button {
-        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        background-color: #1E40AF !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 0.75rem !important;
+        padding: 0.75rem 1.5rem !important;
+        font-weight: 600 !important;
+        font-size: 0.875rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+        background-color: #1E3A8A !important;
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3) !important;
+        transform: translateY(-1px) !important;
     }
     
-    /* Sidebar */
+    /* Secondary/Outline buttons */
+    .stButton > button[kind="secondary"] {
+        background-color: white !important;
+        color: #1E40AF !important;
+        border: 1px solid #E2E8F0 !important;
+    }
+    
+    /* Sidebar - Corporate dark */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+        background-color: #1E293B !important;
+    }
+    
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label {
+        color: #F1F5F9 !important;
+    }
+    
+    [data-testid="stSidebar"] .stRadio label {
+        color: #CBD5E1 !important;
+    }
+    
+    [data-testid="stSidebar"] .stRadio label:hover {
+        color: #FFFFFF !important;
+    }
+    
+    /* Cards - White with slate border */
+    .card {
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+    }
+    
+    .card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Quick action cards */
+    .quick-action {
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .quick-action:hover {
+        border-color: #1E40AF;
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+    }
+    
+    .quick-action-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.75rem auto;
+        font-size: 1.5rem;
+    }
+    
+    .icon-blue { background-color: #DBEAFE; }
+    .icon-purple { background-color: #EDE9FE; }
+    .icon-green { background-color: #D1FAE5; }
+    .icon-orange { background-color: #FFEDD5; }
+    
+    /* Agent cards */
+    .agent-card {
+        background: #F8FAFC;
+        border: 1px solid #F1F5F9;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .agent-card:hover {
+        border-color: #E2E8F0;
+    }
+    
+    .agent-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+    
+    .bg-blue { background-color: #3B82F6; }
+    .bg-purple { background-color: #8B5CF6; }
+    .bg-green { background-color: #10B981; }
+    .bg-orange { background-color: #F97316; }
+    
+    /* Badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .badge-success {
+        background-color: #D1FAE5;
+        color: #065F46;
+    }
+    
+    .badge-warning {
+        background-color: #FEF3C7;
+        color: #92400E;
+    }
+    
+    .badge-danger {
+        background-color: #FEE2E2;
+        color: #991B1B;
+    }
+    
+    .badge-info {
+        background-color: #DBEAFE;
+        color: #1E40AF;
+    }
+    
+    /* Status dot */
+    .status-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background-color: #10B981;
+        display: inline-block;
+        margin-right: 0.375rem;
+    }
+    
+    /* Metrics */
+    .stMetric {
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 0.75rem;
+        padding: 1rem;
+    }
+    
+    .stMetric label {
+        color: #64748B !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .stMetric [data-testid="stMetricValue"] {
+        color: #1E293B !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Success/Warning/Error boxes */
+    .stSuccess {
+        background-color: #D1FAE5;
+        border-color: #10B981;
+    }
+    
+    .stWarning {
+        background-color: #FEF3C7;
+        border-color: #F59E0B;
+    }
+    
+    .stError {
+        background-color: #FEE2E2;
+        border-color: #EF4444;
+    }
+    
+    /* File uploader */
+    .stFileUploader {
+        background: white;
+        border: 2px dashed #E2E8F0;
+        border-radius: 0.75rem;
+        padding: 2rem;
+    }
+    
+    .stFileUploader:hover {
+        border-color: #1E40AF;
+    }
+    
+    /* Text inputs */
+    .stTextInput input, .stTextArea textarea, .stSelectbox select {
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 0.5rem !important;
+        background: white !important;
+    }
+    
+    .stTextInput input:focus, .stTextArea textarea:focus {
+        border-color: #1E40AF !important;
+        box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: #E2E8F0 !important;
+    }
+    
+    /* Expander */
+    .streamlit-expanderHeader {
+        background: white !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 0.75rem !important;
     }
     
     /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -79,13 +312,11 @@ def init_gemini():
 def process_uploaded_file(uploaded_file):
     """Saves uploaded file to temp path and uploads to Gemini File API"""
     try:
-        # Create a temporary file on the server
         suffix = f".{uploaded_file.name.split('.')[-1]}"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
             tmp_file.write(uploaded_file.getvalue())
             tmp_path = tmp_file.name
 
-        # Upload to Google (The "Magic" Step)
         with st.spinner("📤 Uploading to Gemini Vision..."):
             google_file = genai.upload_file(tmp_path)
             
@@ -108,15 +339,20 @@ def init_session_state():
 # Sidebar navigation
 def sidebar():
     with st.sidebar:
-        st.image("https://img.icons8.com/fluency/96/money-bag.png", width=80)
-        st.title("MicroCFO")
-        st.markdown("*AI Financial Assistant for Indian MSMEs*")
+        # Logo area
+        st.markdown("""
+        <div style="text-align: center; padding: 1rem 0 2rem 0;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💰</div>
+            <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">MicroCFO</h2>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; opacity: 0.8;">AI Financial Assistant</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         st.divider()
         
         page = st.radio(
-            "Navigate to",
-            ["🏠 Home", "📄 Invoice Scanner", "⚖️ Compliance Check", "💰 Subsidy Hunter"],
+            "Navigation",
+            ["🏠 Dashboard", "📄 Document Scanner", "⚖️ Compliance Check", "💰 Subsidy Explorer"],
             label_visibility="collapsed"
         )
         
@@ -125,64 +361,254 @@ def sidebar():
         # API Status
         api_key = os.environ.get("GEMINI_API_KEY")
         if api_key:
-            st.success("✅ API Connected")
+            st.markdown("""
+            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem;">
+                <span class="status-dot"></span>
+                <span style="font-size: 0.875rem;">API Connected</span>
+            </div>
+            """, unsafe_allow_html=True)
         else:
             st.error("❌ API Key Missing")
             st.caption("Set GEMINI_API_KEY in Secrets")
         
         st.divider()
-        st.info("📄 Supports: PNG, JPG, PDF\n\n🔍 Works with scanned docs & handwriting!")
+        
+        st.markdown("""
+        <div style="padding: 0.75rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; font-size: 0.75rem;">
+            <p style="margin: 0 0 0.5rem 0; font-weight: 500;">📄 Supported Formats</p>
+            <p style="margin: 0; opacity: 0.8;">PNG, JPG, PDF</p>
+            <p style="margin: 0.5rem 0 0 0; opacity: 0.8;">✨ Works with scanned docs</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         return page
 
 
 # Pages
-def home_page():
-    st.title("🏦 MicroCFO")
-    st.markdown("### AI-Powered Financial Assistant for Indian MSMEs")
+def dashboard_page():
+    # Header
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.title("Dashboard")
+        st.markdown('<p style="margin-top: -0.5rem;">Welcome back! Here\'s your financial health overview.</p>', unsafe_allow_html=True)
+    with col2:
+        st.button("🔔 3 New Alerts", use_container_width=True)
     
-    col1, col2, col3 = st.columns(3)
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Quick Actions
+    st.markdown("### Quick Actions")
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2)); 
-                    border-radius: 16px; padding: 2rem; text-align: center; border: 1px solid rgba(99, 102, 241, 0.3);">
-            <h3>📄 Visual Auditor</h3>
-            <p>Scan invoices with AI-powered fraud detection. Works with scanned PDFs & handwriting!</p>
+        <div class="quick-action">
+            <div class="quick-action-icon icon-blue">📤</div>
+            <span style="font-size: 0.875rem; font-weight: 500; color: #334155;">Upload Invoice</span>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2)); 
-                    border-radius: 16px; padding: 2rem; text-align: center; border: 1px solid rgba(34, 197, 94, 0.3);">
-            <h3>⚖️ Legal Sentinel</h3>
-            <p>Get instant answers on GST, tax compliance and legal requirements</p>
+        <div class="quick-action">
+            <div class="quick-action-icon icon-purple">📷</div>
+            <span style="font-size: 0.875rem; font-weight: 500; color: #334155;">Scan Document</span>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
-        <div style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(245, 158, 11, 0.2)); 
-                    border-radius: 16px; padding: 2rem; text-align: center; border: 1px solid rgba(234, 179, 8, 0.3);">
-            <h3>💰 Subsidy Hunter</h3>
-            <p>Discover government schemes and subsidies for your business</p>
+        <div class="quick-action">
+            <div class="quick-action-icon icon-green">🔍</div>
+            <span style="font-size: 0.875rem; font-weight: 500; color: #334155;">Check Eligibility</span>
         </div>
         """, unsafe_allow_html=True)
     
-    st.divider()
+    with col4:
+        st.markdown("""
+        <div class="quick-action">
+            <div class="quick-action-icon icon-orange">📋</div>
+            <span style="font-size: 0.875rem; font-weight: 500; color: #334155;">Compliance Report</span>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.markdown("### ✨ Powered by Gemini 1.5 Flash Vision")
-    st.markdown("""
-    - 🔍 **Scanned PDFs** - Reads photos saved as PDFs that traditional tools can't parse
-    - ✍️ **Handwriting** - Understands handwritten notes and annotations
-    - ☁️ **Cloud Processing** - No heavy processing on your device
-    """)
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Main Grid
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        # Financial Health Score
+        st.markdown("""
+        <div class="card">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Financial Health Score</h3>
+            <div style="text-align: center; padding: 1.5rem 0;">
+                <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#10B981 0% 72%, #E2E8F0 72% 100%); margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 90px; height: 90px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 1.75rem; font-weight: 700; color: #1E293B;">72</span>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem;">
+                <div style="margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                        <span style="color: #64748B;">Compliance</span>
+                        <span style="color: #1E293B; font-weight: 500;">85%</span>
+                    </div>
+                    <div style="height: 0.5rem; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
+                        <div style="width: 85%; height: 100%; background: #10B981; border-radius: 9999px;"></div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                        <span style="color: #64748B;">Cash Flow</span>
+                        <span style="color: #1E293B; font-weight: 500;">65%</span>
+                    </div>
+                    <div style="height: 0.5rem; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
+                        <div style="width: 65%; height: 100%; background: #F59E0B; border-radius: 9999px;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                        <span style="color: #64748B;">Subsidies</span>
+                        <span style="color: #1E293B; font-weight: 500;">70%</span>
+                    </div>
+                    <div style="height: 0.5rem; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
+                        <div style="width: 70%; height: 100%; background: #3B82F6; border-radius: 9999px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding: 0.75rem; background: #D1FAE5; border-radius: 0.5rem; border: 1px solid #A7F3D0;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: #065F46; font-weight: 500;">
+                    📈 +5% improvement
+                </div>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: #047857;">compared to last month</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        # AI Agent Activity
+        st.markdown("""
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0; font-size: 1rem;">AI Agent Activity</h3>
+                <a href="#" style="font-size: 0.875rem; color: #1E40AF; text-decoration: none;">View All →</a>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="agent-card">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <div class="agent-icon bg-blue">👁️</div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-weight: 500; color: #1E293B;">Visual Auditor</span>
+                                <span class="badge badge-success"><span class="status-dot"></span>Active</span>
+                            </div>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748B;">12 documents processed today</p>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.75rem; color: #94A3B8;">2 minutes ago</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <div class="agent-icon bg-purple">⚖️</div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-weight: 500; color: #1E293B;">Legal Sentinel</span>
+                                <span class="badge badge-success"><span class="status-dot"></span>Active</span>
+                            </div>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748B;">3 alerts this week</p>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.75rem; color: #94A3B8;">1 hour ago</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <div class="agent-icon bg-green">🔍</div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-weight: 500; color: #1E293B;">Subsidy Hunter</span>
+                                <span class="badge badge-success"><span class="status-dot"></span>Active</span>
+                            </div>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748B;">5 opportunities found</p>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.75rem; color: #94A3B8;">30 minutes ago</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="agent-card">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <div class="agent-icon bg-orange">✉️</div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-weight: 500; color: #1E293B;">Negotiator</span>
+                                <span class="badge badge-success"><span class="status-dot"></span>Active</span>
+                            </div>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748B;">8 emails sent this month</p>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.75rem; color: #94A3B8;">4 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Bottom Stats
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="margin: 0; font-size: 0.875rem; color: #64748B;">Penalties Avoided</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: 700; color: #10B981;">₹45,000</p>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #D1FAE5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    📉
+                </div>
+            </div>
+            <p style="margin: 1rem 0 0 0; font-size: 0.75rem; color: #94A3B8;">3 penalties avoided this quarter</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="margin: 0; font-size: 0.875rem; color: #64748B;">Subsidies Claimed</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: 700; color: #3B82F6;">₹2,50,000</p>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #DBEAFE; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    📈
+                </div>
+            </div>
+            <p style="margin: 1rem 0 0 0; font-size: 0.75rem; color: #94A3B8;">2 schemes approved this year</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <p style="margin: 0; font-size: 0.875rem; color: #64748B;">Documents Processed</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: 700; color: #8B5CF6;">156</p>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #EDE9FE; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    📋
+                </div>
+            </div>
+            <p style="margin: 1rem 0 0 0; font-size: 0.75rem; color: #94A3B8;">98% accuracy rate</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 
-def invoice_scanner_page():
-    st.title("📄 Visual Auditor")
-    st.markdown("Upload an invoice to analyze it for fraud detection and compliance")
+def document_scanner_page():
+    st.title("Document Scanner")
+    st.markdown('<p style="margin-top: -0.5rem;">Upload an invoice or document to analyze it with AI</p>', unsafe_allow_html=True)
     
     model = init_gemini()
     
@@ -190,48 +616,41 @@ def invoice_scanner_page():
         st.error("⚠️ API key not configured. Please set GEMINI_API_KEY in Secrets.")
         return
     
-    uploaded_file = st.file_uploader(
-        "Upload Invoice Document",
-        type=['png', 'jpg', 'jpeg', 'pdf'],
-        help="Upload a clear image or PDF of your invoice"
-    )
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    if uploaded_file:
-        col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("""
+        <div class="card">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Upload Document</h3>
+        """, unsafe_allow_html=True)
         
-        with col1:
-            # Show preview if it's an image
+        uploaded_file = st.file_uploader(
+            "Drop your file here",
+            type=['png', 'jpg', 'jpeg', 'pdf'],
+            help="Supports PNG, JPG, and PDF files",
+            label_visibility="collapsed"
+        )
+        
+        if uploaded_file:
             if uploaded_file.type in ["image/png", "image/jpeg"]:
                 st.image(uploaded_file, caption="Preview", use_container_width=True)
-            elif uploaded_file.type == "application/pdf":
-                st.success("📄 PDF Loaded (Preview not available for PDF)")
-                st.info(f"File: {uploaded_file.name}")
-        
-        with col2:
-            if st.button("🔍 Analyze Invoice", use_container_width=True):
-                # Upload to Google File API
+            else:
+                st.success(f"📄 {uploaded_file.name} loaded")
+            
+            if st.button("🔍 Analyze Document", use_container_width=True):
                 google_file = process_uploaded_file(uploaded_file)
                 
                 if google_file:
-                    # The CFO Auditor Prompt
-                    system_prompt = """
-                    You are an expert AI Accountant and Financial Auditor for Indian MSMEs.
+                    system_prompt = """You are an expert AI Accountant and Financial Auditor for Indian MSMEs.
                     Analyze this invoice/document carefully.
                     
-                    **EXTRACTION TASKS:**
-                    1. Extract: Vendor Name, Invoice Date (YYYY-MM-DD), Total Amount, Tax Amount, GSTIN
-                    2. Categorize each line item as: Capital Goods, Raw Material, Personal/Entertainment, or Service
+                    Extract: Vendor Name, Invoice Date (YYYY-MM-DD), Total Amount, Tax Amount, GSTIN
+                    Check for: Tampering, handwritten overrides, missing information
+                    Flag: Items not eligible for ITC, missing GSTIN with tax charged
                     
-                    **FRAUD DETECTION:**
-                    3. Check for: Mismatched fonts, blurred/tampered numbers, handwritten overrides
-                    4. Note if this is a handwritten bill
-                    
-                    **COMPLIANCE CHECKS:**
-                    5. Flag items NOT eligible for Input Tax Credit (ITC)
-                    6. Flag if GSTIN is missing but tax is charged
-                    7. Flag if invoice is >30 days old
-                    
-                    **OUTPUT FORMAT (JSON):**
+                    Output as JSON:
                     {
                       "vendor_name": "string",
                       "invoice_date": "YYYY-MM-DD",
@@ -240,20 +659,18 @@ def invoice_scanner_page():
                       "gstin": "string or null",
                       "is_handwritten": boolean,
                       "tampering_detected": boolean,
-                      "confidence_score": number (0.0 to 1.0),
+                      "confidence_score": number,
                       "line_items": [{"description": "string", "amount": number, "category": "string"}],
-                      "compliance_flags": ["array of warning strings"],
+                      "compliance_flags": ["warnings"],
                       "is_valid_business_expense": boolean,
-                      "summary": "Brief analysis summary"
-                    }
-                    """
+                      "summary": "Brief analysis"
+                    }"""
                     
                     try:
-                        with st.spinner("🔍 Analyzing pixels and text..."):
+                        with st.spinner("🔍 Analyzing document..."):
                             response = model.generate_content([system_prompt, google_file])
                             response_text = response.text.strip()
                             
-                            # Extract JSON
                             if "```json" in response_text:
                                 response_text = response_text.split("```json")[1].split("```")[0].strip()
                             elif "```" in response_text:
@@ -261,73 +678,63 @@ def invoice_scanner_page():
                             
                             st.session_state.invoice_result = json.loads(response_text)
                     except json.JSONDecodeError:
-                        # If JSON parsing fails, show raw response
-                        st.markdown("### 📊 Analysis Result")
                         st.write(response.text)
-                        return
                     except Exception as e:
                         st.error(f"Analysis failed: {e}")
-                        return
+        
+        st.markdown("</div>", unsafe_allow_html=True)
     
-    if st.session_state.invoice_result:
-        result = st.session_state.invoice_result
-        
-        st.divider()
-        st.markdown("### 📊 Analysis Results")
-        
-        # Metrics row
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Vendor", result.get('vendor_name', 'N/A')[:20])
-        col2.metric("Total Amount", f"₹{result.get('total_amount', 0):,.2f}")
-        col3.metric("Tax Amount", f"₹{result.get('tax_amount', 0):,.2f}")
-        col4.metric("Confidence", f"{result.get('confidence_score', 0)*100:.0f}%")
-        
-        # Summary
-        if result.get('summary'):
-            st.info(f"📝 **Summary:** {result['summary']}")
-        
-        # Fraud detection
-        col1, col2 = st.columns(2)
-        
-        with col1:
+    with col2:
+        if st.session_state.invoice_result:
+            result = st.session_state.invoice_result
+            
+            st.markdown("""<div class="card"><h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Analysis Results</h3>""", unsafe_allow_html=True)
+            
+            # Metrics
+            m1, m2 = st.columns(2)
+            m1.metric("Vendor", result.get('vendor_name', 'N/A')[:15])
+            m2.metric("Confidence", f"{result.get('confidence_score', 0)*100:.0f}%")
+            
+            m3, m4 = st.columns(2)
+            m3.metric("Total", f"₹{result.get('total_amount', 0):,.0f}")
+            m4.metric("Tax", f"₹{result.get('tax_amount', 0):,.0f}")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Status checks
             if result.get('tampering_detected'):
-                st.error("⚠️ TAMPERING DETECTED - Manual verification required")
+                st.error("⚠️ Tampering Detected")
             else:
                 st.success("✅ No tampering detected")
             
-            if result.get('is_handwritten'):
-                st.warning("📝 Handwritten bill - Verify amounts manually")
-            
-            if result.get('is_valid_business_expense'):
-                st.success("✅ Valid business expense")
-            else:
-                st.warning("⚠️ May not be a valid business expense")
-        
-        with col2:
             if result.get('gstin'):
                 st.success(f"✅ GSTIN: {result['gstin']}")
             else:
                 st.warning("⚠️ Missing GSTIN")
             
-            st.info(f"📅 Invoice Date: {result.get('invoice_date', 'N/A')}")
-        
-        # Compliance flags
-        if result.get('compliance_flags'):
-            st.markdown("### ⚠️ Compliance Flags")
-            for flag in result['compliance_flags']:
-                st.warning(flag)
-        
-        # Line items
-        if result.get('line_items'):
-            st.markdown("### 📋 Line Items")
-            for item in result['line_items']:
-                cat_emoji = {"Capital Goods": "🏭", "Raw Material": "📦", "Service": "🔧", "Personal/Entertainment": "🎭"}.get(item.get('category', ''), "📌")
-                st.markdown(f"- {cat_emoji} **{item['description']}**: ₹{item.get('amount', 0):,.2f} ({item.get('category', 'Unknown')})")
+            if result.get('is_valid_business_expense'):
+                st.success("✅ Valid business expense")
+            
+            # Compliance flags
+            if result.get('compliance_flags'):
+                st.markdown("**Compliance Flags:**")
+                for flag in result['compliance_flags']:
+                    st.warning(flag)
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="card" style="text-align: center; padding: 3rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+                <h3 style="margin: 0; color: #64748B;">No document analyzed yet</h3>
+                <p style="margin: 0.5rem 0 0 0; color: #94A3B8;">Upload and analyze a document to see results</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 def compliance_check_page():
-    st.title("⚖️ Legal Sentinel")
-    st.markdown("Get instant answers on GST, tax compliance and legal requirements")
+    st.title("Compliance Check")
+    st.markdown('<p style="margin-top: -0.5rem;">Get instant answers on GST, tax compliance and legal requirements</p>', unsafe_allow_html=True)
     
     model = init_gemini()
     
@@ -335,22 +742,25 @@ def compliance_check_page():
         st.error("⚠️ API key not configured. Please set GEMINI_API_KEY in Secrets.")
         return
     
-    # Common questions
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Quick Questions
     st.markdown("### Quick Questions")
-    quick_questions = [
+    col1, col2 = st.columns(2)
+    
+    questions = [
         "Can I claim ITC on food and beverages?",
         "What is the GST rate for software services?",
         "When is the deadline for GSTR-3B filing?",
         "Is ITC available on vehicles for business use?"
     ]
     
-    col1, col2 = st.columns(2)
-    for i, q in enumerate(quick_questions):
+    for i, q in enumerate(questions):
         with col1 if i % 2 == 0 else col2:
-            if st.button(q, key=f"quick_{i}", use_container_width=True):
+            if st.button(q, key=f"q_{i}", use_container_width=True):
                 st.session_state.compliance_query = q
     
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Custom query
     query = st.text_area(
@@ -366,46 +776,39 @@ def compliance_check_page():
 
 Question: {query}
 
-Provide a structured response:
+Provide a response with:
 1. Risk Level: LOW / MEDIUM / HIGH
-2. Relevant Law Section (with Act name)
+2. Relevant Law Section
 3. Clear explanation
-4. Recommended compliant action
+4. Recommended action
 
 Format as JSON:
 {{
   "risk_level": "LOW|MEDIUM|HIGH",
-  "relevant_section": "Section and Act name",
+  "relevant_section": "Section and Act",
   "explanation": "Clear explanation",
-  "compliant_action": "Specific action to take"
+  "compliant_action": "What to do"
 }}"""
             
             try:
                 with st.spinner("Analyzing..."):
                     response = model.generate_content(prompt)
-                    response_text = response.text.strip()
+                    text = response.text.strip()
                     
-                    if "```json" in response_text:
-                        response_text = response_text.split("```json")[1].split("```")[0].strip()
-                    elif "```" in response_text:
-                        response_text = response_text.split("```")[1].split("```")[0].strip()
+                    if "```json" in text:
+                        text = text.split("```json")[1].split("```")[0].strip()
+                    elif "```" in text:
+                        text = text.split("```")[1].split("```")[0].strip()
                     
-                    st.session_state.compliance_result = json.loads(response_text)
-            except json.JSONDecodeError:
-                st.markdown("### 📋 Response")
+                    st.session_state.compliance_result = json.loads(text)
+            except:
                 st.write(response.text)
-                return
-            except Exception as e:
-                st.error(f"Error: {e}")
-                return
     
     if st.session_state.compliance_result:
         result = st.session_state.compliance_result
         
-        st.divider()
-        st.markdown("### 📋 Compliance Assessment")
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        # Risk level with color coding
         risk = result.get('risk_level', 'MEDIUM')
         if risk == 'LOW':
             st.success(f"🟢 Risk Level: {risk}")
@@ -419,12 +822,12 @@ Format as JSON:
         if result.get('explanation'):
             st.markdown(f"**Explanation:** {result['explanation']}")
         
-        st.markdown(f"**✅ Recommended Action:** {result.get('compliant_action', 'N/A')}")
+        st.success(f"✅ **Recommended Action:** {result.get('compliant_action', 'N/A')}")
 
 
-def subsidy_hunter_page():
-    st.title("💰 Subsidy Hunter")
-    st.markdown("Discover government schemes and subsidies for your business")
+def subsidy_explorer_page():
+    st.title("Subsidy Explorer")
+    st.markdown('<p style="margin-top: -0.5rem;">Discover government schemes and subsidies for your business</p>', unsafe_allow_html=True)
     
     model = init_gemini()
     
@@ -432,11 +835,13 @@ def subsidy_hunter_page():
         st.error("⚠️ API key not configured. Please set GEMINI_API_KEY in Secrets.")
         return
     
-    col1, col2 = st.columns(2)
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         sector = st.selectbox(
-            "Select your sector",
+            "Business Sector",
             ["Manufacturing", "Textile", "Food Processing", "Agriculture", 
              "IT/Technology", "Pharma", "Services", "Women Entrepreneur", "Rural Business"]
         )
@@ -446,80 +851,58 @@ def subsidy_hunter_page():
             "Capital Expenditure (₹)",
             min_value=0,
             value=500000,
-            step=100000,
-            format="%d"
+            step=100000
         )
     
-    state = st.selectbox(
-        "State (optional)",
-        ["All India", "Maharashtra", "Gujarat", "Karnataka", "Tamil Nadu", "Uttar Pradesh", 
-         "Rajasthan", "Madhya Pradesh", "West Bengal", "Telangana", "Other"]
-    )
+    with col3:
+        state = st.selectbox(
+            "State",
+            ["All India", "Maharashtra", "Gujarat", "Karnataka", "Tamil Nadu", 
+             "Uttar Pradesh", "Rajasthan", "Madhya Pradesh", "West Bengal", "Telangana"]
+        )
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     if st.button("🔍 Find Subsidies", use_container_width=True):
-        prompt = f"""You are an expert in Indian Government schemes and subsidies for MSMEs.
-
-Find applicable subsidies for:
+        prompt = f"""Find Indian government subsidies for:
 - Sector: {sector}
-- Capital Expenditure: ₹{capex:,.0f}
+- Capital: ₹{capex:,.0f}
 - State: {state}
 
-Provide 3-5 REAL government schemes with accurate details:
-1. Scheme Name (official name)
-2. Benefit (subsidy %, amount, or type)
-3. Eligibility criteria
-4. Implementing ministry/department
-5. Official application link
-
-Format as JSON array:
-[{{
-  "name": "Official Scheme Name",
-  "benefit": "Description of benefit",
-  "eligibility": "Who can apply",
-  "ministry": "Implementing ministry",
-  "link": "Official URL",
-  "max_subsidy": "Maximum amount if applicable"
-}}]"""
+Return 3-5 schemes as JSON array:
+[{{"name": "Scheme Name", "benefit": "Benefit description", "eligibility": "Who can apply", "ministry": "Ministry name", "link": "URL", "max_subsidy": "Amount"}}]"""
         
         try:
-            with st.spinner("Searching for applicable schemes..."):
+            with st.spinner("Searching schemes..."):
                 response = model.generate_content(prompt)
-                response_text = response.text.strip()
+                text = response.text.strip()
                 
-                if "```json" in response_text:
-                    response_text = response_text.split("```json")[1].split("```")[0].strip()
-                elif "```" in response_text:
-                    response_text = response_text.split("```")[1].split("```")[0].strip()
+                if "```json" in text:
+                    text = text.split("```json")[1].split("```")[0].strip()
+                elif "```" in text:
+                    text = text.split("```")[1].split("```")[0].strip()
                 
-                st.session_state.subsidy_result = json.loads(response_text)
-        except json.JSONDecodeError:
-            st.markdown("### 🎯 Available Schemes")
+                st.session_state.subsidy_result = json.loads(text)
+        except:
             st.write(response.text)
-            return
-        except Exception as e:
-            st.error(f"Error: {e}")
-            return
     
-    if st.session_state.subsidy_result:
-        result = st.session_state.subsidy_result
+    if st.session_state.subsidy_result and isinstance(st.session_state.subsidy_result, list):
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(f"### 🎯 Found {len(st.session_state.subsidy_result)} Schemes")
         
-        if isinstance(result, list):
-            st.divider()
-            st.markdown(f"### 🎯 Found {len(result)} Applicable Schemes")
-            
-            for scheme in result:
-                with st.expander(f"📋 {scheme.get('name', 'Unknown Scheme')}", expanded=True):
-                    col1, col2 = st.columns([2, 1])
-                    with col1:
-                        st.markdown(f"**💰 Benefit:** {scheme.get('benefit', 'N/A')}")
-                        st.markdown(f"**✅ Eligibility:** {scheme.get('eligibility', 'N/A')}")
-                        st.markdown(f"**🏛️ Ministry:** {scheme.get('ministry', 'N/A')}")
-                    with col2:
-                        if scheme.get('max_subsidy'):
-                            st.metric("Max Subsidy", scheme['max_subsidy'])
-                    
-                    if scheme.get('link'):
-                        st.markdown(f"🔗 [Apply Here]({scheme['link']})")
+        for scheme in st.session_state.subsidy_result:
+            with st.expander(f"📋 {scheme.get('name', 'Unknown')}", expanded=True):
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    st.markdown(f"**💰 Benefit:** {scheme.get('benefit', 'N/A')}")
+                    st.markdown(f"**✅ Eligibility:** {scheme.get('eligibility', 'N/A')}")
+                    st.markdown(f"**🏛️ Ministry:** {scheme.get('ministry', 'N/A')}")
+                with col2:
+                    if scheme.get('max_subsidy'):
+                        st.metric("Max Subsidy", scheme['max_subsidy'])
+                
+                if scheme.get('link'):
+                    st.markdown(f"🔗 [Apply Here]({scheme['link']})")
 
 
 # Main app
@@ -527,14 +910,14 @@ def main():
     init_session_state()
     page = sidebar()
     
-    if page == "🏠 Home":
-        home_page()
-    elif page == "📄 Invoice Scanner":
-        invoice_scanner_page()
+    if page == "🏠 Dashboard":
+        dashboard_page()
+    elif page == "📄 Document Scanner":
+        document_scanner_page()
     elif page == "⚖️ Compliance Check":
         compliance_check_page()
-    elif page == "💰 Subsidy Hunter":
-        subsidy_hunter_page()
+    elif page == "💰 Subsidy Explorer":
+        subsidy_explorer_page()
 
 
 if __name__ == "__main__":
