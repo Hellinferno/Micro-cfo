@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { 
-    Eye, 
-    Scale, 
-    Search, 
-    Mail, 
-    Upload, 
-    Camera, 
-    FileCheck, 
+import { useNavigate } from 'react-router-dom';
+import {
+    Eye,
+    Scale,
+    Search,
+    Mail,
+    Upload,
+    Camera,
+    FileCheck,
     TrendingUp,
     AlertTriangle,
     CheckCircle,
@@ -22,6 +23,7 @@ import { HealthScoreGauge, CashFlowChart } from '../components/charts';
 
 const Dashboard = () => {
     const [healthScore] = useState(72);
+    const navigate = useNavigate();
 
     // Mock data for AI agents
     const agents = [
@@ -146,25 +148,37 @@ const Dashboard = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group">
+                <button
+                    onClick={() => navigate('/scanner')}
+                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
+                >
                     <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-primary group-hover:text-white transition-all">
                         <Upload className="w-6 h-6 text-primary group-hover:text-white" />
                     </div>
                     <span className="text-sm font-medium text-slate-700">Upload Invoice</span>
                 </button>
-                <button className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group">
+                <button
+                    onClick={() => navigate('/scanner')}
+                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
+                >
                     <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-500 transition-all">
                         <Camera className="w-6 h-6 text-blue-500 group-hover:text-white" />
                     </div>
                     <span className="text-sm font-medium text-slate-700">Scan Document</span>
                 </button>
-                <button className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group">
+                <button
+                    onClick={() => navigate('/subsidies')}
+                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
+                >
                     <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-purple-500 transition-all">
                         <Search className="w-6 h-6 text-purple-500 group-hover:text-white" />
                     </div>
                     <span className="text-sm font-medium text-slate-700">Check Eligibility</span>
                 </button>
-                <button className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group">
+                <button
+                    onClick={() => navigate('/compliance')}
+                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
+                >
                     <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-500 transition-all">
                         <FileCheck className="w-6 h-6 text-emerald-500 group-hover:text-white" />
                     </div>
@@ -181,7 +195,7 @@ const Dashboard = () => {
                     </CardHeader>
                     <CardContent className="flex flex-col items-center">
                         <HealthScoreGauge score={healthScore} size={200} />
-                        
+
                         <div className="w-full mt-6 space-y-4">
                             {healthBreakdown.map((item, index) => (
                                 <div key={index}>
@@ -190,7 +204,7 @@ const Dashboard = () => {
                                         <span className="font-medium text-slate-800">{item.value}%</span>
                                     </div>
                                     <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                                        <div 
+                                        <div
                                             className={`h-full rounded-full ${item.color} transition-all duration-500`}
                                             style={{ width: `${item.value}%` }}
                                         />
@@ -221,8 +235,8 @@ const Dashboard = () => {
                     <CardContent>
                         <div className="grid sm:grid-cols-2 gap-4">
                             {agents.map((agent, index) => (
-                                <div 
-                                    key={index} 
+                                <div
+                                    key={index}
                                     className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-all"
                                 >
                                     <div className="flex items-start gap-3">
@@ -253,7 +267,7 @@ const Dashboard = () => {
                     <CardContent>
                         <div className="space-y-3">
                             {alerts.map((alert) => (
-                                <div 
+                                <div
                                     key={alert.id}
                                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
                                 >
@@ -298,7 +312,7 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                     <CashFlowChart data={cashFlowData} />
-                    
+
                     {/* Summary Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
                         <div className="text-center">
