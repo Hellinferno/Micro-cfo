@@ -165,8 +165,24 @@ const SubsidyExplorer = () => {
     };
 
     const filteredSubsidies = subsidies.filter(s => {
-        if (searchQuery && !s.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-            return false;
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            // Search across multiple fields
+            const matchesName = s.name.toLowerCase().includes(query);
+            const matchesSector = s.sector.toLowerCase().includes(query);
+            const matchesDescription = s.description.toLowerCase().includes(query);
+            const matchesBenefit = s.benefit.toLowerCase().includes(query);
+            const matchesEligibility = s.eligibility.some(e => e.toLowerCase().includes(query));
+
+            if (!matchesName && !matchesSector && !matchesDescription && !matchesBenefit && !matchesEligibility) {
+                return false;
+            }
+        }
+        // Apply sector filter
+        if (selectedFilters.sector !== 'all') {
+            if (!s.sector.toLowerCase().includes(selectedFilters.sector.toLowerCase())) {
+                return false;
+            }
         }
         return true;
     });
@@ -276,8 +292,8 @@ const SubsidyExplorer = () => {
 
                     <div className="grid md:grid-cols-2 gap-4">
                         {filteredSubsidies.map((subsidy) => (
-                            <Card 
-                                key={subsidy.id} 
+                            <Card
+                                key={subsidy.id}
                                 className="hover:shadow-lg transition-shadow cursor-pointer group"
                                 onClick={() => setSelectedSubsidy(subsidy)}
                             >
@@ -316,8 +332,8 @@ const SubsidyExplorer = () => {
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <Button 
-                                            size="sm" 
+                                        <Button
+                                            size="sm"
                                             className="flex-1"
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -327,8 +343,8 @@ const SubsidyExplorer = () => {
                                         >
                                             Auto-Draft Application
                                         </Button>
-                                        <Button 
-                                            size="sm" 
+                                        <Button
+                                            size="sm"
                                             variant="ghost"
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -403,7 +419,7 @@ const SubsidyExplorer = () => {
                                 <div>
                                     <h4 className="font-semibold text-blue-900 mb-1">Pro Tip</h4>
                                     <p className="text-sm text-blue-700">
-                                        Complete your business profile to get more accurate subsidy matches. 
+                                        Complete your business profile to get more accurate subsidy matches.
                                         Your match score can improve by up to 20%.
                                     </p>
                                     <Button variant="ghost" size="sm" className="mt-2 text-blue-700 hover:text-blue-800 p-0">
@@ -472,7 +488,7 @@ const SubsidyExplorer = () => {
 
                         {/* Actions */}
                         <div className="flex gap-3 pt-4 border-t border-slate-100">
-                            <Button 
+                            <Button
                                 className="flex-1"
                                 onClick={() => setShowApplicationModal(true)}
                             >
