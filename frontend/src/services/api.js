@@ -74,9 +74,8 @@ export const visualAuditorAPI = {
     async uploadDocument(file, processImmediately = true) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('process_immediately', processImmediately.toString());
 
-        return apiFetch(`${API_V1_PREFIX}/agents/visual-auditor/upload-document`, {
+        return apiFetch(`${API_V1_PREFIX}/invoices/analyze`, {
             method: 'POST',
             body: formData,
         });
@@ -89,12 +88,9 @@ export const visualAuditorAPI = {
      * @returns {Promise<Object>} Invoice scan results
      */
     async scanInvoice(imageUrl, useMock = false) {
-        return apiFetch(`${API_V1_PREFIX}/agents/visual-auditor/scan-invoice`, {
+        return apiFetch(`${API_V1_PREFIX}/invoices/analyze-url`, {
             method: 'POST',
-            body: JSON.stringify({
-                image_url: imageUrl,
-                use_mock: useMock,
-            }),
+            body: JSON.stringify({ image_url: imageUrl }),
         });
     },
 
@@ -102,7 +98,7 @@ export const visualAuditorAPI = {
      * Health check for Visual Auditor
      */
     async health() {
-        return apiFetch(`${API_V1_PREFIX}/agents/visual-auditor/health`);
+        return apiFetch('/health');
     },
 };
 
@@ -117,7 +113,7 @@ export const legalSentinelAPI = {
      * @returns {Promise<Object>} Compliance check results
      */
     async checkCompliance(query, userContext = null) {
-        return apiFetch(`${API_V1_PREFIX}/agents/legal-sentinel/check-compliance`, {
+        return apiFetch(`${API_V1_PREFIX}/compliance/query`, {
             method: 'POST',
             body: JSON.stringify({
                 query,
@@ -269,7 +265,7 @@ export const subsidyHunterAPI = {
         };
         if (state) body.state = state;
 
-        return apiFetch(`${API_V1_PREFIX}/agents/subsidy-hunter/find-subsidies`, {
+        return apiFetch(`${API_V1_PREFIX}/subsidies/search`, {
             method: 'POST',
             body: JSON.stringify(body),
         });

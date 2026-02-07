@@ -37,5 +37,3 @@ structlog
 sentry-sdk[fastapi]
 openai
 groq
-streamlit>=1.31.0
-watchdog
