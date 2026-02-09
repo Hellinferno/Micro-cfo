@@ -1,4 +1,4 @@
-fastmcp==2.0.0
+fastmcp==2.14.5
 pydantic[email]
 pydantic-settings
 email-validator
