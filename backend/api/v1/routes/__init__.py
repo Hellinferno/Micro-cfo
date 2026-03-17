@@ -5,6 +5,8 @@ Aggregates all v1 route modules
 
 from fastapi import APIRouter
 from backend.api.v1.routes.health import router as health_router
+from backend.api.v1.routes.auth import router as auth_router
+from backend.api.v1.routes.dashboard import router as dashboard_router
 from backend.api.v1.routes.invoices import router as invoices_router
 from backend.api.v1.routes.compliance import router as compliance_router
 from backend.api.v1.routes.subsidies import router as subsidies_router
@@ -15,6 +17,8 @@ router = APIRouter()
 
 # Include all route modules
 router.include_router(health_router, tags=["Health"])
+router.include_router(auth_router, tags=["Authentication"])
+router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 router.include_router(invoices_router, prefix="/invoices", tags=["Invoices"])
 router.include_router(compliance_router, prefix="/compliance", tags=["Compliance"])
 router.include_router(subsidies_router, prefix="/subsidies", tags=["Subsidies"])

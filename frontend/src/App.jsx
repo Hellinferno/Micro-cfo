@@ -23,21 +23,23 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // Auth check helper
-const isAdminAuthenticated = () => {
-  const adminAuth = localStorage.getItem('adminAuth');
-  if (!adminAuth) return false;
-  try {
-    const auth = JSON.parse(adminAuth);
-    return auth.role === 'admin' || auth.role === 'superadmin';
-  } catch {
-    return false;
+const isAuthenticated = () => {
+  const token = localStorage.getItem('token');
+  return !!token;
+};
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const auth = isAuthenticated();
+
+  if (!auth) {
+    return <Navigate to="/login" replace />;
   }
+
+  return children;
 };
 
 function App() {
-  // Mock authentication state for regular users
-  const isAuthenticated = true; // Set to true for demo, toggle to check login page
-
   return (
     <BrowserRouter>
       <SpeedInsights />
@@ -48,15 +50,19 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Protected User Routes */}
-        <Route element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/scanner" element={<DocumentScanner />} />
-          <Route path="/compliance" element={<Compliance />} />
-          <Route path="/subsidies" element={<SubsidyExplorer />} />
-          <Route path="/negotiation" element={<NegotiationCenter />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/settings" element={<Settings />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<Dashboard />} />
+          <Route path="scanner" element={<DocumentScanner />} />
+          <Route path="compliance" element={<Compliance />} />
+          <Route path="subsidies" element={<SubsidyExplorer />} />
+          <Route path="negotiation" element={<NegotiationCenter />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="history" element={<History />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* Admin Routes - MUST be before catch-all */}

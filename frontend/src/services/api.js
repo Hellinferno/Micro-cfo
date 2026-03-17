@@ -57,6 +57,25 @@ export const apiService = {
     // Health check
     health: () => api.get('/api/v1/health'),
 
+    // Auth
+    auth: {
+        login: (email, password) => api.post('/api/v1/auth/login', { email, password }),
+        register: (data) => api.post('/api/v1/auth/register', data),
+        getProfile: () => api.get('/api/v1/auth/profile'),
+        updateProfile: (data) => api.put('/api/v1/auth/profile', data),
+        logout: () => api.post('/api/v1/auth/logout'),
+        refreshToken: () => api.post('/api/v1/auth/refresh')
+    },
+
+    // Dashboard
+    dashboard: {
+        getMetrics: () => api.get('/api/v1/dashboard/metrics'),
+        getRecentInvoices: (limit = 5) => api.get('/api/v1/dashboard/recent-invoices', { params: { limit } }),
+        getAlerts: () => api.get('/api/v1/dashboard/alerts'),
+        getSubsidyMatches: (limit = 4) => api.get('/api/v1/dashboard/subsidy-matches', { params: { limit } }),
+        getSummary: () => api.get('/api/v1/dashboard/summary')
+    },
+
     // Chat
     chat: {
         sendMessage: (message, agent = 'auto', context = []) =>

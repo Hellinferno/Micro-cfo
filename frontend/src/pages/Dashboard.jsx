@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import {
     TrendingUp,
     TrendingDown,
@@ -17,44 +18,63 @@ import { Card, CardHeader, CardContent } from './components/ui/Card';
 import { Button } from './components/ui/Button';
 import { Badge } from './components/ui/Badge';
 
-// Mock data - Replace with API calls
-const dashboardData = {
-    metrics: {
-        totalInvoices: 248,
-        totalAmount: 12500000,
-        complianceScore: 94,
-        subsidiesFound: 12,
-        pendingNegotiations: 5,
-        monthlyGrowth: 12.5
-    },
-    recentInvoices: [
-        { id: 1, vendor: 'ABC Suppliers', amount: 118000, date: '2024-01-15', status: 'processed', category: 'Capital Goods' },
-        { id: 2, vendor: 'XYZ Services', amount: 45000, date: '2024-01-14', status: 'flagged', category: 'Service' },
-        { id: 3, vendor: 'Tech Solutions', amount: 250000, date: '2024-01-13', status: 'processed', category: 'Capital Goods' },
-        { id: 4, vendor: 'Office Mart', amount: 8500, date: '2024-01-12', status: 'pending', category: 'Raw Material' }
-    ],
-    complianceAlerts: [
-        { id: 1, type: 'warning', message: 'ITC claim pending verification for Invoice #INV-045', date: '2024-01-15' },
-        { id: 2, type: 'info', message: 'GST return filing due in 5 days', date: '2024-01-14' },
-        { id: 3, type: 'success', message: 'Compliance score improved by 3% this month', date: '2024-01-10' }
-    ],
-    subsidyMatches: [
-        { id: 1, name: 'TUFS Scheme', benefit: 'Up to 25% subsidy', matchScore: 95, deadline: '2024-03-31' },
-        { id: 2, name: 'MSME Technology Centre', benefit: '50% on machinery', matchScore: 88, deadline: '2024-02-28' }
-    ]
-};
-
 const Dashboard = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState(dashboardData);
+    const [error, setError] = useState(null);
+    const [data, setData] = useState({
+        metrics: {
+            totalInvoices: 0,
+            totalAmount: 0,
+            complianceScore: 0,
+            subsidiesFound: 0,
+            pendingNegotiations: 0,
+            monthlyGrowth: 0
+        },
+        recentInvoices: [],
+        complianceAlerts: [],
+        subsidyMatches: []
+    });
 
     useEffect(() => {
-        // Simulate API call
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                // Fetch complete dashboard summary
+                const response = await api.get('/api/v1/dashboard/summary');
+
+                if (response.data.success) {
+                    setData(response.data.data);
+                }
+            } catch (err) {
+                console.error('Failed to fetch dashboard data:', err);
+                setError('Failed to load dashboard data. Please try again.');
+
+                // Use mock data as fallback
+                setData({
+                    metrics: {
+                        totalInvoices: 0,
+                        totalAmount: 0,
+                        complianceScore: 100,
+                        subsidiesFound: 0,
+                        pendingNegotiations: 0,
+                        monthlyGrowth: 0
+                    },
+                    recentInvoices: [],
+                    complianceAlerts: [{
+                        id: 'error_1',
+                        type: 'warning',
+                        message: 'Unable to load data. Please check your connection.',
+                        date: new Date().toISOString().split('T')[0]
+                    }],
+                    subsidyMatches: []
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
     }, []);
 
     if (loading) {

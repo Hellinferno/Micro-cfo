@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -21,6 +21,19 @@ const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        // Get user data from localStorage
+        const user = localStorage.getItem('user');
+        if (user) {
+            try {
+                setUserData(JSON.parse(user));
+            } catch (e) {
+                console.error('Failed to parse user data:', e);
+            }
+        }
+    }, []);
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -35,8 +48,12 @@ const Sidebar = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         navigate('/login');
     };
+
+    const displayName = userData?.business_name || userData?.email || 'User';
+    const displayEmail = userData?.email || 'user@example.com';
 
     return (
         <>
@@ -91,8 +108,8 @@ const Sidebar = () => {
                                     to={item.path}
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
-                                            ? 'bg-primary-50 text-primary-700 font-medium'
-                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        ? 'bg-primary-50 text-primary-700 font-medium'
+                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
                                     <Icon className={`w-5 h-5 ${isActive ? 'text-primary-600' : ''}`} />
@@ -113,10 +130,10 @@ const Sidebar = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-900 truncate">
-                                    John Doe
+                                    {displayName}
                                 </p>
                                 <p className="text-xs text-slate-500 truncate">
-                                    john@example.com
+                                    {displayEmail}
                                 </p>
                             </div>
                             <ChevronDown className="w-4 h-4 text-slate-400" />
