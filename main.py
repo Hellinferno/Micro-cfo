@@ -17,10 +17,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from slowapi import SlowApi, _rate_limit_exceeded_handler
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import logging
+import time
 from structlog import get_logger
 from datetime import datetime
 
@@ -50,11 +51,12 @@ app = FastAPI(
 )
 
 # Initialize rate limiter
-app.state.limiter = SlowApi(
+app.state.limiter = Limiter(
+    key_func=get_remote_address,
     default_limits=["100 per minute"],
-    storage_uri="memory://",
-    key_func=get_remote_address
+    storage_uri="memory://"
 )
+app.add_event_handler("startup", app.state.limiter.slowapi_startup)
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS
@@ -132,24 +134,20 @@ async def general_exception_handler(request: Request, exc: Exception):
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     """Log all requests"""
-    start_time = datetime.utcnow()
+    start_time = time.perf_counter()
 
     response = await call_next(request)
 
-    duration = (datetime.utcnow() - start_time).total_seconds()
+    duration_ms = (time.perf_counter() - start_time) * 1000
     logger.info(
         "Request completed",
         method=request.method,
         path=request.url.path,
         status_code=response.status_code,
-        duration_ms=duration * 1000
+        duration_ms=duration_ms
     )
 
     return response
-
-
-# Add rate limiter middleware
-app.state.limiter.init_app(app)
 
 
 # Include API Routes (lazy import to avoid circular dependencies)
