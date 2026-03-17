@@ -23,7 +23,7 @@ from slowapi.errors import RateLimitExceeded
 import logging
 import time
 from structlog import get_logger
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.app.config import settings
 
@@ -64,8 +64,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
@@ -85,7 +85,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
             "success": False,
             "message": exc.detail,
             "error": f"HTTP_{exc.status_code}",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     )
 
@@ -105,7 +105,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "message": "Validation error",
             "error": "VALIDATION_ERROR",
             "details": exc.errors(),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     )
 
@@ -125,7 +125,7 @@ async def general_exception_handler(request: Request, exc: Exception):
             "success": False,
             "message": "Internal server error",
             "error": "INTERNAL_ERROR",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     )
 
@@ -182,7 +182,7 @@ async def health_check():
         "status": "healthy",
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -211,7 +211,9 @@ async def startup_event():
         initialize_agents()
         logger.info("Agents initialized successfully")
     except Exception as e:
-        logger.warning("Failed to initialize agents", error=str(e))
+        logger.error("Failed to initialize agents", error=str(e), exc_info=True)
+        if not settings.DEBUG:
+            raise  # Fail fast in production
 
 
 # Shutdown Event
