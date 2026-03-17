@@ -1,85 +1,44 @@
 import React from 'react';
-import { CheckCircle, ArrowRight, AlertCircle, Info } from 'lucide-react';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
+import { Badge } from '../ui/Badge';
 
-const ActionCard = ({ data, onAction }) => {
-    const { text, actions = [], type = 'success' } = data;
-    
-    const getIcon = () => {
-        switch (type) {
-            case 'success':
-                return <CheckCircle className="w-5 h-5 text-emerald-500 mr-2" />;
-            case 'warning':
-                return <AlertCircle className="w-5 h-5 text-amber-500 mr-2" />;
-            case 'info':
-            default:
-                return <Info className="w-5 h-5 text-blue-500 mr-2" />;
-        }
-    };
-    
-    const getHeaderStyle = () => {
-        switch (type) {
-            case 'success':
-                return 'bg-emerald-50 border-emerald-100 text-emerald-800';
-            case 'warning':
-                return 'bg-amber-50 border-amber-100 text-amber-800';
-            case 'info':
-            default:
-                return 'bg-blue-50 border-blue-100 text-blue-800';
-        }
-    };
-    
-    const getHeaderText = () => {
-        switch (type) {
-            case 'success':
-                return 'Audit Passed';
-            case 'warning':
-                return 'Action Required';
-            case 'info':
-            default:
-                return 'Information';
-        }
-    };
-    
-    const handleActionClick = (action) => {
-        if (onAction) {
-            onAction(action);
-        }
-    };
-
+const ActionCard = ({ title, description, actions, metadata }) => {
     return (
-        <div className="flex w-full mb-4 justify-start animate-fade-in-up">
-            <div className="bg-white rounded-xl shadow-md border border-slate-100 overflow-hidden max-w-[85%] lg:max-w-[320px]">
-                {/* Header */}
-                <div className={`p-3 flex items-center border-b ${getHeaderStyle()}`}>
-                    {getIcon()}
-                    <span className="text-sm font-bold">{getHeaderText()}</span>
-                </div>
+        <Card className="mt-4 bg-slate-50 border-slate-200">
+            <div className="p-4">
+                <h3 className="font-semibold text-slate-900 mb-2">{title}</h3>
+                {description && (
+                    <p className="text-sm text-slate-600 mb-3">{description}</p>
+                )}
 
-                {/* Content */}
-                <div className="p-4">
-                    <p className="text-sm text-slate-600 mb-4">{text}</p>
+                {metadata && (
+                    <div className="mb-3 space-y-2">
+                        {Object.entries(metadata).map(([key, value]) => (
+                            <div key={key} className="flex justify-between text-sm">
+                                <span className="text-slate-600 capitalize">{key.replace(/_/g, ' ')}:</span>
+                                <span className="font-medium text-slate-900">{value}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-                    {actions.length > 0 && (
-                        <div className="space-y-2">
-                            {actions.map((action, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => handleActionClick(action.action)}
-                                    className={`w-full flex items-center justify-center text-sm font-medium py-2 rounded-lg transition-colors ${
-                                        index === 0
-                                            ? 'bg-primary hover:bg-primary-dark text-white'
-                                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                                    }`}
-                                >
-                                    <span>{action.label}</span>
-                                    {index === 0 && <ArrowRight className="w-4 h-4 ml-1" />}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                {actions && actions.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {actions.map((action, index) => (
+                            <Button
+                                key={index}
+                                size="sm"
+                                variant={action.primary ? 'primary' : 'outline'}
+                                onClick={action.handler}
+                            >
+                                {action.label}
+                            </Button>
+                        ))}
+                    </div>
+                )}
             </div>
-        </div>
+        </Card>
     );
 };
 

@@ -23,12 +23,19 @@ _explicit_database_url = os.getenv('DATABASE_URL')
 if _explicit_database_url:
     DATABASE_URL = _explicit_database_url
 else:
-    db_user = os.getenv('POSTGRES_USER', 'microcfo')
-    db_password = os.getenv('POSTGRES_PASSWORD', 'changeme')
+    db_user = os.getenv('POSTGRES_USER')
+    db_password = os.getenv('POSTGRES_PASSWORD')
     db_host = os.getenv('POSTGRES_HOST', 'localhost')
     db_port = os.getenv('POSTGRES_PORT', '5432')
     db_name = os.getenv('POSTGRES_DB', 'microcfo')
 
+    # Validate required credentials
+    if not db_user or not db_password:
+        raise RuntimeError(
+            "POSTGRES_USER and POSTGRES_PASSWORD environment variables must be set. "
+            "Either set DATABASE_URL directly or provide individual database credentials."
+        )
+    
     if db_user == 'root':
         logger.warning("Database user is set to 'root'. Expected dedicated user like 'microcfo'.")
 

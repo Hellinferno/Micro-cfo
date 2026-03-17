@@ -1,10 +1,13 @@
 import React from 'react';
-import { clsx } from 'clsx';
+import { cn } from './Button';
 
-export const Card = ({ children, className, ...props }) => {
+/**
+ * Card Component
+ */
+export const Card = ({ className = '', children, ...props }) => {
     return (
         <div
-            className={clsx(
+            className={cn(
                 'bg-white rounded-xl shadow-sm border border-slate-200',
                 className
             )}
@@ -15,10 +18,16 @@ export const Card = ({ children, className, ...props }) => {
     );
 };
 
-export const CardHeader = ({ children, className, ...props }) => {
+/**
+ * Card Header Component
+ */
+export const CardHeader = ({ className = '', children, ...props }) => {
     return (
         <div
-            className={clsx('p-6 border-b border-slate-100', className)}
+            className={cn(
+                'px-6 py-4 border-b border-slate-200',
+                className
+            )}
             {...props}
         >
             {children}
@@ -26,45 +35,16 @@ export const CardHeader = ({ children, className, ...props }) => {
     );
 };
 
-export const CardTitle = ({ children, className, ...props }) => {
-    return (
-        <h3
-            className={clsx('text-lg font-semibold text-slate-800', className)}
-            {...props}
-        >
-            {children}
-        </h3>
-    );
-};
-
-export const CardDescription = ({ children, className, ...props }) => {
-    return (
-        <p
-            className={clsx('text-sm text-slate-500 mt-1', className)}
-            {...props}
-        >
-            {children}
-        </p>
-    );
-};
-
-export const CardContent = ({ children, className, ...props }) => {
-    return (
-        <div className={clsx('p-6', className)} {...props}>
-            {children}
-        </div>
-    );
-};
-
-export const CardFooter = ({ children, className, ...props }) => {
+/**
+ * Card Content Component
+ */
+export const CardContent = ({ className = '', children, ...props }) => {
     return (
         <div
-            className={clsx('p-6 pt-0 flex items-center', className)}
+            className={cn('p-6', className)}
             {...props}
         >
             {children}
         </div>
     );
 };
-
-export default Card;

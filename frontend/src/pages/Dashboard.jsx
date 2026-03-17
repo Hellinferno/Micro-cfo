@@ -1,388 +1,325 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Eye,
-    Scale,
-    Search,
-    Mail,
-    Upload,
-    Camera,
-    FileCheck,
     TrendingUp,
-    AlertTriangle,
-    CheckCircle,
-    Clock,
+    TrendingDown,
+    DollarSign,
+    FileText,
+    Shield,
+    Percent,
     ArrowUpRight,
     ArrowDownRight,
     Bell,
-    Calendar,
-    ChevronRight
+    Search,
+    Plus
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Progress } from '../components/ui';
-import { HealthScoreGauge, CashFlowChart } from '../components/charts';
+import { Card, CardHeader, CardContent } from './components/ui/Card';
+import { Button } from './components/ui/Button';
+import { Badge } from './components/ui/Badge';
+
+// Mock data - Replace with API calls
+const dashboardData = {
+    metrics: {
+        totalInvoices: 248,
+        totalAmount: 12500000,
+        complianceScore: 94,
+        subsidiesFound: 12,
+        pendingNegotiations: 5,
+        monthlyGrowth: 12.5
+    },
+    recentInvoices: [
+        { id: 1, vendor: 'ABC Suppliers', amount: 118000, date: '2024-01-15', status: 'processed', category: 'Capital Goods' },
+        { id: 2, vendor: 'XYZ Services', amount: 45000, date: '2024-01-14', status: 'flagged', category: 'Service' },
+        { id: 3, vendor: 'Tech Solutions', amount: 250000, date: '2024-01-13', status: 'processed', category: 'Capital Goods' },
+        { id: 4, vendor: 'Office Mart', amount: 8500, date: '2024-01-12', status: 'pending', category: 'Raw Material' }
+    ],
+    complianceAlerts: [
+        { id: 1, type: 'warning', message: 'ITC claim pending verification for Invoice #INV-045', date: '2024-01-15' },
+        { id: 2, type: 'info', message: 'GST return filing due in 5 days', date: '2024-01-14' },
+        { id: 3, type: 'success', message: 'Compliance score improved by 3% this month', date: '2024-01-10' }
+    ],
+    subsidyMatches: [
+        { id: 1, name: 'TUFS Scheme', benefit: 'Up to 25% subsidy', matchScore: 95, deadline: '2024-03-31' },
+        { id: 2, name: 'MSME Technology Centre', benefit: '50% on machinery', matchScore: 88, deadline: '2024-02-28' }
+    ]
+};
 
 const Dashboard = () => {
-    const [healthScore] = useState(72);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(dashboardData);
 
-    // Mock data for AI agents
-    const agents = [
-        {
-            name: 'Visual Auditor',
-            icon: Eye,
-            color: 'bg-blue-500',
-            status: 'Active',
-            metric: '12 documents processed today',
-            lastActivity: '2 minutes ago',
-        },
-        {
-            name: 'Legal Sentinel',
-            icon: Scale,
-            color: 'bg-purple-500',
-            status: 'Active',
-            metric: '3 alerts this week',
-            lastActivity: '1 hour ago',
-        },
-        {
-            name: 'Subsidy Hunter',
-            icon: Search,
-            color: 'bg-emerald-500',
-            status: 'Active',
-            metric: '5 opportunities found',
-            lastActivity: '30 minutes ago',
-        },
-        {
-            name: 'Negotiator',
-            icon: Mail,
-            color: 'bg-orange-500',
-            status: 'Active',
-            metric: '8 emails sent this month',
-            lastActivity: '4 hours ago',
-        },
-    ];
+    useEffect(() => {
+        // Simulate API call
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, []);
 
-    // Mock data for alerts
-    const alerts = [
-        {
-            id: 1,
-            title: 'GST Filing Due',
-            description: 'GSTR-3B due in 5 days',
-            priority: 'critical',
-            time: '2 hours ago',
-        },
-        {
-            id: 2,
-            title: 'New Subsidy Match',
-            description: 'PMEGP scheme - 95% match score',
-            priority: 'info',
-            time: '4 hours ago',
-        },
-        {
-            id: 3,
-            title: 'Invoice Anomaly Detected',
-            description: 'Unusual amount in invoice #INV-2024-089',
-            priority: 'warning',
-            time: '6 hours ago',
-        },
-        {
-            id: 4,
-            title: 'Payment Received',
-            description: '₹45,000 from ABC Corp',
-            priority: 'success',
-            time: '1 day ago',
-        },
-    ];
-
-    // Mock data for cash flow
-    const cashFlowData = [
-        { date: 'Jan', inflow: 120000, outflow: 80000 },
-        { date: 'Feb', inflow: 150000, outflow: 95000 },
-        { date: 'Mar', inflow: 180000, outflow: 110000 },
-        { date: 'Apr', inflow: 140000, outflow: 120000 },
-        { date: 'May', inflow: 200000, outflow: 130000 },
-        { date: 'Jun', inflow: 170000, outflow: 100000 },
-    ];
-
-    // Health score breakdown
-    const healthBreakdown = [
-        { label: 'Compliance', value: 85, color: 'bg-emerald-500' },
-        { label: 'Cash Flow', value: 65, color: 'bg-amber-500' },
-        { label: 'Subsidies', value: 70, color: 'bg-blue-500' },
-    ];
-
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'critical': return 'danger';
-            case 'warning': return 'warning';
-            case 'success': return 'success';
-            default: return 'info';
-        }
-    };
-
-    const getPriorityIcon = (priority) => {
-        switch (priority) {
-            case 'critical': return <AlertTriangle className="w-4 h-4 text-red-500" />;
-            case 'warning': return <Clock className="w-4 h-4 text-amber-500" />;
-            case 'success': return <CheckCircle className="w-4 h-4 text-emerald-500" />;
-            default: return <Bell className="w-4 h-4 text-blue-500" />;
-        }
-    };
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-4 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
-            {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl lg:text-3xl font-bold text-slate-800">Dashboard</h1>
-                    <p className="text-slate-500 mt-1">Welcome back! Here's your financial health overview.</p>
+                    <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+                    <p className="text-slate-500 mt-1">Welcome back! Here's your financial overview</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" icon={Calendar}>
-                        This Month
+                <div className="flex items-center gap-3">
+                    <Button variant="outline" onClick={() => navigate('/scanner')}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Upload Invoice
                     </Button>
-                    <Button icon={Bell}>
-                        3 New Alerts
+                    <Button onClick={() => navigate('/chat')}>
+                        Ask MicroCFO
                     </Button>
                 </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button
-                    onClick={() => navigate('/scanner')}
-                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
-                >
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-primary group-hover:text-white transition-all">
-                        <Upload className="w-6 h-6 text-primary group-hover:text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-slate-700">Upload Invoice</span>
-                </button>
-                <button
-                    onClick={() => navigate('/scanner')}
-                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
-                >
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-500 transition-all">
-                        <Camera className="w-6 h-6 text-blue-500 group-hover:text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-slate-700">Scan Document</span>
-                </button>
-                <button
-                    onClick={() => navigate('/subsidies')}
-                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
-                >
-                    <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-purple-500 transition-all">
-                        <Search className="w-6 h-6 text-purple-500 group-hover:text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-slate-700">Check Eligibility</span>
-                </button>
-                <button
-                    onClick={() => navigate('/compliance')}
-                    className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-primary hover:shadow-md transition-all group"
-                >
-                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-emerald-500 transition-all">
-                        <FileCheck className="w-6 h-6 text-emerald-500 group-hover:text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-slate-700">Compliance Report</span>
-                </button>
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <MetricCard
+                    title="Total Invoices"
+                    value={data.metrics.totalInvoices}
+                    change={data.metrics.monthlyGrowth}
+                    icon={FileText}
+                    color="primary"
+                />
+                <MetricCard
+                    title="Total Amount"
+                    value={`₹${(data.metrics.totalAmount / 100000).toFixed(1)}L`}
+                    change={15.2}
+                    icon={DollarSign}
+                    color="success"
+                />
+                <MetricCard
+                    title="Compliance Score"
+                    value={`${data.metrics.complianceScore}%`}
+                    change={3.2}
+                    icon={Shield}
+                    color="info"
+                />
+                <MetricCard
+                    title="Subsidies Found"
+                    value={data.metrics.subsidiesFound}
+                    change={-2.1}
+                    icon={Percent}
+                    color="warning"
+                />
             </div>
 
-            {/* Main Grid */}
-            <div className="grid lg:grid-cols-3 gap-6">
-                {/* Financial Health Score */}
-                <Card className="lg:row-span-2">
-                    <CardHeader>
-                        <CardTitle>Financial Health Score</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center">
-                        <HealthScoreGauge score={healthScore} size={200} />
-
-                        <div className="w-full mt-6 space-y-4">
-                            {healthBreakdown.map((item, index) => (
-                                <div key={index}>
-                                    <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-slate-600">{item.label}</span>
-                                        <span className="font-medium text-slate-800">{item.value}%</span>
-                                    </div>
-                                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full ${item.color} transition-all duration-500`}
-                                            style={{ width: `${item.value}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="w-full mt-6 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                            <div className="flex items-center gap-2 text-emerald-700">
-                                <TrendingUp className="w-5 h-5" />
-                                <span className="font-medium">+5% improvement</span>
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Recent Invoices */}
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold text-slate-900">Recent Invoices</h2>
+                                <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
+                                    View All
+                                </Button>
                             </div>
-                            <p className="text-sm text-emerald-600 mt-1">compared to last month</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {data.recentInvoices.map((invoice) => (
+                                    <InvoiceRow key={invoice.id} invoice={invoice} />
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
-                {/* AI Agent Activity */}
-                <Card className="lg:col-span-2">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>AI Agent Activity</CardTitle>
-                        <Button variant="ghost" size="sm">
-                            View All
-                            <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                            {agents.map((agent, index) => (
-                                <div
-                                    key={index}
-                                    className="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-all"
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <div className={`w-10 h-10 ${agent.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                                            <agent.icon className="w-5 h-5 text-white" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="font-medium text-slate-800 truncate">{agent.name}</h4>
-                                                <Badge variant="success" size="sm" dot>{agent.status}</Badge>
-                                            </div>
-                                            <p className="text-sm text-slate-600 mt-1">{agent.metric}</p>
-                                            <p className="text-xs text-slate-400 mt-2">{agent.lastActivity}</p>
-                                        </div>
-                                    </div>
-                                </div>
+                {/* Compliance Alerts */}
+                <div>
+                    <Card>
+                        <CardHeader>
+                            <h2 className="text-lg font-semibold text-slate-900">Compliance Alerts</h2>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {data.complianceAlerts.map((alert) => (
+                                <AlertItem key={alert.id} alert={alert} />
                             ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Real-Time Alerts */}
-                <Card className="lg:col-span-2">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Recent Alerts</CardTitle>
-                        <Badge variant="danger">3 New</Badge>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {alerts.map((alert) => (
-                                <div
-                                    key={alert.id}
-                                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
-                                >
-                                    <div className="mt-0.5">
-                                        {getPriorityIcon(alert.priority)}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <h4 className="font-medium text-slate-800 truncate">{alert.title}</h4>
-                                            <Badge variant={getPriorityColor(alert.priority)} size="sm">
-                                                {alert.priority}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-sm text-slate-500 mt-0.5">{alert.description}</p>
-                                    </div>
-                                    <span className="text-xs text-slate-400 flex-shrink-0">{alert.time}</span>
-                                    <ChevronRight className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
 
-            {/* Cash Flow Projection */}
+            {/* Subsidy Matches */}
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Cash Flow Projection</CardTitle>
-                        <p className="text-sm text-slate-500 mt-1">30/60/90 day forecast</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                            <span className="text-sm text-slate-600">Inflow</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-red-500" />
-                            <span className="text-sm text-slate-600">Outflow</span>
-                        </div>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-slate-900">Recommended Subsidies</h2>
+                        <Button variant="outline" size="sm" onClick={() => navigate('/subsidies')}>
+                            Explore All
+                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <CashFlowChart data={cashFlowData} />
-
-                    {/* Summary Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
-                        <div className="text-center">
-                            <p className="text-sm text-slate-500">Net Cash Flow</p>
-                            <p className="text-xl font-bold text-emerald-600 mt-1">+₹1,70,000</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-sm text-slate-500">Pending Receivables</p>
-                            <p className="text-xl font-bold text-slate-800 mt-1">₹2,45,000</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-sm text-slate-500">Pending Payables</p>
-                            <p className="text-xl font-bold text-slate-800 mt-1">₹1,20,000</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-sm text-slate-500">Cash Runway</p>
-                            <p className="text-xl font-bold text-blue-600 mt-1">45 Days</p>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {data.subsidyMatches.map((subsidy) => (
+                            <SubsidyCard key={subsidy.id} subsidy={subsidy} />
+                        ))}
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Bottom Stats */}
-            <div className="grid md:grid-cols-3 gap-6">
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-slate-500">Penalties Avoided</p>
-                                <p className="text-2xl font-bold text-emerald-600 mt-1">₹45,000</p>
-                            </div>
-                            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                                <ArrowDownRight className="w-6 h-6 text-emerald-600" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-4">3 penalties avoided this quarter</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-slate-500">Subsidies Claimed</p>
-                                <p className="text-2xl font-bold text-blue-600 mt-1">₹2,50,000</p>
-                            </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                <ArrowUpRight className="w-6 h-6 text-blue-600" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-4">2 schemes approved this year</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-slate-500">Documents Processed</p>
-                                <p className="text-2xl font-bold text-purple-600 mt-1">156</p>
-                            </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                                <FileCheck className="w-6 h-6 text-purple-600" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-4">98% accuracy rate</p>
-                    </CardContent>
-                </Card>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <QuickActionCard
+                    icon={FileText}
+                    title="Scan Invoice"
+                    description="Upload and analyze invoices"
+                    onClick={() => navigate('/scanner')}
+                />
+                <QuickActionCard
+                    icon={Shield}
+                    title="Check Compliance"
+                    description="Verify GST & ITC eligibility"
+                    onClick={() => navigate('/compliance')}
+                />
+                <QuickActionCard
+                    icon={Percent}
+                    title="Find Subsidies"
+                    description="Discover government schemes"
+                    onClick={() => navigate('/subsidies')}
+                />
+                <QuickActionCard
+                    icon={DollarSign}
+                    title="Negotiate"
+                    description="Draft vendor communications"
+                    onClick={() => navigate('/negotiation')}
+                />
             </div>
         </div>
+    );
+};
+
+// Sub-components
+
+const MetricCard = ({ title, value, change, icon: Icon, color }) => {
+    const isPositive = change >= 0;
+    const colorClasses = {
+        primary: 'bg-primary-50 text-primary-600',
+        success: 'bg-green-50 text-green-600',
+        info: 'bg-blue-50 text-blue-600',
+        warning: 'bg-yellow-50 text-yellow-600'
+    };
+
+    return (
+        <Card className="card-hover">
+            <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-slate-600">{title}</p>
+                        <p className="text-2xl font-bold text-slate-900 mt-2">{value}</p>
+                        <div className={`flex items-center mt-2 text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                            {isPositive ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowDownRight className="w-4 h-4 mr-1" />}
+                            <span className="font-medium">{Math.abs(change)}%</span>
+                            <span className="text-slate-500 ml-1">vs last month</span>
+                        </div>
+                    </div>
+                    <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+                        <Icon className="w-6 h-6" />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const InvoiceRow = ({ invoice }) => {
+    const statusColors = {
+        processed: 'badge-success',
+        flagged: 'badge-danger',
+        pending: 'badge-warning'
+    };
+
+    return (
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-primary-600" />
+                </div>
+                <div>
+                    <p className="font-medium text-slate-900">{invoice.vendor}</p>
+                    <p className="text-sm text-slate-500">{invoice.category}</p>
+                </div>
+            </div>
+            <div className="text-right">
+                <p className="font-semibold text-slate-900">₹{invoice.amount.toLocaleString('en-IN')}</p>
+                <p className="text-sm text-slate-500">{invoice.date}</p>
+            </div>
+            <Badge className={statusColors[invoice.status]}>
+                {invoice.status}
+            </Badge>
+        </div>
+    );
+};
+
+const AlertItem = ({ alert }) => {
+    const typeColors = {
+        warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+        info: 'bg-blue-50 border-blue-200 text-blue-800',
+        success: 'bg-green-50 border-green-200 text-green-800'
+    };
+
+    const typeIcons = {
+        warning: '⚠️',
+        info: 'ℹ️',
+        success: '✅'
+    };
+
+    return (
+        <div className={`p-3 rounded-lg border ${typeColors[alert.type]}`}>
+            <div className="flex items-start gap-2">
+                <span className="text-lg">{typeIcons[alert.type]}</span>
+                <div className="flex-1">
+                    <p className="text-sm font-medium">{alert.message}</p>
+                    <p className="text-xs mt-1 opacity-75">{alert.date}</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SubsidyCard = ({ subsidy }) => {
+    return (
+        <div className="p-4 border border-slate-200 rounded-lg hover:border-primary-300 hover:shadow-sm transition-all">
+            <div className="flex items-start justify-between mb-2">
+                <h3 className="font-semibold text-slate-900">{subsidy.name}</h3>
+                <Badge className="badge-success">{subsidy.matchScore}% match</Badge>
+            </div>
+            <p className="text-sm text-slate-600 mb-3">{subsidy.benefit}</p>
+            <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-500">Deadline: {subsidy.deadline}</p>
+                <Button size="sm" variant="outline">
+                    Apply
+                </Button>
+            </div>
+        </div>
+    );
+};
+
+const QuickActionCard = ({ icon: Icon, title, description, onClick }) => {
+    return (
+        <button
+            onClick={onClick}
+            className="p-4 bg-white border border-slate-200 rounded-lg hover:border-primary-300 hover:shadow-md transition-all text-left group"
+        >
+            <Icon className="w-8 h-8 text-primary-600 mb-3 group-hover:scale-110 transition-transform" />
+            <h3 className="font-semibold text-slate-900">{title}</h3>
+            <p className="text-sm text-slate-500 mt-1">{description}</p>
+        </button>
     );
 };
 

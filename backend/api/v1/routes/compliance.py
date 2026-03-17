@@ -1,77 +1,149 @@
 """
-Compliance API Routes
-Legal Sentinel - Agent B functionality
+Compliance Query API (Agent B - Legal Sentinel)
+Structure-aware RAG for legal compliance checking
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+from enum import Enum
 
-from backend.agents.legal_sentinel import LegalSentinel
-
-
-router = APIRouter()
-sentinel = LegalSentinel()
+router = APIRouter(prefix="/compliance", tags=["Compliance"])
 
 
-# --- Schemas ---
-class ComplianceQuery(BaseModel):
+class RiskLevel(str, Enum):
+    """Compliance risk levels"""
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class ComplianceQueryRequest(BaseModel):
+    """Compliance query request"""
     query: str
-    user_context: Optional[str] = None
+    user_context: Optional[Dict[str, Any]] = None  # turnover, sector, state, etc.
 
 
-class ComplianceResult(BaseModel):
-    risk_level: str  # LOW, MEDIUM, HIGH
-    relevant_section: str
-    explanation: str
-    compliant_action: str
+class ComplianceSection(BaseModel):
+    """Relevant legal section"""
+    section_name: str
+    section_number: str
+    act_name: str
+    description: str
+    relevance_score: float
 
 
 class ComplianceResponse(BaseModel):
-    success: bool
-    data: Optional[ComplianceResult] = None
-    error: Optional[str] = None
+    """Compliance query response"""
+    risk_level: RiskLevel
+    relevant_sections: List[ComplianceSection]
+    explanation: str
+    compliant_action: str
+    warnings: Optional[List[str]] = None
+    references: Optional[List[str]] = None
 
 
-# --- Routes ---
 @router.post("/query", response_model=ComplianceResponse)
-async def check_compliance(query: ComplianceQuery):
+async def query_compliance(request: ComplianceQueryRequest):
     """
-    Ask a compliance question and get risk assessment
+    Query legal compliance using Agent B (Legal Sentinel)
+    
+    Uses structure-aware RAG to:
+    - Search legal database (GST Act, Income Tax, Companies Act)
+    - Filter by user context (turnover, sector)
+    - Provide CA-style conservative interpretations
+    - Reference specific sections with explanations
     """
     try:
-        result = await sentinel.analyze(query.query, query.user_context)
-        return ComplianceResponse(success=True, data=result)
+        from backend.agents.legal_sentinel import check_compliance_law
+        
+        # Process query with Legal Sentinel
+        result = await check_compliance_law(
+            query=request.query,
+            user_context=request.user_context
+        )
+        
+        return ComplianceResponse(**result)
+    
     except Exception as e:
-        return ComplianceResponse(success=False, error=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process compliance query: {str(e)}"
+        )
+
+
+@router.get("/sections")
+async def search_sections(
+    query: str,
+    act: Optional[str] = None,
+    limit: int = 10
+):
+    """
+    Search legal sections by keyword
+    
+    Returns relevant sections from legal database
+    """
+    try:
+        from backend.agents.legal_sentinel import search_legal_sections
+        
+        sections = await search_legal_sections(query, act, limit)
+        
+        return {
+            "success": True,
+            "data": {
+                "sections": sections,
+                "total": len(sections)
+            }
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to search sections: {str(e)}"
+        )
 
 
 @router.get("/history")
-async def get_compliance_history():
-    """Get user's compliance query history"""
-    # TODO: Implement with database
-    return {"queries": [], "total": 0}
-
-
-@router.get("/quick-answers")
-async def get_quick_answers():
-    """Common compliance questions with pre-computed answers"""
+async def get_query_history(
+    skip: int = 0,
+    limit: int = 20
+):
+    """
+    Get user's compliance query history
+    
+    Returns paginated list of previous queries
+    """
+    # TODO: Implement database query
     return {
-        "questions": [
-            {
-                "question": "Can I claim ITC on food and beverages?",
-                "answer": "Generally NO. Section 17(5) of CGST Act blocks ITC on food & beverages except when used for further supply or as part of taxable services.",
-                "risk_level": "MEDIUM"
-            },
-            {
-                "question": "What is the GST rate for software services?",
-                "answer": "18% GST for software development and IT services under SAC 998314.",
-                "risk_level": "LOW"
-            },
-            {
-                "question": "When is GSTR-3B due?",
-                "answer": "20th of the following month for regular taxpayers. QRMP scheme allows quarterly filing.",
-                "risk_level": "HIGH" 
-            }
-        ]
+        "success": True,
+        "data": {
+            "queries": [],
+            "total": 0,
+            "skip": skip,
+            "limit": limit
+        }
+    }
+
+
+@router.post("/monitor/subscribe")
+async def subscribe_to_monitoring(
+    sectors: List[str],
+    acts: Optional[List[str]] = None
+):
+    """
+    Subscribe to legal change monitoring
+    
+    Agent B will monitor government websites and alert
+    user of relevant changes
+    """
+    # TODO: Implement monitoring subscription
+    return {
+        "success": True,
+        "message": "Monitoring subscription created",
+        "data": {
+            "sectors": sectors,
+            "acts": acts or ["GST", "Income Tax", "Companies Act"]
+        }
     }

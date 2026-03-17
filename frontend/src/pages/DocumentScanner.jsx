@@ -1,38 +1,27 @@
-import React, { useState, useRef, useCallback } from 'react';
-import {
-    Upload,
-    Camera,
-    FileText,
-    X,
-    CheckCircle,
-    AlertTriangle,
-    XCircle,
-    Loader2,
-    FileCheck,
-    Edit3,
-    MessageSquare,
-    Download
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Modal, Progress } from '../components/ui';
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Upload, Camera, FileText, CheckCircle, AlertCircle, XCircle, Loader } from 'lucide-react';
+import { Card, CardHeader, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import InvoiceDrawer from '../components/Chat/InvoiceDrawer';
 
 const DocumentScanner = () => {
+    const navigate = useNavigate();
     const [dragActive, setDragActive] = useState(false);
-    const [files, setFiles] = useState([]);
-    const [processing, setProcessing] = useState(false);
-    const [processingProgress, setProcessingProgress] = useState(0);
-    const [currentResult, setCurrentResult] = useState(null);
-    const [showResultModal, setShowResultModal] = useState(false);
-    const [recentAudits, setRecentAudits] = useState([]);
-
-    const fileInputRef = useRef(null);
-    const cameraInputRef = useRef(null);
+    const [file, setFile] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const [analyzing, setAnalyzing] = useState(false);
+    const [result, setResult] = useState(null);
+    const [error, setError] = useState(null);
+    const [showDetails, setShowDetails] = useState(false);
 
     const handleDrag = useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (e.type === 'dragenter' || e.type === 'dragover') {
+        if (e.type === "dragenter" || e.type === "dragover") {
             setDragActive(true);
-        } else if (e.type === 'dragleave') {
+        } else if (e.type === "dragleave") {
             setDragActive(false);
         }
     }, []);
@@ -43,437 +32,307 @@ const DocumentScanner = () => {
         setDragActive(false);
 
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFiles(e.dataTransfer.files);
+            handleFile(e.dataTransfer.files[0]);
         }
     }, []);
 
-    const handleFiles = (fileList) => {
-        const newFiles = Array.from(fileList).filter(file => {
-            const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-            const maxSize = 10 * 1024 * 1024; // 10MB
-            return validTypes.includes(file.type) && file.size <= maxSize;
-        });
-
-        setFiles(prev => [...prev, ...newFiles.map(file => ({
-            file,
-            id: Date.now() + Math.random(),
-            preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
-            status: 'pending'
-        }))]);
+    const handleChange = (e) => {
+        e.preventDefault();
+        if (e.target.files && e.target.files[0]) {
+            handleFile(e.target.files[0]);
+        }
     };
 
-    const removeFile = (id) => {
-        setFiles(prev => prev.filter(f => f.id !== id));
+    const handleFile = (selectedFile) => {
+        // Validate file type
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+        if (!allowedTypes.includes(selectedFile.type)) {
+            setError('Please upload a PNG, JPG, or PDF file');
+            return;
+        }
+
+        // Validate file size (max 10MB)
+        if (selectedFile.size > 10 * 1024 * 1024) {
+            setError('File size must be less than 10MB');
+            return;
+        }
+
+        setFile(selectedFile);
+        setError(null);
+
+        // Create preview for images
+        if (selectedFile.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result);
+            };
+            reader.readAsDataURL(selectedFile);
+        }
     };
 
-    const processDocuments = async () => {
-        if (files.length === 0) return;
+    const handleAnalyze = async () => {
+        if (!file) return;
 
-        setProcessing(true);
-        setProcessingProgress(10); // Start progress
+        setAnalyzing(true);
+        setError(null);
 
         try {
-            // Currently processing one file at a time for the demo
-            const fileToUpload = files[0].file;
-            const response = await import('../services/api').then(m => m.default.visualAuditor.uploadDocument(fileToUpload, true));
-            setProcessingProgress(80);
+            const formData = new FormData();
+            formData.append('file', file);
 
-            if (response.success && response.invoice_data) {
-                const invoice = response.invoice_data;
+            const response = await fetch('http://localhost:8000/api/v1/invoices/analyze', {
+                method: 'POST',
+                body: formData
+            });
 
-                const result = {
-                    fileName: fileToUpload.name,
-                    vendor: invoice.vendor_name,
-                    amount: invoice.total_amount,
-                    taxAmount: invoice.tax_amount,
-                    invoiceDate: invoice.invoice_date,
-                    invoiceNumber: invoice.invoice_number || 'N/A',
-                    gstNumber: invoice.gstin || 'N/A',
-                    lineItems: invoice.line_items || [],
-                    status: (invoice.compliance_flags && invoice.compliance_flags.length > 0) ? 'warning' : 'compliant',
-                    complianceFlags: invoice.compliance_flags || [],
-                    aiSummary: invoice.summary || 'Processed successfully.',
-                };
-
-                setCurrentResult(result);
-                setShowResultModal(true);
-
-                // Add to recent audits
-                setRecentAudits(prev => [{
-                    id: Date.now(),
-                    fileName: result.fileName,
-                    vendor: result.vendor,
-                    amount: result.amount,
-                    date: result.invoiceDate,
-                    status: result.status,
-                    gstNumber: result.gstNumber,
-                }, ...prev.slice(0, 4)]);
-
-                setProcessingProgress(100);
-            } else {
-                throw new Error("Failed to process document");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to analyze invoice');
             }
-        } catch (error) {
-            console.error("Processing failed", error);
-            alert("Failed to process document: " + error.message);
+
+            const data = await response.json();
+            setResult(data);
+            setShowDetails(true);
+        } catch (err) {
+            setError(err.message || 'Failed to analyze invoice. Please try again.');
+            console.error('Analysis error:', err);
         } finally {
-            setProcessing(false);
-            setProcessingProgress(0);
-            setFiles([]);
+            setAnalyzing(false);
         }
     };
 
-    const getStatusIcon = (status) => {
-        switch (status) {
-            case 'compliant':
-                return <CheckCircle className="w-5 h-5 text-emerald-500" />;
-            case 'warning':
-                return <AlertTriangle className="w-5 h-5 text-amber-500" />;
-            case 'non-compliant':
-                return <XCircle className="w-5 h-5 text-red-500" />;
-            default:
-                return null;
-        }
-    };
-
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'compliant':
-                return <Badge variant="success">Compliant</Badge>;
-            case 'warning':
-                return <Badge variant="warning">Warning</Badge>;
-            case 'non-compliant':
-                return <Badge variant="danger">Non-Compliant</Badge>;
-            default:
-                return <Badge>Pending</Badge>;
-        }
+    const handleReset = () => {
+        setFile(null);
+        setPreview(null);
+        setResult(null);
+        setError(null);
+        setShowDetails(false);
     };
 
     return (
-        <div className="p-4 lg:p-8 space-y-6 bg-slate-50 min-h-screen">
-            {/* Page Header */}
-            <div>
-                <h1 className="text-2xl lg:text-3xl font-bold text-slate-800">Document Scanner</h1>
-                <p className="text-slate-500 mt-1">Upload invoices and bills for AI-powered compliance audit</p>
-            </div>
+        <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
+            <div className="max-w-4xl mx-auto space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900">Document Scanner</h1>
+                        <p className="text-slate-500 mt-1">Upload invoices for AI-powered analysis</p>
+                    </div>
+                    <Button variant="outline" onClick={() => navigate('/history')}>
+                        View History
+                    </Button>
+                </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
-                {/* Upload Section */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Drop Zone */}
-                    <Card>
-                        <CardContent className="p-0">
+                {/* Features */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FeatureCard
+                        icon={FileText}
+                        title="Data Extraction"
+                        description="Extract vendor, amounts, dates, and line items automatically"
+                    />
+                    <FeatureCard
+                        icon={CheckCircle}
+                        title="Fraud Detection"
+                        description="Detect tampering, handwriting, and inconsistencies"
+                    />
+                    <FeatureCard
+                        icon={AlertCircle}
+                        title="Compliance Check"
+                        description="Verify ITC eligibility and flag compliance issues"
+                    />
+                </div>
+
+                {/* Upload Area */}
+                <Card>
+                    <CardContent className="p-8">
+                        {!file ? (
                             <div
-                                className={`relative p-8 border-2 border-dashed rounded-xl transition-all ${dragActive
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-slate-300 hover:border-primary/50'
+                                className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${dragActive
+                                        ? 'border-primary-500 bg-primary-50'
+                                        : 'border-slate-300 hover:border-primary-400 hover:bg-slate-50'
                                     }`}
                                 onDragEnter={handleDrag}
                                 onDragLeave={handleDrag}
                                 onDragOver={handleDrag}
                                 onDrop={handleDrop}
                             >
+                                <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                                    Drop your invoice here
+                                </h3>
+                                <p className="text-slate-500 mb-4">
+                                    Supports PNG, JPG, and PDF (max 10MB)
+                                </p>
+                                <div className="flex items-center justify-center gap-4">
+                                    <Button onClick={() => document.getElementById('file-upload')?.click()}>
+                                        Browse Files
+                                    </Button>
+                                    <Button variant="outline">
+                                        <Camera className="w-4 h-4 mr-2" />
+                                        Take Photo
+                                    </Button>
+                                </div>
                                 <input
-                                    ref={fileInputRef}
+                                    id="file-upload"
                                     type="file"
-                                    accept=".jpg,.jpeg,.png,.pdf"
-                                    multiple
-                                    onChange={(e) => handleFiles(e.target.files)}
+                                    accept="image/png,image/jpeg,image/jpg,application/pdf"
+                                    onChange={handleChange}
                                     className="hidden"
                                 />
-                                <input
-                                    ref={cameraInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    capture="environment"
-                                    onChange={(e) => handleFiles(e.target.files)}
-                                    className="hidden"
-                                />
-
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Upload className="w-8 h-8 text-primary" />
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {/* File Preview */}
+                                <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
+                                    {preview ? (
+                                        <img src={preview} alt="Preview" className="w-20 h-20 object-cover rounded" />
+                                    ) : (
+                                        <div className="w-20 h-20 bg-slate-200 rounded flex items-center justify-center">
+                                            <FileText className="w-10 h-10 text-slate-400" />
+                                        </div>
+                                    )}
+                                    <div className="flex-1">
+                                        <p className="font-medium text-slate-900">{file.name}</p>
+                                        <p className="text-sm text-slate-500">
+                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                        </p>
                                     </div>
-                                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                                        Drop your documents here
-                                    </h3>
-                                    <p className="text-slate-500 mb-6">
-                                        or choose an option below to upload
-                                    </p>
+                                    <Button variant="outline" size="sm" onClick={handleReset}>
+                                        <XCircle className="w-4 h-4" />
+                                    </Button>
+                                </div>
 
-                                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                        <Button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            icon={FileText}
-                                        >
-                                            Browse Files
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => cameraInputRef.current?.click()}
-                                            icon={Camera}
-                                        >
-                                            Take Photo
-                                        </Button>
-                                    </div>
+                                {/* Analyze Button */}
+                                <Button
+                                    onClick={handleAnalyze}
+                                    disabled={analyzing}
+                                    className="w-full"
+                                    size="lg"
+                                >
+                                    {analyzing ? (
+                                        <>
+                                            <Loader className="w-5 h-5 mr-2 animate-spin" />
+                                            Analyzing Invoice...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FileText className="w-5 h-5 mr-2" />
+                                            Analyze Invoice
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
 
-                                    <p className="text-xs text-slate-400 mt-4">
-                                        Supported formats: JPG, PNG, PDF (max 10MB)
-                                    </p>
+                        {/* Error Message */}
+                        {error && (
+                            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                                <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-medium text-red-900">Error</p>
+                                    <p className="text-sm text-red-700">{error}</p>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        )}
+                    </CardContent>
+                </Card>
 
-                    {/* File Preview */}
-                    {files.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Selected Documents ({files.length})</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-3">
-                                    {files.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg"
-                                        >
-                                            {item.preview ? (
-                                                <img
-                                                    src={item.preview}
-                                                    alt="Preview"
-                                                    className="w-16 h-16 object-cover rounded-lg"
-                                                />
-                                            ) : (
-                                                <div className="w-16 h-16 bg-slate-200 rounded-lg flex items-center justify-center">
-                                                    <FileText className="w-8 h-8 text-slate-400" />
-                                                </div>
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-slate-800 truncate">
-                                                    {item.file.name}
-                                                </p>
-                                                <p className="text-sm text-slate-500">
-                                                    {(item.file.size / 1024).toFixed(1)} KB
-                                                </p>
+                {/* Analysis Result */}
+                {result && (
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold text-slate-900">Analysis Results</h2>
+                                <Badge variant={result.is_valid_business_expense ? 'success' : 'danger'}>
+                                    {result.is_valid_business_expense ? 'Valid Business Expense' : 'Review Required'}
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {/* Summary */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <SummaryItem label="Vendor" value={result.vendor_name} />
+                                <SummaryItem label="Amount" value={`₹${result.total_amount.toLocaleString('en-IN')}`} />
+                                <SummaryItem label="Tax" value={`₹${result.tax_amount.toLocaleString('en-IN')}`} />
+                                <SummaryItem label="Confidence" value={`${(result.confidence_score * 100).toFixed(0)}%`} />
+                            </div>
+
+                            {/* Compliance Status */}
+                            <div>
+                                <h3 className="font-semibold text-slate-900 mb-2">Compliance Status</h3>
+                                <div className="space-y-2">
+                                    {result.compliance_flags && result.compliance_flags.length > 0 ? (
+                                        result.compliance_flags.map((flag, index) => (
+                                            <div key={index} className="flex items-center gap-2 text-sm text-red-700 bg-red-50 p-2 rounded">
+                                                <AlertCircle className="w-4 h-4" />
+                                                <span>{flag}</span>
                                             </div>
-                                            <button
-                                                onClick={() => removeFile(item.id)}
-                                                className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
-                                            >
-                                                <X className="w-5 h-5 text-slate-400" />
-                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded">
+                                            <CheckCircle className="w-4 h-4" />
+                                            <span>No compliance issues detected</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Subsidy Alerts */}
+                            {result.subsidy_alerts && result.subsidy_alerts.length > 0 && (
+                                <div>
+                                    <h3 className="font-semibold text-slate-900 mb-2">Subsidy Opportunities</h3>
+                                    {result.subsidy_alerts.map((alert, index) => (
+                                        <div key={index} className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded mb-2">
+                                            <CheckCircle className="w-4 h-4" />
+                                            <span>{alert}</span>
                                         </div>
                                     ))}
                                 </div>
+                            )}
 
-                                <div className="mt-4 pt-4 border-t border-slate-100">
-                                    <Button
-                                        className="w-full"
-                                        onClick={processDocuments}
-                                        disabled={processing}
-                                        loading={processing}
-                                    >
-                                        {processing ? 'Processing...' : 'Start Audit'}
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Processing Modal */}
-                    {processing && (
-                        <Card>
-                            <CardContent className="py-8">
-                                <div className="text-center">
-                                    <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
-                                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                                        Visual Auditor is analyzing...
-                                    </h3>
-                                    <p className="text-slate-500 mb-6">
-                                        Extracting data and checking compliance
-                                    </p>
-                                    <Progress value={processingProgress} className="max-w-xs mx-auto" />
-                                    <p className="text-sm text-slate-400 mt-2">{processingProgress}%</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-
-                {/* Recent Audits */}
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Recent Audits</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="divide-y divide-slate-100">
-                                {recentAudits.map((audit) => (
-                                    <div
-                                        key={audit.id}
-                                        className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            {getStatusIcon(audit.status)}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-slate-800 truncate text-sm">
-                                                    {audit.vendor}
-                                                </p>
-                                                <p className="text-xs text-slate-500 truncate">
-                                                    {audit.fileName}
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <span className="text-sm font-semibold text-slate-800">
-                                                        ₹{audit.amount.toLocaleString()}
-                                                    </span>
-                                                    {getStatusBadge(audit.status)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Telegram Integration */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Telegram Integration</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-center">
-                                <div className="w-32 h-32 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                                    <MessageSquare className="w-12 h-12 text-slate-400" />
-                                </div>
-                                <p className="text-sm text-slate-500 mb-4">
-                                    Connect Telegram to receive audit alerts and upload documents on the go
-                                </p>
-                                <Button variant="outline" className="w-full">
-                                    Connect Telegram
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-4">
+                                <Button onClick={() => setShowDetails(true)} className="flex-1">
+                                    View Full Details
+                                </Button>
+                                <Button variant="outline" onClick={() => navigate('/compliance')}>
+                                    Check Compliance
+                                </Button>
+                                <Button variant="outline" onClick={() => navigate('/subsidies')}>
+                                    Explore Subsidies
                                 </Button>
                             </div>
                         </CardContent>
                     </Card>
-                </div>
+                )}
             </div>
 
-            {/* Result Modal */}
-            <Modal
-                isOpen={showResultModal}
-                onClose={() => setShowResultModal(false)}
-                title="Audit Result"
-                description={currentResult?.fileName}
-                size="lg"
-            >
-                {currentResult && (
-                    <div className="space-y-6">
-                        {/* Status Banner */}
-                        <div className={`p-4 rounded-xl ${currentResult.status === 'compliant'
-                                ? 'bg-emerald-50 border border-emerald-200'
-                                : currentResult.status === 'warning'
-                                    ? 'bg-amber-50 border border-amber-200'
-                                    : 'bg-red-50 border border-red-200'
-                            }`}>
-                            <div className="flex items-center gap-3">
-                                {getStatusIcon(currentResult.status)}
-                                <div>
-                                    <p className={`font-semibold ${currentResult.status === 'compliant'
-                                            ? 'text-emerald-800'
-                                            : currentResult.status === 'warning'
-                                                ? 'text-amber-800'
-                                                : 'text-red-800'
-                                        }`}>
-                                        {currentResult.status === 'compliant'
-                                            ? '✅ Document is Compliant'
-                                            : currentResult.status === 'warning'
-                                                ? '⚠️ Review Required'
-                                                : '❌ Non-Compliant'}
-                                    </p>
-                                    <p className="text-sm text-slate-600 mt-1">
-                                        {currentResult.aiSummary}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Extracted Data */}
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-3">
-                                <div>
-                                    <p className="text-xs text-slate-500">Vendor Name</p>
-                                    <p className="font-medium text-slate-800">{currentResult.vendor}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500">Invoice Number</p>
-                                    <p className="font-medium text-slate-800">{currentResult.invoiceNumber}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500">Invoice Date</p>
-                                    <p className="font-medium text-slate-800">{currentResult.invoiceDate}</p>
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <div>
-                                    <p className="text-xs text-slate-500">GST Number</p>
-                                    <p className="font-medium text-slate-800">{currentResult.gstNumber}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500">Total Amount</p>
-                                    <p className="font-medium text-slate-800">₹{currentResult.amount.toLocaleString()}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500">Tax Amount</p>
-                                    <p className="font-medium text-slate-800">₹{currentResult.taxAmount.toLocaleString()}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Line Items */}
-                        <div>
-                            <h4 className="font-medium text-slate-800 mb-3">Line Items</h4>
-                            <div className="border border-slate-200 rounded-lg overflow-hidden">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-slate-50">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-slate-600">Description</th>
-                                            <th className="px-4 py-2 text-right text-slate-600">Qty</th>
-                                            <th className="px-4 py-2 text-right text-slate-600">Rate</th>
-                                            <th className="px-4 py-2 text-right text-slate-600">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {currentResult.lineItems.map((item, index) => (
-                                            <tr key={index} className="border-t border-slate-100">
-                                                <td className="px-4 py-2 text-slate-800">{item.description}</td>
-                                                <td className="px-4 py-2 text-right text-slate-600">{item.quantity}</td>
-                                                <td className="px-4 py-2 text-right text-slate-600">₹{item.rate.toLocaleString()}</td>
-                                                <td className="px-4 py-2 text-right font-medium text-slate-800">₹{item.amount.toLocaleString()}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100">
-                            <Button icon={Edit3} variant="outline" className="flex-1">
-                                Edit Data
-                            </Button>
-                            <Button icon={Download} variant="outline" className="flex-1">
-                                Download Report
-                            </Button>
-                            <Button icon={FileCheck} className="flex-1">
-                                Save to Ledger
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
+            {/* Invoice Details Drawer */}
+            {showDetails && result && (
+                <InvoiceDrawer
+                    invoice={result}
+                    onClose={() => setShowDetails(false)}
+                />
+            )}
         </div>
     );
 };
+
+// Sub-components
+
+const FeatureCard = ({ icon: Icon, title, description }) => (
+    <div className="p-4 bg-white rounded-lg border border-slate-200">
+        <Icon className="w-8 h-8 text-primary-600 mb-3" />
+        <h3 className="font-semibold text-slate-900 mb-1">{title}</h3>
+        <p className="text-sm text-slate-500">{description}</p>
+    </div>
+);
+
+const SummaryItem = ({ label, value }) => (
+    <div className="p-3 bg-slate-50 rounded-lg">
+        <p className="text-xs text-slate-500 mb-1">{label}</p>
+        <p className="font-semibold text-slate-900">{value}</p>
+    </div>
+);
 
 export default DocumentScanner;

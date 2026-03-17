@@ -1,5 +1,10 @@
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
+/**
+ * UI Components Export
+ * Centralized export for all UI components
+ */
+
 export { Button } from './Button';
+export { Card, CardHeader, CardContent } from './Card';
 export { Badge } from './Badge';
-export { Progress } from './Progress';
 export { Modal } from './Modal';
+export { Progress } from './Progress';

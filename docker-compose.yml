@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: microcfo-db
+    environment:
+      POSTGRES_USER: microcfo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: microcfo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U microcfo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microcfo-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: microcfo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - microcfo-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microcfo-backend
+    environment:
+      DATABASE_URL: postgresql://microcfo:${POSTGRES_PASSWORD:-changeme}@postgres:5432/microcfo
+      REDIS_URL: redis://redis:6379
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      DEBUG: "false"
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:5173","http://localhost"]'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./file_storage:/app/file_storage
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - microcfo-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: microcfo-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - microcfo-network
+    restart: unless-stopped
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microcfo-worker
+    command: celery -A src.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://microcfo:${POSTGRES_PASSWORD:-changeme}@postgres:5432/microcfo
+      REDIS_URL: redis://redis:6379
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./file_storage:/app/file_storage
+    networks:
+      - microcfo-network
+    restart: unless-stopped
+
+  # Celery Flower (Monitoring)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microcfo-flower
+    command: celery -A src.celery_app flower --port=5555
+    environment:
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    networks:
+      - microcfo-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  microcfo-network:
+    driver: bridge
